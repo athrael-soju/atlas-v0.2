@@ -572,7 +572,7 @@ export const navItems: NavItem[] = [
     href: '/dashboard/employee',
     icon: 'employee',
     label: 'employee'
-  },
+  }
   // {
   //   title: 'User',
   //   href: '/dashboard/user',
@@ -585,10 +585,10 @@ export const navItems: NavItem[] = [
   //   icon: 'kanban',
   //   label: 'kanban'
   // },
-  {
-    title: 'Logout',
-    href: '/',
-    icon: 'logout',
-    label: 'logout'
-  }
+  // {
+  //   title: 'Logout',
+  //   href: '/',
+  //   icon: 'logout',
+  //   label: 'logout'
+  // }
 ];
