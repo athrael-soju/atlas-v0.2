@@ -37,7 +37,7 @@ export default async function page({ searchParams }: paramsProps) {
   const employee: Employee[] = employeeRes.users;
   return (
     <PageContainer>
-      <div className="space-y-4">
+      <div className="space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
 
         <div className="flex items-start justify-between">
