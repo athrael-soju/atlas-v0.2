@@ -10,6 +10,8 @@ import {
   ToolCallDelta
 } from 'openai/resources/beta/threads/runs/steps.mjs';
 import { TextDelta } from 'openai/resources/beta/threads/messages.mjs';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 type MessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -279,20 +281,14 @@ const Chat = ({
         onSubmit={handleSubmit}
         className="flex items-center space-x-4 border-t pt-4"
       >
-        <input
+        <Input
           type="text"
-          className="flex-1 rounded-lg border p-2 focus:border-blue-300 focus:outline-none focus:ring"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Ask anything!"
         />
-        <button
-          type="submit"
-          className="rounded-lg bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
-          disabled={inputDisabled}
-        >
-          Send
-        </button>
+
+        <Button disabled={inputDisabled}>Send</Button>
       </form>
     </div>
   );
