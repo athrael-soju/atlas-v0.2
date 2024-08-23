@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue
@@ -31,7 +32,7 @@ import { AlertTriangleIcon, Trash, Trash2Icon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
-
+import { countries, languages } from '@/constants/data';
 interface ProfileFormType {
   initialData: any | null;
   categories: any;
@@ -46,7 +47,7 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imgLoading, setImgLoading] = useState(false);
-  const title = initialData ? 'Edit product' : 'Create Your Profile';
+  const title = initialData ? 'Edit product' : 'Update Your Profile';
   const description = initialData
     ? 'Edit a product.'
     : 'To create your resume, we first need some basic information about you.';
@@ -65,7 +66,7 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
         startdate: '',
         enddate: '',
         jobcountry: '',
-        jobcity: ''
+        joblanguage: ''
       }
     ]
   };
@@ -129,11 +130,18 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
     {
       id: 'Step 1',
       name: 'Personal Information',
-      fields: ['firstname', 'lastname', 'email', 'contactno', 'country', 'city']
+      fields: [
+        'firstname',
+        'lastname',
+        'email',
+        'contactno',
+        'country',
+        'language'
+      ]
     },
     {
       id: 'Step 2',
-      name: 'Professional Informations',
+      name: 'Professional Information',
       // fields are mapping and flattening for the error to be trigger  for the dynamic fields
       fields: fields
         ?.map((_, index) => [
@@ -142,7 +150,7 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
           `jobs.${index}.startdate`,
           `jobs.${index}.enddate`,
           `jobs.${index}.jobcountry`,
-          `jobs.${index}.jobcity`
+          `jobs.${index}.joblanguage`
           // Add other field names as needed
         ])
         .flat()
@@ -174,9 +182,6 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
       setCurrentStep((step) => step - 1);
     }
   };
-
-  const countries = [{ id: 'wow', name: 'india' }];
-  const cities = [{ id: '2', name: 'kerala' }];
 
   return (
     <>
@@ -332,12 +337,16 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {/* @ts-ignore  */}
-                          {countries.map((country) => (
-                            <SelectItem key={country.id} value={country.id}>
-                              {country.name}
-                            </SelectItem>
-                          ))}
+                          <SelectGroup>
+                            {countries.map((country) => (
+                              <SelectItem
+                                key={country.code}
+                                value={country.code}
+                              >
+                                {country.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -346,10 +355,10 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
                 />
                 <FormField
                   control={form.control}
-                  name="city"
+                  name="language"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel>Language</FormLabel>
                       <Select
                         disabled={loading}
                         onValueChange={field.onChange}
@@ -360,15 +369,18 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
                           <SelectTrigger>
                             <SelectValue
                               defaultValue={field.value}
-                              placeholder="Select a city"
+                              placeholder="Select a language"
                             />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {/* @ts-ignore  */}
-                          {cities.map((city) => (
-                            <SelectItem key={city.id} value={city.id}>
-                              {city.name}
+                          {languages.map((language) => (
+                            <SelectItem
+                              key={language.code}
+                              value={language.code}
+                            >
+                              {language.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -508,8 +520,8 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
                                   <SelectContent>
                                     {countries.map((country) => (
                                       <SelectItem
-                                        key={country.id}
-                                        value={country.id}
+                                        key={country.code}
+                                        value={country.code}
                                       >
                                         {country.name}
                                       </SelectItem>
@@ -522,10 +534,10 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
                           />
                           <FormField
                             control={form.control}
-                            name={`jobs.${index}.jobcity`}
+                            name={`jobs.${index}.joblanguage`}
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Job city</FormLabel>
+                                <FormLabel>Job language</FormLabel>
                                 <Select
                                   disabled={loading}
                                   onValueChange={field.onChange}
@@ -536,14 +548,17 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
                                     <SelectTrigger>
                                       <SelectValue
                                         defaultValue={field.value}
-                                        placeholder="Select your job city"
+                                        placeholder="Select your language"
                                       />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    {cities.map((city) => (
-                                      <SelectItem key={city.id} value={city.id}>
-                                        {city.name}
+                                    {languages.map((language) => (
+                                      <SelectItem
+                                        key={language.code}
+                                        value={language.code}
+                                      >
+                                        {language.name}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -570,7 +585,7 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
                         startdate: '',
                         enddate: '',
                         jobcountry: '',
-                        jobcity: ''
+                        joblanguage: ''
                       })
                     }
                   >
