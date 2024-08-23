@@ -1,3 +1,5 @@
+'use client';
+
 import Chat from '@/components/chat/chat';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
