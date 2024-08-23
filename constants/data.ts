@@ -562,6 +562,12 @@ export const navItems: NavItem[] = [
     label: 'Dashboard'
   },
   {
+    title: 'Chat',
+    href: '/dashboard/chat',
+    icon: 'bot',
+    label: 'Chat'
+  },
+  {
     title: 'Profile',
     href: '/dashboard/profile',
     icon: 'profile',

@@ -25,9 +25,9 @@ import {
   Settings,
   SunMedium,
   Trash,
-  Twitter,
+  XCircle,
   User,
-  User2Icon,
+  BotMessageSquare,
   UserCircle,
   Users,
   X
@@ -57,6 +57,7 @@ export const Icons = {
   add: Plus,
   warning: AlertTriangle,
   user: User,
+  bot: BotMessageSquare,
   arrowRight: ArrowRight,
   help: HelpCircle,
   pizza: Pizza,
@@ -80,6 +81,6 @@ export const Icons = {
       ></path>
     </svg>
   ),
-  twitter: Twitter,
+  twitter: XCircle,
   check: Check
 };
