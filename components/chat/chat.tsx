@@ -12,19 +12,23 @@ import {
 import { TextDelta } from 'openai/resources/beta/threads/messages.mjs';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-
+import { Spinner } from '@/components/ui/spinner';
 type MessageProps = {
   role: 'user' | 'assistant' | 'code';
   text: string;
 };
 
 const UserMessage = ({ text }: { text: string }) => {
-  return <div className="rounded-lg bg-blue-100 p-3 text-blue-900">{text}</div>;
+  return (
+    <div className="rounded-lg bg-primary p-3 text-primary-foreground">
+      {text}
+    </div>
+  );
 };
 
 const AssistantMessage = ({ text }: { text: string }) => {
   return (
-    <div className="rounded-lg bg-gray-100 p-3 text-gray-900">
+    <div className="rounded-lg bg-card p-3 text-card-foreground">
       <Markdown>{text}</Markdown>
     </div>
   );
@@ -32,10 +36,10 @@ const AssistantMessage = ({ text }: { text: string }) => {
 
 const CodeMessage = ({ text }: { text: string }) => {
   return (
-    <div className="rounded-lg bg-gray-800 p-3 font-mono text-sm text-gray-200">
+    <div className="rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground">
       {text.split('\n').map((line, index) => (
         <div key={index} className="flex">
-          <span className="mr-2 text-gray-500">{`${index + 1}. `}</span>
+          <span className="mr-2 text-muted-foreground">{`${index + 1}. `}</span>
           <span>{line}</span>
         </div>
       ))}
@@ -71,6 +75,7 @@ const Chat = ({
   );
   const [inputDisabled, setInputDisabled] = useState(false);
   const [threadId, setThreadId] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
 
   // automatically scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -94,6 +99,7 @@ const Chat = ({
   }, []);
 
   const sendMessage = async (text: string) => {
+    setIsThinking(true); // Assistant starts thinking
     const response = await fetch(
       `/api/assistants/threads/${threadId}/messages`,
       {
@@ -149,6 +155,7 @@ const Chat = ({
 
   // textCreated - create new assistant message
   const handleTextCreated = () => {
+    setIsThinking(false); // Assistant starts responding
     appendMessage('assistant', '');
   };
 
@@ -265,9 +272,9 @@ const Chat = ({
   return (
     <div
       className="flex flex-col rounded-lg border bg-white p-4 shadow dark:bg-gray-900"
-      style={{ height: '82vh' }}
+      style={{ height: 'calc(100vh - 200px)' }} // Adjust height dynamically
     >
-      <div className="mb-4 flex-1 space-y-4 overflow-y-auto">
+      <div className="mb-4 flex-1 space-y-4 overflow-y-auto px-4">
         {messages.map((msg, index) => (
           <Message
             key={index}
@@ -275,8 +282,10 @@ const Chat = ({
             text={msg.text}
           />
         ))}
+        {isThinking && <Spinner />}
         <div ref={messagesEndRef} />
       </div>
+
       <form
         onSubmit={handleSubmit}
         className="flex items-center space-x-4 border-t pt-4"
