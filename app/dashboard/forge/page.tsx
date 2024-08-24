@@ -1,24 +1,27 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { KanbanBoard } from '@/components/kanban/kanban-board';
-import NewTaskDialog from '@/components/kanban/new-task-dialog';
 import PageContainer from '@/components/layout/page-container';
+import { ForgeForm } from './forge-form';
 import { Heading } from '@/components/ui/heading';
+import { Separator } from '@/components/ui/separator';
 
 const breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
-  { title: 'Kanban', link: '/dashboard/kanban' }
+  { title: 'Forge', link: '/dashboard/forge' }
 ];
 
 export default function page() {
   return (
-    <PageContainer>
+    <PageContainer scrollable={true}>
       <div className="space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
         <div className="flex items-start justify-between">
-          <Heading title={`Kanban`} description="Manage tasks by dnd" />
-          <NewTaskDialog />
+          <Heading
+            title={'Customize your Forge'}
+            description="Configure your Forge settings to achieve optimum results."
+          />
         </div>
-        <KanbanBoard />
+        <Separator />
+        <ForgeForm />
       </div>
     </PageContainer>
   );
