@@ -94,7 +94,7 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
         // await axios.post(`/api/products/edit-product/${initialData._id}`, data);
       } else {
         // const res = await axios.post(`/api/products/create-product`, data);
-        // console.log("product", res);
+        // console.info("product", res);
       }
       router.refresh();
       router.push(`/dashboard/products`);
@@ -118,7 +118,7 @@ export const CreateProfileOne: React.FC<ProfileFormType> = ({
   };
 
   const processForm: SubmitHandler<ProfileFormValues> = (data) => {
-    console.log('data ==>', data);
+    //console.info('data ==>', data);
     setData(data);
     // api call and reset
     // form.reset();
