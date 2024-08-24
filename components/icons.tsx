@@ -30,7 +30,8 @@ import {
   BotMessageSquare,
   UserCircle,
   Users,
-  X
+  X,
+  Anvil
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -64,6 +65,7 @@ export const Icons = {
   sun: SunMedium,
   moon: Moon,
   laptop: Laptop,
+  anvil: Anvil,
   gitHub: ({ ...props }: LucideProps) => (
     <svg
       aria-hidden="true"

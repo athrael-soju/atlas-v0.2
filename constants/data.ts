@@ -578,6 +578,12 @@ export const navItems: NavItem[] = [
     href: '/dashboard/employee',
     icon: 'employee',
     label: 'employee'
+  },
+  {
+    title: 'Forge',
+    href: '/dashboard/forge',
+    icon: 'anvil',
+    label: 'Forge'
   }
   // {
   //   title: 'User',
