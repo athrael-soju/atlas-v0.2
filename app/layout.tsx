@@ -10,8 +10,8 @@ import { getAuthSession } from '@/auth';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Atlas',
+  description: `It's great!`
 };
 
 export default async function RootLayout({
@@ -20,6 +20,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getAuthSession();
+  console.info('session: ', session);
   return (
     <html lang="en">
       <body

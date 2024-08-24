@@ -4,6 +4,8 @@ import Chat from '@/components/chat/chat';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
 import { RequiredActionFunctionToolCall } from 'openai/resources/beta/threads/runs/runs.mjs';
+import { Heading } from '@/components/ui/heading';
+import { Separator } from '@/components/ui/separator';
 
 const breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
@@ -22,8 +24,15 @@ const functionCallHandler = async (call: RequiredActionFunctionToolCall) => {
 export default function page() {
   return (
     <PageContainer scrollable={true}>
-      <div className="space-y-4">
+      <div className="space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
+        <div className="flex items-start justify-between">
+          <Heading
+            title={'Chat with Atlas'}
+            description="Access a vast knowledge base and chat with Atlas."
+          />
+        </div>
+        <Separator />
         <Chat functionCallHandler={functionCallHandler} />
       </div>
     </PageContainer>
