@@ -1,4 +1,6 @@
 // instrumentation-node.ts
+import { config as dotenvConfig } from 'dotenv';
+import { resolve } from 'path';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { HostMetrics } from '@opentelemetry/host-metrics';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
@@ -12,6 +14,9 @@ import {
   processDetector
 } from '@opentelemetry/resources';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
+
+// Load .env.local
+dotenvConfig({ path: resolve(process.cwd(), '.env.local') });
 
 const exporter = new PrometheusExporter({
   port: 9464,
