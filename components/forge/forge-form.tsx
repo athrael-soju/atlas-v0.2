@@ -33,6 +33,19 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command';
+import FileUpload from '@/components/file-upload';
+
+const FileSchema = z.object({
+  fileName: z.string(),
+  name: z.string(),
+  fileSize: z.number(),
+  size: z.number(),
+  fileKey: z.string(),
+  key: z.string(),
+  fileUrl: z.string(),
+  url: z.string()
+});
+export const FILE_MAX_LIMIT = 3;
 
 const forgeFormSchema = z
   .object({
@@ -48,7 +61,11 @@ const forgeFormSchema = z
     }),
     chunkingStrategy: z.string({
       required_error: 'Please select a chunking strategy.'
-    })
+    }),
+    fileUrl: z
+      .array(FileSchema)
+      .max(FILE_MAX_LIMIT, { message: 'You can only add up to 3 files' })
+      .min(1, { message: 'At least one file must be added.' })
   })
   .refine((data) => data.minChunkSize <= data.maxChunkSize, {
     message: 'Max chunk size cannot be smaller than min chunk size.',
@@ -64,7 +81,8 @@ const defaultValues: Partial<ForgeFormValues> = {
   minChunkSize: 0,
   maxChunkSize: 1024,
   chunkOverlap: 0,
-  chunkBatch: 50
+  chunkBatch: 50,
+  fileUrl: []
 };
 
 const parsingProviders = [{ label: 'Unstructured.io', value: 'io' }] as const;
@@ -131,7 +149,6 @@ export function ForgeForm() {
   }, [form, userEmail]);
 
   async function onSubmit(data: ForgeFormValues) {
-    console.log('Forge data: ', data);
     toast({
       title: 'Settings Updated',
       description: 'Your settings have been successfully updated.',
@@ -466,7 +483,23 @@ export function ForgeForm() {
             </FormItem>
           )}
         />
-
+        <FormField
+          control={form.control}
+          name="fileUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Files</FormLabel>
+              <FormControl>
+                <FileUpload
+                  onChange={field.onChange}
+                  value={field.value}
+                  onRemove={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Button type="submit" style={{ width: '100%' }}>
           Update settings
         </Button>

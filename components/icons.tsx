@@ -31,7 +31,8 @@ import {
   UserCircle,
   Users,
   X,
-  Anvil
+  Anvil,
+  BookMarked
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -66,6 +67,7 @@ export const Icons = {
   moon: Moon,
   laptop: Laptop,
   anvil: Anvil,
+  bookmarked: BookMarked,
   gitHub: ({ ...props }: LucideProps) => (
     <svg
       aria-hidden="true"

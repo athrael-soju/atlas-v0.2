@@ -584,6 +584,12 @@ export const navItems: NavItem[] = [
     href: '/dashboard/forge',
     icon: 'anvil',
     label: 'Forge'
+  },
+  {
+    title: 'Knowledgebase',
+    href: '/dashboard/knowledgebase',
+    icon: 'bookmarked',
+    label: 'Knowledgebase'
   }
   // {
   //   title: 'User',

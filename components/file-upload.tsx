@@ -4,11 +4,11 @@ import { UploadDropzone } from '@uploadthing/react';
 import { Trash } from 'lucide-react';
 import Image from 'next/image';
 import { UploadFileResponse } from 'uploadthing/client';
-import { IMG_MAX_LIMIT } from './forms/product-form';
+import { FILE_MAX_LIMIT } from './forms/product-form';
 import { Button } from './ui/button';
 import { useToast } from './ui/use-toast';
 
-interface ImageUploadProps {
+interface FileUploadProps {
   onChange?: any;
   onRemove: (value: UploadFileResponse[]) => void;
   value: UploadFileResponse[];
@@ -18,7 +18,7 @@ export default function FileUpload({
   onChange,
   onRemove,
   value
-}: ImageUploadProps) {
+}: FileUploadProps) {
   const { toast } = useToast();
   const onDeleteFile = (key: string) => {
     const files = value;
@@ -30,7 +30,48 @@ export default function FileUpload({
   };
   return (
     <div>
-      <div className="mb-4 flex items-center gap-4">
+      <div>
+        {value.length < FILE_MAX_LIMIT && (
+          <UploadDropzone<OurFileRouter>
+            className="ut-label:text-sm ut-allowed-content:ut-uploading:text-red-300 py-2 dark:bg-zinc-800"
+            endpoint="imageUploader"
+            config={{ mode: 'auto' }}
+            content={{
+              allowedContent({ isUploading }) {
+                if (isUploading)
+                  return (
+                    <>
+                      <p className="mt-2 animate-pulse text-sm text-slate-400">
+                        File Uploading...
+                      </p>
+                    </>
+                  );
+              }
+            }}
+            onClientUploadComplete={(res) => {
+              // Do something with the response
+              const data: UploadFileResponse[] | undefined = res;
+              if (data) {
+                onUpdateFile(data);
+              }
+            }}
+            onUploadError={(error: Error) => {
+              toast({
+                title: 'Error',
+                variant: 'destructive',
+                description: error.message
+              });
+            }}
+            onUploadBegin={() => {
+              // Do something once upload begins
+            }}
+          />
+        )}
+      </div>
+      <div
+        className="mt-4 flex flex-col rounded-lg border bg-white p-4 shadow dark:bg-gray-900"
+        style={{ height: 'calc(100vh - 400px)' }} // Adjust height dynamically
+      >
         {!!value.length &&
           value?.map((item) => (
             <div
@@ -57,44 +98,6 @@ export default function FileUpload({
               </div>
             </div>
           ))}
-      </div>
-      <div>
-        {value.length < IMG_MAX_LIMIT && (
-          <UploadDropzone<OurFileRouter>
-            className="ut-label:text-sm ut-allowed-content:ut-uploading:text-red-300 py-2 dark:bg-zinc-800"
-            endpoint="imageUploader"
-            config={{ mode: 'auto' }}
-            content={{
-              allowedContent({ isUploading }) {
-                if (isUploading)
-                  return (
-                    <>
-                      <p className="mt-2 animate-pulse text-sm text-slate-400">
-                        Img Uploading...
-                      </p>
-                    </>
-                  );
-              }
-            }}
-            onClientUploadComplete={(res) => {
-              // Do something with the response
-              const data: UploadFileResponse[] | undefined = res;
-              if (data) {
-                onUpdateFile(data);
-              }
-            }}
-            onUploadError={(error: Error) => {
-              toast({
-                title: 'Error',
-                variant: 'destructive',
-                description: error.message
-              });
-            }}
-            onUploadBegin={() => {
-              // Do something once upload begins
-            }}
-          />
-        )}
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 // import FileUpload from "@/components/FileUpload";
 import { useToast } from '../ui/use-toast';
 import FileUpload from '../file-upload';
-const ImgSchema = z.object({
+const FileSchema = z.object({
   fileName: z.string(),
   name: z.string(),
   fileSize: z.number(),
@@ -39,14 +39,14 @@ const ImgSchema = z.object({
   fileUrl: z.string(),
   url: z.string()
 });
-export const IMG_MAX_LIMIT = 3;
+export const FILE_MAX_LIMIT = 3;
 const formSchema = z.object({
   name: z
     .string()
     .min(3, { message: 'Product Name must be at least 3 characters' }),
-  imgUrl: z
-    .array(ImgSchema)
-    .max(IMG_MAX_LIMIT, { message: 'You can only add up to 3 images' })
+  fileUrl: z
+    .array(FileSchema)
+    .max(FILE_MAX_LIMIT, { message: 'You can only add up to 3 images' })
     .min(1, { message: 'At least one image must be added.' }),
   description: z
     .string()
@@ -83,7 +83,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         name: '',
         description: '',
         price: 0,
-        imgUrl: [],
+        fileUrl: [],
         category: ''
       };
 
@@ -132,7 +132,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  const triggerImgUrlValidation = () => form.trigger('imgUrl');
+  const triggerImgUrlValidation = () => form.trigger('fileUrl');
 
   return (
     <>
@@ -163,10 +163,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         >
           <FormField
             control={form.control}
-            name="imgUrl"
+            name="fileUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Images</FormLabel>
+                <FormLabel>Files</FormLabel>
                 <FormControl>
                   <FileUpload
                     onChange={field.onChange}
