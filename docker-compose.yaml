@@ -14,12 +14,12 @@ services:
     container_name: grafana
     image: grafana/grafana:latest
     ports:
-      - '3000:3000'
+      - '4000:3000'
     depends_on:
       - prometheus
     networks:
       - atlas-network
 
 networks:
-  app-network:
+  atlas-network:
     driver: bridge
