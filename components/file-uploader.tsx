@@ -7,7 +7,7 @@ import Dropzone, {
   type DropzoneProps,
   type FileRejection
 } from 'react-dropzone';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 import { cn, formatBytes } from '@/lib/utils';
 import { useControllableState } from '@/hooks/use-controllable-state';
@@ -117,20 +117,12 @@ export function FileUploader(props: FileUploaderProps) {
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       if (!multiple && maxFileCount === 1 && acceptedFiles.length > 1) {
-        toast({
-          title: 'Uh oh! Something went wrong.',
-          description: 'Cannot upload more than 1 file at a time',
-          variant: 'destructive'
-        });
+        toast.error('Cannot upload more than 1 file at a time');
         return;
       }
 
       if ((files?.length ?? 0) + acceptedFiles.length > maxFileCount) {
-        toast({
-          title: 'Uh oh! Something went wrong.',
-          description: `Cannot upload more than ${maxFileCount} files`,
-          variant: 'destructive'
-        });
+        toast.error(`Cannot upload more than ${maxFileCount} files`);
         return;
       }
 
@@ -146,11 +138,7 @@ export function FileUploader(props: FileUploaderProps) {
 
       if (rejectedFiles.length > 0) {
         rejectedFiles.forEach(({ file }) => {
-          toast({
-            title: 'Uh oh! Something went wrong.',
-            description: `File ${file.name} was rejected`,
-            variant: 'destructive'
-          });
+          toast.error(`File ${file.name} was rejected`);
         });
       }
 
@@ -160,30 +148,16 @@ export function FileUploader(props: FileUploaderProps) {
         updatedFiles.length <= maxFileCount
       ) {
         const target =
-          updatedFiles.length > 1 ? `${updatedFiles.length} files` : `file`;
+          updatedFiles.length > 0 ? `${updatedFiles.length} files` : `file`;
 
-        toast({
-          title: 'Please wait.',
-          description: `Uploading ${target}...`,
-          variant: 'default'
-        });
-
-        onUpload(updatedFiles)
-          .then(() => {
-            toast({
-              title: 'All good!',
-              description: `${target} uploaded successfully`,
-              variant: 'default'
-            });
+        toast.promise(onUpload(updatedFiles), {
+          loading: `Uploading ${target}...`,
+          success: () => {
             setFiles([]);
-          })
-          .catch(() => {
-            toast({
-              title: 'Uh oh! Something went wrong.',
-              description: `Failed to upload ${target}`,
-              variant: 'destructive'
-            });
-          });
+            return `${target} uploaded`;
+          },
+          error: `Failed to upload ${target}`
+        });
       }
     },
 
