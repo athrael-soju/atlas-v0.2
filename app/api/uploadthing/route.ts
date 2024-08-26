@@ -3,7 +3,6 @@ import { createRouteHandler } from 'uploadthing/next';
 import { ourFileRouter, deleteFiles } from '@/lib/service/uploadthing';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Export routes for Next App Router
 export const { GET, POST } = createRouteHandler({
   router: ourFileRouter,
   config: {

@@ -14,7 +14,7 @@ const middleware = async (req: Request) => {
   if (!user.id) {
     throw new UploadThingError('Unauthorized');
   }
-
+  // TODO: Add rate limiting
   // const success = await ratelimit.limit(user.id);
   // if (!success) {
   //   throw new UploadThingError('Rate limit exceeded');
