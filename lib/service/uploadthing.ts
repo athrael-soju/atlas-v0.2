@@ -44,4 +44,13 @@ export const deleteFiles = async (files: string[]) => {
   }
 };
 
+export const listFiles = async () => {
+  try {
+    const response = await utapi.listFiles();
+    return { files: response.files, hasMore: response.hasMore };
+  } catch (error: any) {
+    throw new Error('Error listing files', error);
+  }
+};
+
 export type OurFileRouter = typeof ourFileRouter;

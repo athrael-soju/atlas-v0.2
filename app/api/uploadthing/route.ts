@@ -1,14 +1,27 @@
 import { createRouteHandler } from 'uploadthing/next';
 
-import { ourFileRouter, deleteFiles } from '@/lib/service/uploadthing';
+import {
+  ourFileRouter,
+  deleteFiles,
+  listFiles
+} from '@/lib/service/uploadthing';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const { GET, POST } = createRouteHandler({
+export const { POST } = createRouteHandler({
   router: ourFileRouter,
   config: {
     logLevel: 'info'
   }
 });
+
+export async function GET() {
+  try {
+    const result = await listFiles();
+    return NextResponse.json(result, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
 
 export async function DELETE(req: NextRequest) {
   try {
