@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { useForm, Controller } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import { z } from 'zod';
 import { useSession } from 'next-auth/react';
 
@@ -102,7 +102,7 @@ const chunkingStrategyDescriptions = {
 };
 
 export function ForgeForm() {
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
   const user = session?.user;
   const userEmail = user?.email;
   const form = useForm<ForgeFormValues>({

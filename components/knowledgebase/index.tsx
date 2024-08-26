@@ -2,7 +2,7 @@
 
 import { useUploadFile } from '@/hooks/use-upload-file';
 import { FileUploader } from '@/components/file-uploader';
-import { UploadedFilesCard } from './uploaded-files-card';
+import { UploadedFiles } from './uploaded-files';
 
 export function Knowledgebase() {
   const { onUpload, progresses, uploadedFiles, setUploadedFiles, isUploading } =
@@ -17,7 +17,7 @@ export function Knowledgebase() {
         onUpload={onUpload}
         disabled={isUploading}
       />
-      <UploadedFilesCard
+      <UploadedFiles
         uploadedFiles={uploadedFiles}
         setUploadedFiles={setUploadedFiles}
       />

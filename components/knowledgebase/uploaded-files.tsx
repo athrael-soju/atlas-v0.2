@@ -11,15 +11,15 @@ import { Trash2, FileText } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dispatch, SetStateAction } from 'react';
 
-interface UploadedFilesCardProps {
+interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
   setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>;
 }
 
-export function UploadedFilesCard({
+export function UploadedFiles({
   uploadedFiles,
   setUploadedFiles
-}: UploadedFilesCardProps) {
+}: UploadedFilesProps) {
   const onDeleteFile = async (url: string, key: string) => {
     try {
       const response = await fetch('/api/uploadthing', {
