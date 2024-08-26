@@ -20,7 +20,7 @@ export function UploadedFiles({
   uploadedFiles,
   setUploadedFiles
 }: UploadedFilesProps) {
-  const onDeleteFile = async (url: string, key: string) => {
+  const onDeleteFile = async (name: string, key: string) => {
     try {
       const response = await fetch('/api/uploadthing', {
         method: 'DELETE',
@@ -44,14 +44,14 @@ export function UploadedFiles({
       if (result.success && result.deleteCount > 0) {
         toast({
           title: 'Done!',
-          description: `File ${url} has been deleted successfully`,
+          description: `File '${name}' has been deleted successfully`,
           variant: 'default'
         });
         setUploadedFiles(uploadedFiles.filter((file) => file.key !== key));
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
-          description: `File ${url} has not been deleted`,
+          description: `File '${name}' has not been deleted`,
           variant: 'destructive'
         });
       }
@@ -78,7 +78,7 @@ export function UploadedFiles({
                 <div className="absolute right-2 top-2 z-10">
                   <Button
                     type="button"
-                    onClick={() => onDeleteFile(file.url, file.key)}
+                    onClick={() => onDeleteFile(file.name, file.key)}
                     variant="link"
                     size="icon"
                   >
