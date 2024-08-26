@@ -1,6 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
-import { KnowledgebaseForm } from '@/components/knowledgebase/knowledgebase-form';
+import { Knowledgebase } from '@/components/knowledgebase';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 
@@ -21,7 +21,7 @@ export default function page() {
           />
         </div>
         <Separator />
-        <KnowledgebaseForm />
+        <Knowledgebase />
       </div>
     </PageContainer>
   );

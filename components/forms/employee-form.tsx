@@ -24,7 +24,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import FileUpload from '../file-upload';
 import { useToast } from '../ui/use-toast';
 const FileSchema = z.object({
   fileName: z.string(),
@@ -100,15 +99,15 @@ export const EmployeeForm: React.FC<ProductFormProps> = ({
       router.refresh();
       router.push(`/dashboard/products`);
       toast({
-        variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
+        description: 'There was a problem with your request.',
+        variant: 'destructive'
       });
     } catch (error: any) {
       toast({
-        variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
+        description: 'There was a problem with your request.',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -157,23 +156,6 @@ export const EmployeeForm: React.FC<ProductFormProps> = ({
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full space-y-8"
         >
-          <FormField
-            control={form.control}
-            name="fileUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Files</FormLabel>
-                <FormControl>
-                  <FileUpload
-                    onChange={field.onChange}
-                    value={field.value}
-                    onRemove={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <div className="gap-8 md:grid md:grid-cols-3">
             <FormField
               control={form.control}

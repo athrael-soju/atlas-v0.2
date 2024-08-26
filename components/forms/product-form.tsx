@@ -26,9 +26,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-// import FileUpload from "@/components/FileUpload";
 import { useToast } from '../ui/use-toast';
-import FileUpload from '../file-upload';
 const FileSchema = z.object({
   fileName: z.string(),
   name: z.string(),
@@ -104,15 +102,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       router.refresh();
       router.push(`/dashboard/products`);
       toast({
-        variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
+        description: 'There was a problem with your request.',
+        variant: 'destructive'
       });
     } catch (error: any) {
       toast({
-        variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
+        description: 'There was a problem with your request.',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -161,23 +159,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full space-y-8"
         >
-          <FormField
-            control={form.control}
-            name="fileUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Files</FormLabel>
-                <FormControl>
-                  <FileUpload
-                    onChange={field.onChange}
-                    value={field.value}
-                    onRemove={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <div className="gap-8 md:grid md:grid-cols-3">
             <FormField
               control={form.control}
