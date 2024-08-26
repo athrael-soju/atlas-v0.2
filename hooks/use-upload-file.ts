@@ -5,7 +5,7 @@ import type { UploadFilesOptions } from 'uploadthing/types';
 
 import { getErrorMessage } from '@/lib/handle-error';
 import { uploadFiles } from '@/lib/uploadthing';
-import { type OurFileRouter } from '@/app/api/uploadthing/core';
+import { type OurFileRouter } from '@/lib/service/uploadthing';
 
 interface UseUploadFileProps
   extends Pick<
@@ -58,6 +58,7 @@ export function useUploadFile(
   return {
     onUpload,
     uploadedFiles,
+    setUploadedFiles,
     progresses,
     isUploading
   };
