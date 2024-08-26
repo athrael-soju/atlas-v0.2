@@ -99,6 +99,7 @@ export function FileUploader(props: FileUploaderProps) {
     onUpload,
     progresses,
     accept = {
+      'application/pdf': [],
       'image/*': []
     },
     maxSize = 1024 * 1024 * 2,
