@@ -272,7 +272,7 @@ const Chat = ({
   return (
     <div
       className="flex flex-col rounded-lg border bg-white p-4 shadow dark:bg-gray-900"
-      style={{ height: 'calc(100vh - 200px)' }} // Adjust height dynamically
+      style={{ height: 'calc(100vh - 200px)' }}
     >
       <div className="mb-4 flex-1 space-y-4 overflow-y-auto px-4">
         {messages.map((msg, index) => (
