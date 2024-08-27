@@ -562,45 +562,27 @@ export const navItems: NavItem[] = [
     label: 'Dashboard'
   },
   {
-    title: 'Chat',
-    href: '/dashboard/chat',
-    icon: 'bot',
-    label: 'Chat'
-  },
-  {
     title: 'Profile',
     href: '/dashboard/profile',
     icon: 'profile',
     label: 'profile'
   },
   {
-    title: 'Employee',
-    href: '/dashboard/employee',
-    icon: 'employee',
-    label: 'employee'
-  },
-  {
     title: 'Forge',
     href: '/dashboard/forge',
     icon: 'anvil',
     label: 'Forge'
+  },
+  {
+    title: 'Knowledgebase',
+    href: '/dashboard/knowledgebase',
+    icon: 'bookmarked',
+    label: 'Knowledgebase'
+  },
+  {
+    title: 'Chat',
+    href: '/dashboard/chat',
+    icon: 'bot',
+    label: 'Chat'
   }
-  // {
-  //   title: 'User',
-  //   href: '/dashboard/user',
-  //   icon: 'user',
-  //   label: 'user'
-  // },
-  // {
-  //   title: 'Kanban',
-  //   href: '/dashboard/kanban',
-  //   icon: 'kanban',
-  //   label: 'kanban'
-  // },
-  // {
-  //   title: 'Logout',
-  //   href: '/',
-  //   icon: 'logout',
-  //   label: 'logout'
-  // }
 ];

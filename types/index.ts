@@ -30,3 +30,7 @@ export interface FooterItem {
 export type MainNavItem = NavItemWithOptionalChildren;
 
 export type SidebarNavItem = NavItemWithChildren;
+
+import { type ClientUploadedFileData } from 'uploadthing/types';
+
+export interface UploadedFile<T = unknown> extends ClientUploadedFileData<T> {}

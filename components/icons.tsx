@@ -24,14 +24,14 @@ import {
   Plus,
   Settings,
   SunMedium,
-  Trash,
   XCircle,
   User,
   BotMessageSquare,
   UserCircle,
   Users,
   X,
-  Anvil
+  Anvil,
+  BookMarked
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -47,7 +47,6 @@ export const Icons = {
   kanban: CircuitBoardIcon,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
-  trash: Trash,
   employee: Users,
   post: FileText,
   page: File,
@@ -66,6 +65,7 @@ export const Icons = {
   moon: Moon,
   laptop: Laptop,
   anvil: Anvil,
+  bookmarked: BookMarked,
   gitHub: ({ ...props }: LucideProps) => (
     <svg
       aria-hidden="true"

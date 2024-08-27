@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { useForm, Controller } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import { z } from 'zod';
 import { useSession } from 'next-auth/react';
 
@@ -102,7 +102,7 @@ const chunkingStrategyDescriptions = {
 };
 
 export function ForgeForm() {
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
   const user = session?.user;
   const userEmail = user?.email;
   const form = useForm<ForgeFormValues>({
@@ -131,7 +131,6 @@ export function ForgeForm() {
   }, [form, userEmail]);
 
   async function onSubmit(data: ForgeFormValues) {
-    console.log('Forge data: ', data);
     toast({
       title: 'Settings Updated',
       description: 'Your settings have been successfully updated.',
@@ -466,7 +465,6 @@ export function ForgeForm() {
             </FormItem>
           )}
         />
-
         <Button type="submit" style={{ width: '100%' }}>
           Update settings
         </Button>
