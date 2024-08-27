@@ -1,5 +1,10 @@
-import { assistantId } from '@/app/assistant-config';
-import { openai } from '@/app/openai';
+import { openai } from '@/lib/service/openai';
+
+const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
+
+if (!assistantId) {
+  throw new Error('Missing OPENAI_ASSISTANT_ID');
+}
 
 // upload file to assistant's vector store
 export async function POST(request: Request) {

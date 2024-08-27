@@ -10,8 +10,8 @@ import {
   ToolCallDelta
 } from 'openai/resources/beta/threads/runs/steps.mjs';
 import { TextDelta } from 'openai/resources/beta/threads/messages.mjs';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 type MessageProps = {
   role: 'user' | 'assistant' | 'code';

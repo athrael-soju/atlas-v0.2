@@ -1,8 +1,8 @@
 'use client';
 
 import { useHandleFiles } from '@/hooks/use-handle-files';
-import { FileUploader } from '@/components/file-uploader';
-import { UploadedFiles } from './file-card';
+import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
+import { UploadedFiles } from './uploaded-files';
 
 export function Knowledgebase() {
   const { onUpload, progresses, uploadedFiles, setUploadedFiles, isUploading } =

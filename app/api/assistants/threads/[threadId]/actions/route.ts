@@ -1,4 +1,4 @@
-import { openai } from '@/app/openai';
+import { openai } from '@/lib/service/openai';
 
 // Send a new message to a thread
 export async function POST(

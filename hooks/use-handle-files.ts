@@ -3,7 +3,7 @@ import { useCallback, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/lib/handle-error';
 import { uploadFiles } from '@/lib/uploadthing';
-import type { UploadedFile } from '@/types';
+import type { UploadedFile } from '@/types/uploadthing';
 import type { UploadFilesOptions } from 'uploadthing/types';
 import { type OurFileRouter } from '@/lib/service/uploadthing';
 

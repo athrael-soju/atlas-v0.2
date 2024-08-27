@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import type { UploadedFile } from '@/types';
+import type { UploadedFile } from '@/types/uploadthing';
 
 import { Card } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';

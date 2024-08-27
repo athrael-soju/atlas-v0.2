@@ -1,9 +1,9 @@
-import { assistantId } from '@/app/assistant-config';
-import { openai } from '@/app/openai';
+import { openai } from '@/lib/service/openai';
+
+const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
 
 export const runtime = 'nodejs';
 
-// Send a new message to a thread
 export async function POST(
   request: Request,
   { params: { threadId } }: { params: { threadId: string } }

@@ -1,5 +1,5 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { CreateProfileOne } from '@/components/forms/user-profile-stepper/create-profile';
+import { CreateProfileOne } from '@/app/dashboard/profile/create-profile';
 import PageContainer from '@/components/layout/page-container';
 
 const breadcrumbItems = [

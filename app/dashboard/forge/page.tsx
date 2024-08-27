@@ -1,6 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
-import { ForgeForm } from '@/components/forge/forge-form';
+import { ForgeForm } from '@/app/dashboard/forge/forge';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 
