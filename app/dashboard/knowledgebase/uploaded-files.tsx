@@ -114,7 +114,6 @@ export function UploadedFiles({
       ) : (
         <EmptyCard
           title="No files uploaded"
-          description="Uploaded files will be shown"
           className="w-full"
           style={{ height: 'calc(50vh)' }}
         />
