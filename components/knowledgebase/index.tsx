@@ -2,7 +2,7 @@
 
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/components/file-uploader';
-import { UploadedFiles } from './uploaded-files';
+import { UploadedFiles } from './file-card';
 
 export function Knowledgebase() {
   const { onUpload, progresses, uploadedFiles, setUploadedFiles, isUploading } =
