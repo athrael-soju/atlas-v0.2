@@ -1,4 +1,4 @@
-import { Comment } from 'react-loader-spinner';
+import { Comment, MagnifyingGlass } from 'react-loader-spinner';
 import { useEffect, useState } from 'react';
 
 export const Spinner = () => {
@@ -31,6 +31,21 @@ export const Spinner = () => {
       wrapperClass="comment-wrapper"
       color={spinnerColor} // Set the color using the computed value
       backgroundColor={spinnerBackgroundColor} // Set the background color using the computed value
+    />
+  );
+};
+
+export const Searching = () => {
+  return (
+    <MagnifyingGlass
+      visible={true}
+      height="160"
+      width="160"
+      ariaLabel="magnifying-glass-loading"
+      wrapperStyle={{}}
+      wrapperClass="magnifying-glass-wrapper"
+      glassColor="#c0efff"
+      color="#e15b64"
     />
   );
 };

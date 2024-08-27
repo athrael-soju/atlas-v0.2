@@ -10,15 +10,18 @@ import { Button } from '@/components/ui/button';
 import { Trash2, FileText } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dispatch, SetStateAction } from 'react';
+import { Searching } from '@/components/spinner';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
   setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>;
+  isFetchingFiles: boolean;
 }
 
 export function UploadedFiles({
   uploadedFiles,
-  setUploadedFiles
+  setUploadedFiles,
+  isFetchingFiles
 }: UploadedFilesProps) {
   const onDeleteFile = async (name: string, key: string) => {
     try {
@@ -112,11 +115,27 @@ export function UploadedFiles({
           </ScrollArea>
         </Card>
       ) : (
-        <EmptyCard
-          title="No files uploaded"
-          className="w-full"
-          style={{ height: 'calc(50vh)' }}
-        />
+        <>
+          {isFetchingFiles ? (
+            <Card
+              style={{
+                height: 'calc(50vh)',
+                overflow: 'visible',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Searching />
+            </Card>
+          ) : (
+            <EmptyCard
+              title="No files uploaded"
+              className="w-full"
+              style={{ height: 'calc(50vh)' }}
+            />
+          )}
+        </>
       )}
     </>
   );

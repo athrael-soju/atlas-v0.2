@@ -18,10 +18,12 @@ export function useHandleFiles(
   const [progresses, setProgresses] = React.useState<Record<string, number>>(
     {}
   );
+  const [isFetchingFiles, setIsFetchingFiles] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
 
   const fetchUploadedFiles = useCallback(async () => {
     try {
+      setIsFetchingFiles(true);
       const response = await fetch('/api/uploadthing', {
         method: 'GET'
       });
@@ -37,6 +39,8 @@ export function useHandleFiles(
         variant: 'destructive'
       });
       setUploadedFiles([]);
+    } finally {
+      setIsFetchingFiles(false);
     }
   }, []);
 
@@ -63,16 +67,13 @@ export function useHandleFiles(
     }
   };
 
-  useEffect(() => {
-    fetchUploadedFiles();
-  }, [fetchUploadedFiles]);
-
   return {
     uploadedFiles,
     setUploadedFiles,
     progresses,
     isUploading,
     onUpload,
-    fetchUploadedFiles
+    fetchUploadedFiles,
+    isFetchingFiles
   };
 }
