@@ -9,7 +9,6 @@ services:
       - '9090:9090'
     networks:
       - atlas-network
-
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
@@ -19,7 +18,6 @@ services:
       - prometheus
     networks:
       - atlas-network
-
 networks:
   atlas-network:
     driver: bridge
