@@ -69,54 +69,56 @@ export function UploadedFiles({
   };
 
   return (
-    <Card style={{ height: 'calc(100vh - 425px)' }}>
+    <>
       {uploadedFiles.length > 0 ? (
-        <ScrollArea className="pb-4">
-          <div className="flex w-max space-x-2.5">
-            {uploadedFiles.map((file) => (
-              <div key={file.key} className="relative aspect-video w-64">
-                <div className="absolute right-2 top-2 z-10">
-                  <Button
-                    type="button"
-                    onClick={() => onDeleteFile(file.name, file.key)}
-                    variant="link"
-                    size="icon"
-                  >
-                    <Trash2 color="#ba1212" />
-                  </Button>
+        <Card style={{ height: 'calc(50vh)', overflow: 'visible' }}>
+          <ScrollArea className="pb-4">
+            <div className="flex w-max space-x-2.5">
+              {uploadedFiles.map((file) => (
+                <div key={file.key} className="relative aspect-video w-64">
+                  <div className="absolute right-2 top-2 z-10">
+                    <Button
+                      type="button"
+                      onClick={() => onDeleteFile(file.name, file.key)}
+                      variant="link"
+                      size="icon"
+                    >
+                      <Trash2 color="#ba1212" />
+                    </Button>
+                  </div>
+                  <div className="relative flex h-full w-full items-center justify-center rounded-md bg-gray-200 p-2">
+                    {isImage(file.name) ? (
+                      <Image
+                        src={file.url}
+                        alt={file.name}
+                        fill
+                        sizes="(min-width: 640px) 640px, 100vw"
+                        loading="lazy"
+                        className="rounded-md object-cover"
+                      />
+                    ) : (
+                      <>
+                        <FileText size={48} color="#6b7280" />
+                        <p className="text-md absolute bottom-2 w-full truncate px-2 text-center text-gray-800">
+                          {file.name}
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="relative flex h-full w-full items-center justify-center rounded-md bg-gray-200 p-2">
-                  {isImage(file.name) ? (
-                    <Image
-                      src={file.url}
-                      alt={file.name}
-                      fill
-                      sizes="(min-width: 640px) 640px, 100vw"
-                      loading="lazy"
-                      className="rounded-md object-cover"
-                    />
-                  ) : (
-                    <>
-                      <FileText size={48} color="#6b7280" />
-                      <p className="text-md absolute bottom-2 w-full truncate px-2 text-center text-gray-800">
-                        {file.name}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </Card>
       ) : (
         <EmptyCard
           title="No files uploaded"
           description="Uploaded files will be shown"
           className="w-full"
-          style={{ height: 'calc(100vh - 425px)', overflow: 'visible' }}
+          style={{ height: 'calc(50vh)' }}
         />
       )}
-    </Card>
+    </>
   );
 }
