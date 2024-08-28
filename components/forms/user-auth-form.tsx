@@ -1,4 +1,7 @@
+// components/forms/user-auth-form.tsx
+
 'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -28,7 +31,7 @@ export default function UserAuthForm() {
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
   const defaultValues = {
-    email: 'demo@gmail.com'
+    email: 'guest@example.com'
   };
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
