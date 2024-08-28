@@ -5,6 +5,8 @@ import GoogleProvider from 'next-auth/providers/google';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import client from '@/lib/client/mongodb';
 import { Adapter } from 'next-auth/adapters';
+import { ObjectId } from 'mongodb';
+import { IUser } from '@/models/User';
 
 const authConfig: NextAuthOptions = {
   providers: [
@@ -36,7 +38,7 @@ const authConfig: NextAuthOptions = {
       async authorize(credentials, req) {
         try {
           await client.connect(); // Ensure the client is connected
-          const db = client.db(); // Get the default database
+          const db = client.db('AtlasII'); // Get the default database
           const usersCollection = db.collection('users');
 
           // Check if the credentials are for a guest account
@@ -48,12 +50,12 @@ const authConfig: NextAuthOptions = {
 
             if (!guestUser) {
               // If the guest account does not exist, create it
-              const newGuestUser = {
+              const newGuestUser: IUser = {
                 name: 'Guest User',
                 email: 'guest@example.com',
                 role: 'guest',
-                createdAt: new Date(),
-                updatedAt: new Date()
+                createdAt: new Date().toString(),
+                updatedAt: new Date().toString()
               };
 
               const result = await usersCollection.insertOne(newGuestUser);
@@ -87,6 +89,47 @@ const authConfig: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'jwt' as SessionStrategy
+  },
+  callbacks: {
+    async signIn({ user }) {
+      try {
+        await client.connect();
+        const db = client.db('AtlasII');
+        const usersCollection = db.collection('users');
+
+        const existingUser = await usersCollection.findOne({
+          email: user.email
+        });
+
+        if (!existingUser) {
+          if (user.name && user.email) {
+            // New user, add createdAt and updatedAt fields
+            const newUser: IUser = {
+              name: user.name,
+              email: user.email,
+              createdAt: new Date().toString(),
+              updatedAt: new Date().toString(),
+              role: 'user' // or determine role based on your requirements
+            };
+
+            await usersCollection.insertOne(newUser);
+          } else {
+            console.error('User object does not contain name and email');
+            return false;
+          }
+        } else {
+          // Existing user, update the updatedAt field
+          await usersCollection.updateOne(
+            { _id: new ObjectId(existingUser._id) },
+            { $set: { updatedAt: new Date().toString() } }
+          );
+        }
+        return true;
+      } catch (error) {
+        console.error('Error in signIn callback:', error);
+        return false;
+      }
+    }
   }
 } satisfies NextAuthOptions;
 
