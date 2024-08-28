@@ -1,4 +1,4 @@
-// app\layout.tsx
+// app/layout.tsx
 import Providers from '@/components/layout/providers';
 import { Toaster } from '@/components/ui/toaster';
 import '@uploadthing/react/styles.css';
