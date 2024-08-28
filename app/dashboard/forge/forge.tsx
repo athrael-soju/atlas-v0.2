@@ -1,3 +1,4 @@
+// app/dashboard/forge/forge.tsx
 'use client';
 
 import { z } from 'zod';
@@ -32,6 +33,7 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command';
+import { IUser } from '@/models/User';
 
 const forgeFormSchema = z
   .object({
@@ -130,11 +132,48 @@ export function ForgeForm() {
   }, [form, userEmail]);
 
   async function onSubmit(data: ForgeFormValues) {
-    toast({
-      title: 'Settings Updated',
-      description: 'Your settings have been successfully updated.',
-      variant: 'default'
-    });
+    const partialData: Partial<IUser> = {
+      settings: { forge: data }
+    };
+
+    try {
+      const response = await fetch('/api/update-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(partialData.settings)
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Settings Updated',
+          description: 'Your settings have been successfully updated.',
+          variant: 'default'
+        });
+
+        // Optionally update localStorage if settings are updated
+        if (partialData.settings && userEmail) {
+          localStorage.setItem(
+            userEmail,
+            JSON.stringify(partialData.settings.forge)
+          );
+        }
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to update settings. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive'
+      });
+      console.error('Failed to update settings:', error);
+    }
   }
 
   return (

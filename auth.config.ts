@@ -1,3 +1,4 @@
+// app/api/auth/[...nextauth]/route.ts
 import { NextAuthOptions, SessionStrategy } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
@@ -51,11 +52,13 @@ const authConfig: NextAuthOptions = {
             if (!guestUser) {
               // If the guest account does not exist, create it
               const newGuestUser: IUser = {
+                _id: new ObjectId(),
                 name: 'Guest User',
                 email: 'guest@example.com',
                 role: 'guest',
-                createdAt: new Date().toString(),
-                updatedAt: new Date().toString()
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                settings: {}
               };
 
               const result = await usersCollection.insertOne(newGuestUser);
@@ -105,11 +108,13 @@ const authConfig: NextAuthOptions = {
           if (user.name && user.email) {
             // New user, add createdAt and updatedAt fields
             const newUser: IUser = {
+              _id: new ObjectId(),
               name: user.name,
               email: user.email,
-              createdAt: new Date().toString(),
-              updatedAt: new Date().toString(),
-              role: 'user' // or determine role based on your requirements
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              role: 'user',
+              settings: {}
             };
 
             await usersCollection.insertOne(newUser);
@@ -121,7 +126,7 @@ const authConfig: NextAuthOptions = {
           // Existing user, update the updatedAt field
           await usersCollection.updateOne(
             { _id: new ObjectId(existingUser._id) },
-            { $set: { updatedAt: new Date().toString() } }
+            { $set: { updatedAt: new Date().toISOString() } }
           );
         }
         return true;
