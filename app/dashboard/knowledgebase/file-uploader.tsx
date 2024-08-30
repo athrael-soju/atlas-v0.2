@@ -3,93 +3,39 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { Cross2Icon, FileTextIcon, UploadIcon } from '@radix-ui/react-icons';
-import Dropzone, {
-  type DropzoneProps,
-  type FileRejection
-} from 'react-dropzone';
+import Dropzone, { type FileRejection } from 'react-dropzone';
 import { toast } from 'sonner';
 
 import { cn, formatBytes } from '@/lib/utils';
 import { useControllableState } from '@/hooks/use-controllable-state';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger
+} from '@/components/ui/drawer';
+import { FileUploaderProps } from '@/types/file-uploader';
 
-interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  /**
-   * Value of the uploader.
-   * @type File[]
-   * @default undefined
-   * @example value={files}
-   */
-  value?: File[];
+interface FilePreviewProps {
+  file: File & { preview: string };
+}
 
-  /**
-   * Function to be called when the value changes.
-   * @type (files: File[]) => void
-   * @default undefined
-   * @example onValueChange={(files) => setFiles(files)}
-   */
-  onValueChange?: (files: File[]) => void;
-
-  /**
-   * Function to be called when files are uploaded.
-   * @type (files: File[]) => Promise<void>
-   * @default undefined
-   * @example onUpload={(files) => uploadFiles(files)}
-   */
-  onUpload?: (files: File[]) => Promise<void>;
-
-  /**
-   * Progress of the uploaded files.
-   * @type Record<string, number> | undefined
-   * @default undefined
-   * @example progresses={{ "file1.png": 50 }}
-   */
-  progresses?: Record<string, number>;
-
-  /**
-   * Accepted file types for the uploader.
-   * @type { [key: string]: string[]}
-   * @default
-   * ```ts
-   * { "image/*": [] }
-   * ```
-   * @example accept={["image/png", "image/jpeg"]}
-   */
-  accept?: DropzoneProps['accept'];
-
-  /**
-   * Maximum file size for the uploader.
-   * @type number | undefined
-   * @default 1024 * 1024 * 2 // 2MB
-   * @example maxSize={1024 * 1024 * 2} // 2MB
-   */
-  maxSize?: DropzoneProps['maxSize'];
-
-  /**
-   * Maximum number of files for the uploader.
-   * @type number | undefined
-   * @default 1
-   * @example maxFileCount={4}
-   */
-  maxFileCount?: DropzoneProps['maxFiles'];
-
-  /**
-   * Whether the uploader should accept multiple files.
-   * @type boolean
-   * @default false
-   * @example multiple
-   */
-  multiple?: boolean;
-
-  /**
-   * Whether the uploader is disabled.
-   * @type boolean
-   * @default false
-   * @example disabled
-   */
-  disabled?: boolean;
+interface FileCardProps {
+  file: File;
+  onRemove: () => void;
+  progress?: number;
 }
 
 export function FileUploader(props: FileUploaderProps) {
@@ -114,6 +60,9 @@ export function FileUploader(props: FileUploaderProps) {
     prop: valueProp,
     onChange: onValueChange
   });
+
+  const [open, setOpen] = React.useState(false);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -154,14 +103,14 @@ export function FileUploader(props: FileUploaderProps) {
         toast.promise(onUpload(updatedFiles), {
           loading: `Uploading ${target}...`,
           success: () => {
-            setFiles([]);
-            return `${target} uploaded`;
+            return `${target} uploaded successfully`;
           },
           error: `Failed to upload ${target}`
         });
       }
-    },
 
+      setOpen(true); // Open the dialog or drawer when files are dropped
+    },
     [files, maxFileCount, multiple, onUpload, setFiles]
   );
 
@@ -186,6 +135,21 @@ export function FileUploader(props: FileUploaderProps) {
   }, []);
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
+
+  const DialogOrDrawer = isDesktop ? Dialog : Drawer;
+  const DialogOrDrawerTrigger = isDesktop ? DialogTrigger : DrawerTrigger;
+  const DialogOrDrawerContent = isDesktop ? DialogContent : DrawerContent;
+  const DialogOrDrawerHeader = isDesktop ? DialogHeader : DrawerHeader;
+  const DialogOrDrawerTitle = isDesktop ? DialogTitle : DrawerTitle;
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+
+    if (!isOpen) {
+      // Clear files when the dialog or drawer is closed
+      setFiles([]);
+    }
+  };
 
   return (
     <div className="relative flex flex-col gap-6 overflow-hidden">
@@ -249,9 +213,19 @@ export function FileUploader(props: FileUploaderProps) {
           </div>
         )}
       </Dropzone>
-      {files?.length ? (
-        <ScrollArea className="h-fit w-full px-3">
-          <div className="flex max-h-48 flex-col gap-4">
+
+      <DialogOrDrawer open={open} onOpenChange={handleOpenChange}>
+        <DialogOrDrawerTrigger asChild>
+          <Button variant="outline" className="hidden">
+            View Files
+          </Button>
+        </DialogOrDrawerTrigger>
+        <DialogOrDrawerContent aria-describedby="file-upload-description">
+          <DialogOrDrawerHeader>
+            <DialogOrDrawerTitle>Uploading Files...</DialogOrDrawerTitle>
+            <DialogDescription />
+          </DialogOrDrawerHeader>
+          <div className="flex flex-col gap-4">
             {files?.map((file, index) => (
               <FileCard
                 key={index}
@@ -261,19 +235,15 @@ export function FileUploader(props: FileUploaderProps) {
               />
             ))}
           </div>
-        </ScrollArea>
-      ) : null}
+        </DialogOrDrawerContent>
+      </DialogOrDrawer>
     </div>
   );
 }
 
-interface FileCardProps {
-  file: File;
-  onRemove: () => void;
-  progress?: number;
-}
-
 function FileCard({ file, progress, onRemove }: FileCardProps) {
+  const isUploading = progress !== undefined && progress < 100;
+
   return (
     <div className="relative flex items-center gap-2.5">
       <div className="flex flex-1 gap-2.5">
@@ -287,20 +257,22 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
               {formatBytes(file.size)}
             </p>
           </div>
-          {progress ? <Progress value={progress} /> : null}
+          {progress !== undefined ? <Progress value={progress} /> : null}
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="size-7"
-          onClick={onRemove}
-        >
-          <Cross2Icon className="size-4" aria-hidden="true" />
-          <span className="sr-only">Remove file</span>
-        </Button>
+        {isUploading ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-7"
+            onClick={onRemove}
+          >
+            <Cross2Icon className="size-4" aria-hidden="true" />
+            <span className="sr-only">Remove file</span>
+          </Button>
+        ) : null}
       </div>
     </div>
   );
@@ -308,10 +280,6 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
 
 function isFileWithPreview(file: File): file is File & { preview: string } {
   return 'preview' in file && typeof file.preview === 'string';
-}
-
-interface FilePreviewProps {
-  file: File & { preview: string };
 }
 
 function FilePreview({ file }: FilePreviewProps) {

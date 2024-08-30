@@ -1,3 +1,4 @@
+// app\dashboard\knowledgebase\knowledgebase.tsx
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +15,6 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/use-toast';
-
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
 import { UploadedFiles } from './uploaded-files';
@@ -47,13 +47,12 @@ export function Knowledgebase() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: 'Processing Files',
-      description: `Processing ${
-        data.processAll ? 'All Files' : 'New Files Only'
-      }`
-    });
-
+    // toast({
+    //   title: 'Processing Files',
+    //   description: `Processing ${
+    //     data.processAll ? 'All Files' : 'New Files Only'
+    //   }`
+    // });
     // TODO: Implement the file processing logic based on `data.processAll`
   }
 
@@ -69,9 +68,9 @@ export function Knowledgebase() {
             disabled={isUploading}
           />
           <UploadedFiles
-            uploadedFiles={uploadedFiles}
+            uploadedFiles={uploadedFiles ?? []}
             setUploadedFiles={setUploadedFiles}
-            isFetchingFiles={isFetchingFiles}
+            isFetchingFiles={isFetchingFiles ?? false}
           />
 
           <FormField

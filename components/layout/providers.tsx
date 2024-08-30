@@ -13,8 +13,10 @@ export default function Providers({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <SessionProvider session={session}>{children}</SessionProvider>
-    </ThemeProvider>
+    <React.Fragment>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <SessionProvider session={session}>{children}</SessionProvider>
+      </ThemeProvider>
+    </React.Fragment>
   );
 }

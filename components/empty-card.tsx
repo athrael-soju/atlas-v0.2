@@ -2,18 +2,21 @@ import { ImageIcon } from '@radix-ui/react-icons';
 
 import { cn } from '@/lib/utils';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
+import { Searching } from '@/components/spinner';
 
 interface EmptyCardProps extends React.ComponentPropsWithoutRef<typeof Card> {
   title: string;
   description?: string;
   action?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
+  isFetchingFiles?: boolean;
 }
 
 export function EmptyCard({
   title,
   description,
   icon: Icon = ImageIcon,
+  isFetchingFiles,
   action,
   className,
   ...props
@@ -27,13 +30,23 @@ export function EmptyCard({
       {...props}
     >
       <div className="mr-4 shrink-0 rounded-full border border-dashed p-4">
-        <Icon className="size-8 text-muted-foreground" aria-hidden="true" />
+        {isFetchingFiles ? (
+          <div className="h-50vh flex items-center justify-center">
+            <Searching />
+          </div>
+        ) : (
+          <Icon className="size-8 text-muted-foreground" aria-hidden="true" />
+        )}
       </div>
-      <div className="flex flex-col items-center gap-1.5 text-center">
-        <CardTitle>{title}</CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-      </div>
-      {action ? action : null}
+      {!isFetchingFiles && (
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <CardTitle>{title}</CardTitle>
+          {description ? (
+            <CardDescription>{description}</CardDescription>
+          ) : null}
+        </div>
+      )}
+      {!isFetchingFiles && action ? action : null}
     </Card>
   );
 }

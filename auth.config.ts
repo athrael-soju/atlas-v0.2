@@ -1,3 +1,4 @@
+// app/api/auth/[...nextauth]/route.ts
 import { NextAuthOptions, SessionStrategy } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
@@ -5,12 +6,15 @@ import GoogleProvider from 'next-auth/providers/google';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import client from '@/lib/client/mongodb';
 import { Adapter } from 'next-auth/adapters';
+import { ObjectId } from 'mongodb';
+import { IUser } from '@/models/User';
 
 const authConfig: NextAuthOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID ?? '',
-      clientSecret: process.env.GITHUB_SECRET ?? ''
+      clientSecret: process.env.GITHUB_SECRET ?? '',
+      allowDangerousEmailAccountLinking: true
     }),
     GoogleProvider({
       allowDangerousEmailAccountLinking: true,
@@ -36,7 +40,7 @@ const authConfig: NextAuthOptions = {
       async authorize(credentials, req) {
         try {
           await client.connect(); // Ensure the client is connected
-          const db = client.db(); // Get the default database
+          const db = client.db('AtlasII'); // Get the default database
           const usersCollection = db.collection('users');
 
           // Check if the credentials are for a guest account
@@ -48,12 +52,14 @@ const authConfig: NextAuthOptions = {
 
             if (!guestUser) {
               // If the guest account does not exist, create it
-              const newGuestUser = {
+              const newGuestUser: IUser = {
+                _id: new ObjectId(),
                 name: 'Guest User',
                 email: 'guest@example.com',
                 role: 'guest',
-                createdAt: new Date(),
-                updatedAt: new Date()
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                settings: {}
               };
 
               const result = await usersCollection.insertOne(newGuestUser);
@@ -87,6 +93,72 @@ const authConfig: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'jwt' as SessionStrategy
+  },
+  callbacks: {
+    async signIn({ user }) {
+      try {
+        await client.connect();
+        const db = client.db('AtlasII');
+        const usersCollection = db.collection('users');
+
+        const existingUser = await usersCollection.findOne({
+          email: user.email
+        });
+
+        if (!existingUser) {
+          if (user.name && user.email) {
+            // New user, add createdAt and updatedAt fields
+            const newUser: IUser = {
+              _id: new ObjectId(),
+              name: user.name,
+              email: user.email,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              role: 'user',
+              settings: {}
+            };
+
+            await usersCollection.insertOne(newUser);
+            user.id = newUser._id.toString(); // Add the new user's ID to the user object
+          } else {
+            console.error('User object does not contain name and email');
+            return false;
+          }
+        } else {
+          // Existing user, update the updatedAt field
+          await usersCollection.updateOne(
+            { _id: new ObjectId(existingUser._id) },
+            { $set: { updatedAt: new Date().toISOString() } }
+          );
+          user.id = existingUser._id.toString(); // Add the existing user's ID to the user object
+        }
+        return true;
+      } catch (error) {
+        console.error('Error in signIn callback:', error);
+        return false;
+      }
+    },
+    async jwt({ token, user }) {
+      // On the initial sign-in, `user` will be available
+      if (user) {
+        token.id = user.id; // Persist the user ID in the token
+      }
+
+      // If the user object is undefined (on subsequent requests), use the token's sub as the ID
+      if (!token.id && token.sub) {
+        token.id = token.sub;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      // Ensure session.user exists before attempting to add the ID
+      if (session.user) {
+        session.user.id = token.id as string;
+      }
+
+      return session;
+    }
   }
 } satisfies NextAuthOptions;
 

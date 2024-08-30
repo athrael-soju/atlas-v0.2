@@ -1,3 +1,4 @@
+// app\dashboard\knowledgebase\page.tsx
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
 import { Knowledgebase } from '@/app/dashboard/knowledgebase/knowledgebase';

@@ -1,3 +1,4 @@
+// app/dashboard/forge/forge.tsx
 'use client';
 
 import { z } from 'zod';
@@ -5,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { useForm } from 'react-hook-form';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,9 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command';
+import { Searching } from '@/components/spinner';
+
+import { IUser } from '@/models/User';
 
 const forgeFormSchema = z
   .object({
@@ -104,37 +108,90 @@ export function ForgeForm() {
   const { data: session } = useSession();
   const user = session?.user;
   const userEmail = user?.email;
+  const [loading, setLoading] = useState(true);
   const form = useForm<ForgeFormValues>({
     resolver: zodResolver(forgeFormSchema),
     defaultValues
   });
 
-  // Load saved values from local storage on mount
+  // Fetch user settings from the database on mount
   useEffect(() => {
     if (userEmail) {
-      const savedValues = localStorage.getItem(userEmail);
-      if (savedValues) {
-        form.reset(JSON.parse(savedValues));
-      }
-    }
-  }, [form, userEmail]);
+      const fetchData = async () => {
+        try {
+          const response = await fetch('/api/user', {
+            method: 'GET'
+          });
 
-  // Save values to local storage on change
-  useEffect(() => {
-    if (userEmail) {
-      const subscription = form.watch((values) => {
-        localStorage.setItem(userEmail, JSON.stringify(values));
-      });
-      return () => subscription.unsubscribe();
+          if (response.ok) {
+            const result = await response.json();
+            if (result?.user?.settings?.forge) {
+              form.reset(result.user.settings.forge);
+            }
+          } else {
+            console.error('Failed to fetch user settings');
+          }
+        } catch (error) {
+          console.error('Error fetching user settings:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchData();
     }
   }, [form, userEmail]);
 
   async function onSubmit(data: ForgeFormValues) {
-    toast({
-      title: 'Settings Updated',
-      description: 'Your settings have been successfully updated.',
-      variant: 'default'
-    });
+    const partialData: Partial<IUser> = {
+      settings: { forge: data }
+    };
+
+    try {
+      const response = await fetch('/api/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(partialData.settings)
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Settings Updated',
+          description: 'Your settings have been successfully updated.',
+          variant: 'default'
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to update settings. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive'
+      });
+      console.error('Failed to update settings:', error);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '80vh'
+        }}
+      >
+        <Searching />
+      </div>
+    );
   }
 
   return (
