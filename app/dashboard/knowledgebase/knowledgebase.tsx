@@ -1,3 +1,4 @@
+// app\dashboard\knowledgebase\knowledgebase.tsx
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';

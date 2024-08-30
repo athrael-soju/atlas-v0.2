@@ -4,7 +4,6 @@ import { UTApi } from 'uploadthing/server';
 import { getAuthSession } from '@/auth';
 import client from '@/lib/client/mongodb';
 import { ObjectId } from 'mongodb';
-import { UploadedFile } from '@/types/uploadthing';
 
 const utapi = new UTApi();
 const f = createUploadthing();
@@ -138,7 +137,7 @@ export const listFiles = async () => {
   try {
     // Get the userId from the session
     const userId = await getUserId();
-
+    let files: never[] = [];
     // Connect to the MongoDB database and collection
     const db = client.db('AtlasII');
     const usersCollection = db.collection('users');
@@ -150,15 +149,15 @@ export const listFiles = async () => {
     );
 
     if (!user || !user.knowledgebase || !user.knowledgebase.files) {
-      throw new Error('No files found for the user');
+      return { files, hasMore: false }; // Modify hasMore based on pagination logic if necessary
     }
 
-    const files = user.knowledgebase.files;
+    files = user.knowledgebase.files;
 
     return { files, hasMore: false }; // Modify hasMore based on pagination logic if necessary
   } catch (error: any) {
     console.error('Error listing files:', error);
-    throw new Error('Error listing files');
+    throw new Error('Error listing files:', error);
   }
 };
 

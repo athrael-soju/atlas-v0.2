@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/lib/handle-error';
 import { uploadFiles } from '@/lib/uploadthing';
