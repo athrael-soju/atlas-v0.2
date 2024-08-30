@@ -17,9 +17,9 @@ const authConfig: NextAuthOptions = {
       allowDangerousEmailAccountLinking: true
     }),
     GoogleProvider({
-      allowDangerousEmailAccountLinking: true,
       clientId: process.env.GOOGLE_ID as string,
       clientSecret: process.env.GOOGLE_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           prompt: 'consent',
