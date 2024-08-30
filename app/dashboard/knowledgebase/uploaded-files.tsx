@@ -1,3 +1,4 @@
+// app\dashboard\knowledgebase\uploaded-files.tsx
 'use client';
 
 import React, { Dispatch, SetStateAction } from 'react';
