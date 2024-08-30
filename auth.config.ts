@@ -119,6 +119,7 @@ const authConfig: NextAuthOptions = {
             };
 
             await usersCollection.insertOne(newUser);
+            user.id = newUser._id.toString(); // Add the new user's ID to the user object
           } else {
             console.error('User object does not contain name and email');
             return false;
@@ -129,12 +130,34 @@ const authConfig: NextAuthOptions = {
             { _id: new ObjectId(existingUser._id) },
             { $set: { updatedAt: new Date().toISOString() } }
           );
+          user.id = existingUser._id.toString(); // Add the existing user's ID to the user object
         }
         return true;
       } catch (error) {
         console.error('Error in signIn callback:', error);
         return false;
       }
+    },
+    async jwt({ token, user }) {
+      // On the initial sign-in, `user` will be available
+      if (user) {
+        token.id = user.id; // Persist the user ID in the token
+      }
+
+      // If the user object is undefined (on subsequent requests), use the token's sub as the ID
+      if (!token.id && token.sub) {
+        token.id = token.sub;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      // Ensure session.user exists before attempting to add the ID
+      if (session.user) {
+        session.user.id = token.id as string;
+      }
+
+      return session;
     }
   }
 } satisfies NextAuthOptions;

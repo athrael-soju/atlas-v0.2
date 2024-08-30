@@ -33,7 +33,6 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
-
     const result = await deleteFiles(key);
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
