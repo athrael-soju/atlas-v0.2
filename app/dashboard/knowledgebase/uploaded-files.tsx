@@ -38,7 +38,9 @@ import type { UploadedFile } from '@/types/uploadthing';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
-  setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>;
+  setUploadedFiles: Dispatch<
+    SetStateAction<UploadedFile<unknown>[] | undefined>
+  >;
   isFetchingFiles: boolean;
 }
 

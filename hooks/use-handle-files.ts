@@ -6,6 +6,7 @@ import { uploadFiles } from '@/lib/uploadthing';
 import type { UploadedFile } from '@/types/uploadthing';
 import type { UploadFilesOptions } from 'uploadthing/types';
 import { type OurFileRouter } from '@/lib/service/uploadthing';
+import { useControllableState } from '@/hooks/use-controllable-state';
 
 interface useHandleFilesProps
   extends Partial<UploadFilesOptions<OurFileRouter, keyof OurFileRouter>> {}
@@ -14,12 +15,28 @@ export function useHandleFiles(
   endpoint: keyof OurFileRouter,
   props: useHandleFilesProps = {}
 ) {
-  const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
-  const [progresses, setProgresses] = React.useState<Record<string, number>>(
-    {}
-  );
-  const [isFetchingFiles, setIsFetchingFiles] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
+  const [uploadedFiles, setUploadedFiles] = useControllableState<
+    UploadedFile[]
+  >({
+    defaultProp: [],
+    onChange: (files) => {
+      console.info('Uploaded files changed:', files);
+    }
+  });
+
+  const [progresses, setProgresses] = useControllableState<
+    Record<string, number>
+  >({
+    defaultProp: {}
+  });
+
+  const [isFetchingFiles, setIsFetchingFiles] = useControllableState<boolean>({
+    defaultProp: false
+  });
+
+  const [isUploading, setIsUploading] = useControllableState<boolean>({
+    defaultProp: false
+  });
 
   const fetchUploadedFiles = useCallback(async () => {
     try {
@@ -42,7 +59,7 @@ export function useHandleFiles(
     } finally {
       setIsFetchingFiles(false);
     }
-  }, []);
+  }, [setUploadedFiles, setIsFetchingFiles]);
 
   const onUpload = async (files: File[]) => {
     setIsUploading(true);
@@ -54,7 +71,7 @@ export function useHandleFiles(
           setProgresses((prev) => ({ ...prev, [file]: progress }));
         }
       });
-      setUploadedFiles((prev) => [...prev, ...res]);
+      setUploadedFiles((prev = []) => [...prev, ...res]);
     } catch (err) {
       toast({
         title: 'Uh oh! Something went wrong.',

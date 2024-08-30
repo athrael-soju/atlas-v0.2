@@ -54,7 +54,6 @@ export function Knowledgebase() {
     //     data.processAll ? 'All Files' : 'New Files Only'
     //   }`
     // });
-
     // TODO: Implement the file processing logic based on `data.processAll`
   }
 
@@ -70,9 +69,9 @@ export function Knowledgebase() {
             disabled={isUploading}
           />
           <UploadedFiles
-            uploadedFiles={uploadedFiles}
+            uploadedFiles={uploadedFiles ?? []} // Default to an empty array if undefined
             setUploadedFiles={setUploadedFiles}
-            isFetchingFiles={isFetchingFiles}
+            isFetchingFiles={isFetchingFiles ?? false} // Default to false if undefined
           />
 
           <FormField
