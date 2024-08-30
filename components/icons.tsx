@@ -31,7 +31,9 @@ import {
   Users,
   X,
   Anvil,
-  BookMarked
+  BookMarked,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -66,6 +68,8 @@ export const Icons = {
   laptop: Laptop,
   anvil: Anvil,
   bookmarked: BookMarked,
+  arrowUp: ArrowUp,
+  arrowDown: ArrowDown,
   gitHub: ({ ...props }: LucideProps) => (
     <svg
       aria-hidden="true"

@@ -1,4 +1,3 @@
-// app/dashboard/knowledgebase/uploaded-files.tsx
 'use client';
 
 import React, { Dispatch, SetStateAction } from 'react';
@@ -9,7 +8,8 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  getFilteredRowModel
 } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { Icons } from '@/components/icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,14 +46,14 @@ export function UploadedFiles({
   setUploadedFiles,
   isFetchingFiles
 }: UploadedFilesProps) {
-  const onDeleteFile = async (name: string, key: string) => {
+  const onDeleteFiles = async (files: UploadedFile[]) => {
     try {
       const response = await fetch('/api/uploadthing', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ key })
+        body: JSON.stringify({ keys: files.map((file) => file.key) })
       });
 
       if (!response.ok) {
@@ -69,14 +70,14 @@ export function UploadedFiles({
       if (result.success && result.deleteCount > 0) {
         toast({
           title: 'Done!',
-          description: `File '${name}' has been deleted successfully`,
+          description: `${result.deleteCount} file(s) have been deleted successfully`,
           variant: 'default'
         });
-        setUploadedFiles(uploadedFiles.filter((file) => file.key !== key));
+        setUploadedFiles(uploadedFiles.filter((file) => !files.includes(file)));
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
-          description: `File '${name}' has not been deleted`,
+          description: `Some files have not been deleted`,
           variant: 'destructive'
         });
       }
@@ -109,13 +110,14 @@ export function UploadedFiles({
           aria-label="Select row"
         />
       ),
-      enableSorting: false,
+      enableSorting: false, // Sorting is typically not enabled for selection checkboxes
       enableHiding: false
     },
     {
       accessorKey: 'name',
       header: 'File Name',
-      cell: ({ row }) => <div className="truncate">{row.getValue('name')}</div>
+      cell: ({ row }) => <div className="truncate">{row.getValue('name')}</div>,
+      enableSorting: true // Enable sorting for file names
     },
     {
       accessorKey: 'url',
@@ -130,7 +132,8 @@ export function UploadedFiles({
             {row.getValue('url')}
           </a>
         </div>
-      )
+      ),
+      enableSorting: true // Enable sorting for URLs
     },
     {
       accessorKey: 'size',
@@ -142,7 +145,8 @@ export function UploadedFiles({
           maximumFractionDigits: 2
         }).format(size / 1024);
         return <div>{formatted} KB</div>;
-      }
+      },
+      enableSorting: true // Enable sorting for file sizes
     },
     {
       id: 'actions',
@@ -159,9 +163,7 @@ export function UploadedFiles({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => onDeleteFile(file.name, file.key)}
-              >
+              <DropdownMenuItem onClick={() => onDeleteFiles([file])}>
                 <Trash2 color="#ba1212" className="mr-2" />
                 Delete
               </DropdownMenuItem>
@@ -173,6 +175,8 @@ export function UploadedFiles({
   ];
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
+
   const table = useReactTable({
     data: uploadedFiles,
     columns,
@@ -180,24 +184,43 @@ export function UploadedFiles({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    state: { sorting }
+    getFilteredRowModel: getFilteredRowModel(), // Enable filtering
+    state: { sorting, globalFilter }
   });
+
+  const handleDeleteSelected = () => {
+    const selectedFiles = table
+      .getSelectedRowModel()
+      .rows.map((row) => row.original);
+    if (selectedFiles.length > 0) {
+      onDeleteFiles(selectedFiles);
+    } else {
+      toast({
+        title: 'No files selected',
+        description: 'Please select files to delete.',
+        variant: 'destructive'
+      });
+    }
+  };
 
   return (
     <>
       {uploadedFiles.length > 0 ? (
         <div className="w-full">
-          <div className="flex items-center py-4">
+          <div className="flex items-center justify-between py-4">
             <Input
               placeholder="Filter by name..."
-              value={
-                (table.getColumn('name')?.getFilterValue() as string) ?? ''
-              }
-              onChange={(event) =>
-                table.getColumn('name')?.setFilterValue(event.target.value)
-              }
+              value={globalFilter}
+              onChange={(event) => setGlobalFilter(event.target.value)}
               className="max-w-sm"
             />
+            <Button
+              variant="default"
+              onClick={handleDeleteSelected}
+              disabled={table.getSelectedRowModel().rows.length === 0}
+            >
+              Delete Selected
+            </Button>
           </div>
           <div
             className="overflow-y-auto rounded-md border"
@@ -208,13 +231,38 @@ export function UploadedFiles({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
+                      <TableHead
+                        key={header.id}
+                        onClick={header.column.getToggleSortingHandler()}
+                        className={
+                          header.column.getCanSort()
+                            ? 'cursor-pointer select-none'
+                            : ''
+                        }
+                      >
+                        <div className="flex items-center">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              width: '1em',
+                              marginLeft: '0.5em'
+                            }}
+                          >
+                            {header.column.getIsSorted() === 'asc' ? (
+                              <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
+                            ) : header.column.getIsSorted() === 'desc' ? (
+                              <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
+                            ) : (
+                              <span className="inline-block align-middle">
+                                ⠀
+                              </span>
                             )}
+                          </span>
+                        </div>
                       </TableHead>
                     ))}
                   </TableRow>

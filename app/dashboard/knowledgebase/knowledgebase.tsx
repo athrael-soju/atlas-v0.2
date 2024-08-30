@@ -47,12 +47,12 @@ export function Knowledgebase() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: 'Processing Files',
-      description: `Processing ${
-        data.processAll ? 'All Files' : 'New Files Only'
-      }`
-    });
+    // toast({
+    //   title: 'Processing Files',
+    //   description: `Processing ${
+    //     data.processAll ? 'All Files' : 'New Files Only'
+    //   }`
+    // });
 
     // TODO: Implement the file processing logic based on `data.processAll`
   }

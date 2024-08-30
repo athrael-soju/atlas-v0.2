@@ -26,14 +26,14 @@ export async function GET() {
 export async function DELETE(req: NextRequest) {
   try {
     const body = await req.json();
-    const { key } = body;
-    if (!key) {
+    const { keys } = body;
+    if (!keys) {
       return NextResponse.json(
         { error: 'Invalid request, file does not exist' },
         { status: 400 }
       );
     }
-    const result = await deleteFiles(key);
+    const result = await deleteFiles(keys);
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
