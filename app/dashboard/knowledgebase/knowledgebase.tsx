@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/use-toast';
-
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
 import { UploadedFiles } from './uploaded-files';
@@ -69,9 +68,9 @@ export function Knowledgebase() {
             disabled={isUploading}
           />
           <UploadedFiles
-            uploadedFiles={uploadedFiles ?? []} // Default to an empty array if undefined
+            uploadedFiles={uploadedFiles ?? []}
             setUploadedFiles={setUploadedFiles}
-            isFetchingFiles={isFetchingFiles ?? false} // Default to false if undefined
+            isFetchingFiles={isFetchingFiles ?? false}
           />
 
           <FormField
