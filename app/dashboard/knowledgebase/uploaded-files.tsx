@@ -111,14 +111,14 @@ export function UploadedFiles({
           aria-label="Select row"
         />
       ),
-      enableSorting: false, // Sorting is typically not enabled for selection checkboxes
+      enableSorting: false,
       enableHiding: false
     },
     {
       accessorKey: 'name',
       header: 'File Name',
       cell: ({ row }) => <div className="truncate">{row.getValue('name')}</div>,
-      enableSorting: true // Enable sorting for file names
+      enableSorting: true
     },
     {
       accessorKey: 'url',
@@ -134,20 +134,34 @@ export function UploadedFiles({
           </a>
         </div>
       ),
-      enableSorting: true // Enable sorting for URLs
+      enableSorting: true
     },
     {
       accessorKey: 'size',
-      header: 'Size (KB)',
+      header: 'Size',
       cell: ({ row }) => {
-        const size = parseFloat(row.getValue('size'));
-        const formatted = new Intl.NumberFormat('en-US', {
-          style: 'decimal',
-          maximumFractionDigits: 2
-        }).format(size / 1024);
-        return <div>{formatted} KB</div>;
+        const sizeInBytes = parseFloat(row.getValue('size'));
+        let formattedSize = '';
+        let unit = 'KB';
+
+        if (sizeInBytes >= 1024 * 1024 * 1024) {
+          formattedSize = (sizeInBytes / (1024 * 1024 * 1024)).toFixed(2);
+          unit = 'GB';
+        } else if (sizeInBytes >= 1024 * 1024) {
+          formattedSize = (sizeInBytes / (1024 * 1024)).toFixed(2);
+          unit = 'MB';
+        } else {
+          formattedSize = (sizeInBytes / 1024).toFixed(2);
+          unit = 'KB';
+        }
+
+        return (
+          <div>
+            {formattedSize} {unit}
+          </div>
+        );
       },
-      enableSorting: true // Enable sorting for file sizes
+      enableSorting: true
     },
     {
       id: 'actions',
@@ -185,7 +199,7 @@ export function UploadedFiles({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(), // Enable filtering
+    getFilteredRowModel: getFilteredRowModel(),
     state: { sorting, globalFilter }
   });
 
@@ -225,7 +239,7 @@ export function UploadedFiles({
           </div>
           <div
             className="overflow-y-auto rounded-md border"
-            style={{ height: 'calc(50vh)' }}
+            style={{ height: 'calc(44vh)' }}
           >
             <Table>
               <TableHeader>

@@ -77,3 +77,13 @@ export interface FileUploaderProps
    */
   disabled?: boolean;
 }
+
+export interface FilePreviewProps {
+  file: File & { preview: string };
+}
+
+export interface FileCardProps {
+  file: File;
+  onRemove: () => void;
+  progress?: number;
+}
