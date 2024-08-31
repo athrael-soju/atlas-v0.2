@@ -99,6 +99,16 @@ export function UploadedFiles({
     }
   };
 
+  const onProcessFiles = (files: UploadedFile[]) => {
+    // Placeholder for file processing logic
+    console.log('Processing files:', files);
+    toast({
+      title: 'Processing files',
+      description: `${files.length} file(s) are being processed`,
+      variant: 'default'
+    });
+  };
+
   const columns: ColumnDef<UploadedFile>[] = [
     {
       id: 'select',
@@ -249,10 +259,25 @@ export function UploadedFiles({
     }
   };
 
+  const handleProcessSelected = () => {
+    const selectedFiles = table
+      .getSelectedRowModel()
+      .rows.map((row) => row.original);
+    if (selectedFiles.length > 0) {
+      onProcessFiles(selectedFiles);
+    } else {
+      toast({
+        title: 'No files selected',
+        description: 'Please select files to process.',
+        variant: 'default'
+      });
+    }
+  };
+
   return (
     <>
       {uploadedFiles.length > 0 ? (
-        <div className="w-full" style={{ height: 'calc(60vh)' }}>
+        <div className="w-full" style={{ height: 'calc(65vh)' }}>
           <div className="flex h-full flex-col">
             <div className="flex flex-shrink-0 items-center justify-between py-4">
               <Input
@@ -263,9 +288,10 @@ export function UploadedFiles({
               />
               <Button
                 type="button"
-                variant="default"
+                variant="destructive"
                 onClick={handleDeleteSelected}
                 disabled={table.getSelectedRowModel().rows.length === 0}
+                className="mr-2"
               >
                 Delete Selected
               </Button>
@@ -343,13 +369,24 @@ export function UploadedFiles({
                 </TableBody>
               </Table>
             </div>
+            <div className="mt-4 flex-shrink-0">
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleProcessSelected}
+                disabled={table.getSelectedRowModel().rows.length === 0}
+                className="w-full"
+              >
+                Process Selected
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
         <EmptyCard
           title="No files uploaded"
           className="w-full"
-          style={{ height: 'calc(60vh)' }}
+          style={{ height: 'calc(65vh)' }}
           isFetchingFiles={isFetchingFiles}
         />
       )}

@@ -4,16 +4,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel
-} from '@/components/ui/form';
-import { Switch } from '@/components/ui/switch';
+import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
@@ -73,32 +64,6 @@ export function Knowledgebase() {
             setUploadedFiles={setUploadedFiles}
             isFetchingFiles={isFetchingFiles ?? false}
           />
-
-          {/* <FormField
-            control={form.control}
-            name="processAll"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Process All Files</FormLabel>
-                  <FormDescription>
-                    If selected, all files will be processed and any files with
-                    the same filename will be overwritten.
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          /> */}
-
-          <Button type="submit" style={{ width: '100%' }}>
-            Process Files
-          </Button>
         </form>
       </Form>
     </>
