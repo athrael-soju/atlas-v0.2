@@ -2,10 +2,9 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { Cross2Icon, FileTextIcon, UploadIcon } from '@radix-ui/react-icons';
 import Dropzone, { type FileRejection } from 'react-dropzone';
 import { toast } from 'sonner';
-
+import { Icons } from '@/components/icons';
 import { cn, formatBytes } from '@/lib/utils';
 import { useControllableState } from '@/hooks/use-controllable-state';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -131,10 +130,15 @@ export function FileUploader(props: FileUploaderProps) {
         }
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [files]);
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
+
+  const allUploaded =
+    (files?.length ?? 0) > 0 &&
+    files?.every((file) => progress?.[file.name] === 100);
+  const title = allUploaded ? 'Files Uploaded!' : 'Uploading Files';
+  const emoticon = allUploaded ? '😊' : '🚚';
 
   const DialogOrDrawer = isDesktop ? Dialog : Drawer;
   const DialogOrDrawerTrigger = isDesktop ? DialogTrigger : DrawerTrigger;
@@ -177,7 +181,7 @@ export function FileUploader(props: FileUploaderProps) {
             {isDragActive ? (
               <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
                 <div className="rounded-full border border-dashed p-3">
-                  <UploadIcon
+                  <Icons.uploadIcon
                     className="size-7 text-muted-foreground"
                     aria-hidden="true"
                   />
@@ -189,7 +193,7 @@ export function FileUploader(props: FileUploaderProps) {
             ) : (
               <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
                 <div className="rounded-full border border-dashed p-3">
-                  <UploadIcon
+                  <Icons.uploadIcon
                     className="size-7 text-muted-foreground"
                     aria-hidden="true"
                   />
@@ -222,7 +226,9 @@ export function FileUploader(props: FileUploaderProps) {
         </DialogOrDrawerTrigger>
         <DialogOrDrawerContent aria-describedby="file-upload-description">
           <DialogOrDrawerHeader>
-            <DialogOrDrawerTitle>Uploading Files...</DialogOrDrawerTitle>
+            <DialogOrDrawerTitle>
+              {emoticon} {title}
+            </DialogOrDrawerTitle>
             <DialogDescription />
           </DialogOrDrawerHeader>
           <div className="flex flex-col gap-4">
@@ -241,8 +247,9 @@ export function FileUploader(props: FileUploaderProps) {
   );
 }
 
-function FileCard({ file, progress, onRemove }: FileCardProps) {
+function FileCard({ file, progress }: FileCardProps) {
   const isUploading = progress !== undefined && progress < 100;
+  const isUploaded = progress !== undefined && progress === 100;
 
   return (
     <div className="relative flex items-center gap-2.5">
@@ -257,22 +264,24 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
               {formatBytes(file.size)}
             </p>
           </div>
-          {progress !== undefined ? <Progress value={progress} /> : null}
+          {progress !== undefined ? (
+            <div className="flex items-center gap-2">
+              <Progress value={progress} />
+              <span
+                className="text-xl"
+                style={{ width: '1.5em', textAlign: 'center' }}
+              >
+                {isUploaded ? (
+                  <Icons.checkIcon className="text-success" />
+                ) : isUploading ? (
+                  <Icons.squareIcon className="text-muted-foreground" />
+                ) : (
+                  <Icons.squareIcon className="text-muted-foreground" />
+                )}
+              </span>
+            </div>
+          ) : null}
         </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {isUploading ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-7"
-            onClick={onRemove}
-          >
-            <Cross2Icon className="size-4" aria-hidden="true" />
-            <span className="sr-only">Remove file</span>
-          </Button>
-        ) : null}
       </div>
     </div>
   );
@@ -297,7 +306,7 @@ function FilePreview({ file }: FilePreviewProps) {
   }
 
   return (
-    <FileTextIcon
+    <Icons.fileTextIcon
       className="size-10 text-muted-foreground"
       aria-hidden="true"
     />
