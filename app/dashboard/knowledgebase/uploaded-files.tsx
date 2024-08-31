@@ -1,7 +1,7 @@
 // app\dashboard\knowledgebase\uploaded-files.tsx
 'use client';
 
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, ReactNode, SetStateAction } from 'react';
 import {
   ColumnDef,
   SortingState,
@@ -22,6 +22,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import { Icons } from '@/components/icons';
 import {
   DropdownMenu,
@@ -119,7 +125,32 @@ export function UploadedFiles({
     {
       accessorKey: 'name',
       header: 'File Name',
-      cell: ({ row }) => <div className="truncate">{row.getValue('name')}</div>,
+      cell: ({ row }) => {
+        const fileName = row.getValue('name') as ReactNode;
+        const fileUrl: string | undefined = row.original.url;
+
+        return fileUrl ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="max-w-[150px] cursor-pointer truncate text-blue-500 hover:underline"
+                >
+                  {fileName}
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{fileName}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span>{fileName}</span>
+        );
+      },
       enableSorting: true
     },
     {
@@ -134,22 +165,6 @@ export function UploadedFiles({
           </div>
         );
       },
-      enableSorting: true
-    },
-    {
-      accessorKey: 'url',
-      header: 'File URL',
-      cell: ({ row }) => (
-        <div className="truncate">
-          <a
-            href={row.getValue('url')}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {row.getValue('url')}
-          </a>
-        </div>
-      ),
       enableSorting: true
     },
     {
