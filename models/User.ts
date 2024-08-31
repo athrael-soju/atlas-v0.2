@@ -28,4 +28,5 @@ interface UploadedFile {
   url: string;
   size: number;
   key: string;
+  dateUploaded: string;
 }

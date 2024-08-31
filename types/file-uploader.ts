@@ -30,9 +30,9 @@ export interface FileUploaderProps
    * Progress of the uploaded files.
    * @type Record<string, number> | undefined
    * @default undefined
-   * @example progresses={{ "file1.png": 50 }}
+   * @example progress={{ "file1.png": 50 }}
    */
-  progresses?: Record<string, number>;
+  progress?: Record<string, number>;
 
   /**
    * Accepted file types for the uploader.

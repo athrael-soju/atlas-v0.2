@@ -43,7 +43,7 @@ export function FileUploader(props: FileUploaderProps) {
     value: valueProp,
     onValueChange,
     onUpload,
-    progresses,
+    progress,
     accept = {
       'application/pdf': [],
       'image/*': []
@@ -231,7 +231,7 @@ export function FileUploader(props: FileUploaderProps) {
                 key={index}
                 file={file}
                 onRemove={() => onRemove(index)}
-                progress={progresses?.[file.name]}
+                progress={progress?.[file.name]}
               />
             ))}
           </div>

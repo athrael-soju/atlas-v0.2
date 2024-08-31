@@ -18,26 +18,16 @@ const getUserId = async () => {
 };
 
 // Utility function to handle database updates
-const updateUserFiles = async (userId: string, file: any) => {
+const updateUserFiles = async (userId: string, uploadedFile: any) => {
   try {
     const db = client.db('AtlasII');
     const usersCollection = db.collection('users');
 
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const combinedFiles = [...(user.knowledgebase?.files || []), file];
-
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(userId) },
       {
-        $set: {
-          'knowledgebase.files': combinedFiles,
-          updatedAt: new Date().toISOString()
-        }
+        $push: { 'knowledgebase.files': uploadedFile },
+        $set: { updatedAt: new Date().toISOString() }
       }
     );
 
@@ -52,69 +42,53 @@ const updateUserFiles = async (userId: string, file: any) => {
   }
 };
 
+// Function to handle the upload completion logic
+const handleUploadComplete = async ({
+  metadata,
+  file
+}: {
+  metadata: any;
+  file: any;
+}) => {
+  const uploadedFile = {
+    name: file.name,
+    url: file.url,
+    size: file.size,
+    key: file.key,
+    dateUploaded: new Date().toISOString()
+  };
+  await updateUserFiles(metadata.userId, uploadedFile);
+};
+
+// Define file router rules
+const defineFileRouter = (config: any) =>
+  f(config)
+    .middleware(async () => ({ userId: await getUserId() }))
+    .onUploadComplete(handleUploadComplete);
+
 // FileRouter implementation
 export const ourFileRouter = {
-  image: f({ image: { maxFileSize: '4MB', maxFileCount: 1 } })
-    .middleware(async () => ({ userId: await getUserId() }))
-    .onUploadComplete(async ({ metadata, file }) => {
-      const uploadedFile = {
-        name: file.name,
-        url: file.url,
-        size: file.size,
-        key: file.key
-      };
-      await updateUserFiles(metadata.userId, uploadedFile);
-    }),
-  attachment: f(['text', 'image', 'video', 'audio', 'pdf'])
-    .middleware(async () => ({ userId: await getUserId() }))
-    .onUploadComplete(async ({ metadata, file }) => {
-      const uploadedFile = {
-        name: file.name,
-        url: file.url,
-        size: file.size,
-        key: file.key
-      };
-      await updateUserFiles(metadata.userId, uploadedFile);
-    }),
-  video: f({ video: { maxFileCount: 1, maxFileSize: '512GB' } })
-    .middleware(async () => ({ userId: await getUserId() }))
-    .onUploadComplete(async ({ metadata, file }) => {
-      const uploadedFile = {
-        name: file.name,
-        url: file.url,
-        size: file.size,
-        key: file.key
-      };
-      await updateUserFiles(metadata.userId, uploadedFile);
-    })
+  image: defineFileRouter({ image: { maxFileSize: '4MB', maxFileCount: 1 } }),
+  attachment: defineFileRouter(['text', 'image', 'video', 'audio', 'pdf']),
+  video: defineFileRouter({ video: { maxFileCount: 1, maxFileSize: '512GB' } })
 } satisfies FileRouter;
 
 // File deletion function
 export const deleteFiles = async (files: string[] | string) => {
   try {
-    // Normalize files to be an array
     const filesArray = Array.isArray(files) ? files : [files];
-    // First, delete the files from the upload service
     const response = await utapi.deleteFiles(filesArray);
 
     if (response.success && response.deletedCount > 0) {
-      // Get the userId from the session
       const userId = await getUserId();
-
-      // Connect to the MongoDB database and collection
       const db = client.db('AtlasII');
       const usersCollection = db.collection('users');
 
-      // Update the user's document to remove the deleted files
       const result = await usersCollection.updateOne(
         { _id: new ObjectId(userId) },
         {
-          $pull: {
-            'knowledgebase.files': { key: { $in: filesArray } } as any
-          },
-          $set: {
-            updatedAt: new Date().toISOString()
-          }
+          $pull: { 'knowledgebase.files': { key: { $in: filesArray } } as any },
+          $set: { updatedAt: new Date().toISOString() }
         }
       );
 
@@ -135,26 +109,17 @@ export const deleteFiles = async (files: string[] | string) => {
 // File listing function
 export const listFiles = async () => {
   try {
-    // Get the userId from the session
     const userId = await getUserId();
-    let files: never[] = [];
-    // Connect to the MongoDB database and collection
     const db = client.db('AtlasII');
     const usersCollection = db.collection('users');
 
-    // Find the user and retrieve their files
     const user = await usersCollection.findOne(
       { _id: new ObjectId(userId) },
       { projection: { 'knowledgebase.files': 1 } }
     );
 
-    if (!user || !user.knowledgebase || !user.knowledgebase.files) {
-      return { files, hasMore: false }; // Modify hasMore based on pagination logic if necessary
-    }
-
-    files = user.knowledgebase.files;
-
-    return { files, hasMore: false }; // Modify hasMore based on pagination logic if necessary
+    const files = user?.knowledgebase?.files ?? [];
+    return { files, hasMore: false }; // Adjust hasMore based on pagination logic
   } catch (error: any) {
     console.error('Error listing files:', error);
     throw new Error('Error listing files:', error);

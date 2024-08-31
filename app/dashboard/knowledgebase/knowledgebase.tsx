@@ -27,7 +27,7 @@ const FormSchema = z.object({
 export function Knowledgebase() {
   const {
     onUpload,
-    progresses,
+    progress,
     uploadedFiles,
     setUploadedFiles,
     isUploading,
@@ -47,13 +47,13 @@ export function Knowledgebase() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    // toast({
-    //   title: 'Processing Files',
-    //   description: `Processing ${
-    //     data.processAll ? 'All Files' : 'New Files Only'
-    //   }`
-    // });
-    // TODO: Implement the file processing logic based on `data.processAll`
+    toast({
+      title: 'Processing Files',
+      description: `Processing ${
+        data.processAll ? 'All Files' : 'New Files Only'
+      }`
+    });
+    //TODO: Implement the file processing logic based on `data.processAll`
   }
 
   return (
@@ -63,7 +63,7 @@ export function Knowledgebase() {
           <FileUploader
             maxFileCount={4}
             maxSize={4 * 1024 * 1024}
-            progresses={progresses}
+            progress={progress}
             onUpload={onUpload}
             disabled={isUploading}
           />
@@ -73,7 +73,7 @@ export function Knowledgebase() {
             isFetchingFiles={isFetchingFiles ?? false}
           />
 
-          <FormField
+          {/* <FormField
             control={form.control}
             name="processAll"
             render={({ field }) => (
@@ -93,7 +93,7 @@ export function Knowledgebase() {
                 </FormControl>
               </FormItem>
             )}
-          />
+          /> */}
 
           <Button type="submit" style={{ width: '100%' }}>
             Process Files

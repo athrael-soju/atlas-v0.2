@@ -20,13 +20,11 @@ export function useHandleFiles(
   >({
     defaultProp: [],
     onChange: (files) => {
-      console.info('Uploaded files changed:', files);
+      //console.info('Uploaded files changed:', files);
     }
   });
 
-  const [progresses, setProgresses] = useControllableState<
-    Record<string, number>
-  >({
+  const [progress, setProgress] = useControllableState<Record<string, number>>({
     defaultProp: {}
   });
 
@@ -64,14 +62,13 @@ export function useHandleFiles(
   const onUpload = async (files: File[]) => {
     setIsUploading(true);
     try {
-      const res = await uploadFiles(endpoint, {
+      uploadFiles(endpoint, {
         ...props,
         files,
         onUploadProgress: ({ file, progress }) => {
-          setProgresses((prev) => ({ ...prev, [file]: progress }));
+          setProgress((prev) => ({ ...prev, [file]: progress }));
         }
-      });
-      setUploadedFiles((prev = []) => [...prev, ...res]);
+      }).then(() => fetchUploadedFiles());
     } catch (err) {
       toast({
         title: 'Uh oh! Something went wrong.',
@@ -79,7 +76,7 @@ export function useHandleFiles(
         variant: 'destructive'
       });
     } finally {
-      setProgresses({});
+      setProgress({});
       setIsUploading(false);
     }
   };
@@ -87,7 +84,7 @@ export function useHandleFiles(
   return {
     uploadedFiles,
     setUploadedFiles,
-    progresses,
+    progress,
     isUploading,
     onUpload,
     fetchUploadedFiles,

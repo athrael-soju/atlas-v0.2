@@ -123,6 +123,20 @@ export function UploadedFiles({
       enableSorting: true
     },
     {
+      accessorKey: 'dateUploaded',
+      header: 'Date Uploaded',
+      cell: ({ row }) => {
+        const dateUploaded = new Date(row.getValue('dateUploaded'));
+        return (
+          <div>
+            {dateUploaded.toLocaleDateString()}{' '}
+            {dateUploaded.toLocaleTimeString()}
+          </div>
+        );
+      },
+      enableSorting: true
+    },
+    {
       accessorKey: 'url',
       header: 'File URL',
       cell: ({ row }) => (
@@ -223,104 +237,104 @@ export function UploadedFiles({
   return (
     <>
       {uploadedFiles.length > 0 ? (
-        <div className="w-full">
-          <div className="flex items-center justify-between py-4">
-            <Input
-              placeholder="Filter by name..."
-              value={globalFilter}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="max-w-sm"
-            />
-            <Button
-              variant="default"
-              onClick={handleDeleteSelected}
-              disabled={table.getSelectedRowModel().rows.length === 0}
-            >
-              Delete Selected
-            </Button>
-          </div>
-          <div
-            className="overflow-y-auto rounded-md border"
-            style={{ height: 'calc(44vh)' }}
-          >
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        onClick={header.column.getToggleSortingHandler()}
-                        className={
-                          header.column.getCanSort()
-                            ? 'cursor-pointer select-none'
-                            : ''
-                        }
-                      >
-                        <div className="flex items-center">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          <span
-                            style={{
-                              display: 'inline-block',
-                              width: '1em',
-                              marginLeft: '0.5em'
-                            }}
-                          >
-                            {header.column.getIsSorted() === 'asc' ? (
-                              <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
-                            ) : header.column.getIsSorted() === 'desc' ? (
-                              <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
-                            ) : (
-                              <span className="inline-block align-middle">
-                                ⠀
-                              </span>
+        <div className="w-full" style={{ height: 'calc(60vh)' }}>
+          <div className="flex h-full flex-col">
+            <div className="flex flex-shrink-0 items-center justify-between py-4">
+              <Input
+                placeholder="Filter by name..."
+                value={globalFilter}
+                onChange={(event) => setGlobalFilter(event.target.value)}
+                className="max-w-sm"
+              />
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleDeleteSelected}
+                disabled={table.getSelectedRowModel().rows.length === 0}
+              >
+                Delete Selected
+              </Button>
+            </div>
+            <div className="flex-grow overflow-y-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          onClick={header.column.getToggleSortingHandler()}
+                          className={
+                            header.column.getCanSort()
+                              ? 'cursor-pointer select-none'
+                              : ''
+                          }
+                        >
+                          <div className="flex items-center">
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
                             )}
-                          </span>
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
+                            <span
+                              style={{
+                                display: 'inline-block',
+                                width: '1em',
+                                marginLeft: '0.5em'
+                              }}
+                            >
+                              {header.column.getIsSorted() === 'asc' ? (
+                                <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
+                              ) : header.column.getIsSorted() === 'desc' ? (
+                                <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
+                              ) : (
+                                <span className="inline-block align-middle">
+                                  ⠀
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       ) : (
         <EmptyCard
           title="No files uploaded"
           className="w-full"
-          style={{ height: 'calc(50vh)' }}
+          style={{ height: 'calc(60vh)' }}
           isFetchingFiles={isFetchingFiles}
         />
       )}
