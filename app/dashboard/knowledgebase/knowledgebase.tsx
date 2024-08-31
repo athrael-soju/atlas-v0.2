@@ -60,8 +60,9 @@ export function Knowledgebase() {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* TODO: Ensure consistency between FileUploader and UploadThing */}
           <FileUploader
-            maxFileCount={4}
+            maxFileCount={5}
             maxSize={4 * 1024 * 1024}
             progress={progress}
             onUpload={onUpload}

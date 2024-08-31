@@ -39,6 +39,7 @@ interface FileCardProps {
 }
 
 export function FileUploader(props: FileUploaderProps) {
+  // TODO: Add configurable Interface
   const {
     value: valueProp,
     onValueChange,
@@ -49,8 +50,8 @@ export function FileUploader(props: FileUploaderProps) {
       'image/*': []
     },
     maxSize = 1024 * 1024 * 2,
-    maxFileCount = 1,
-    multiple = false,
+    maxFileCount = 5,
+    multiple = true,
     disabled = false,
     className,
     ...dropzoneProps
@@ -66,8 +67,8 @@ export function FileUploader(props: FileUploaderProps) {
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-      if (!multiple && maxFileCount === 1 && acceptedFiles.length > 1) {
-        toast.error('Cannot upload more than 1 file at a time');
+      if (!multiple && acceptedFiles.length > 1) {
+        toast.error(`Cannot upload more than 1 file at a time`);
         return;
       }
 
@@ -81,7 +82,6 @@ export function FileUploader(props: FileUploaderProps) {
           preview: URL.createObjectURL(file)
         })
       );
-
       const updatedFiles = files ? [...files, ...newFiles] : newFiles;
 
       setFiles(updatedFiles);
