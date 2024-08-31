@@ -137,9 +137,9 @@ export function UploadedFiles({
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="max-w-[150px] cursor-pointer truncate text-blue-500 hover:underline"
+                  className="cursor-pointer text-blue-500 hover:underline"
                 >
-                  {fileName}
+                  <div className="max-w-[90%] truncate">{fileName}</div>
                 </a>
               </TooltipTrigger>
               <TooltipContent>
