@@ -2,29 +2,71 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserData } from '@/lib/service/mongodb';
 import { IUser } from '@/models/User';
 
-export async function POST(req: NextRequest, res: NextResponse) {
-  const formData = await req.formData(); // process file as FormData
-  // retrieve the file array from FormData
-  const fileIds = JSON.parse(formData.get('fileIds') as string);
-  const userId = formData.get('userId') as string;
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  try {
+    const formData = await req.formData();
+    const fileIds = JSON.parse(formData.get('fileIds') as string);
+    const userId = formData.get('userId') as string;
 
-  // Get User Data Object from db
-  const userServerData: IUser = await getUserData(userId);
+    // Validate user
+    const userServerData: IUser = await getUserData(userId);
+    if (userServerData._id.toString() !== userId) {
+      return new NextResponse(JSON.stringify({ message: 'Invalid user' }), {
+        status: 400
+      });
+    }
 
-  // Validate the user
-  const userValidated = userServerData._id.toString() === userId;
-  if (!userValidated) {
-    return NextResponse.json({ message: 'Invalid user' }, { status: 400 });
+    // Validate fileIds
+    if (!Array.isArray(fileIds)) {
+      return new NextResponse(JSON.stringify({ message: 'Invalid file IDs' }), {
+        status: 400
+      });
+    }
+
+    // Setup SSE within the same POST request
+    const stream = new ReadableStream({
+      start(controller) {
+        async function processFiles() {
+          for (const fileId of fileIds) {
+            try {
+              // Simulate processing (replace with actual processing logic)
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+
+              // Send a progress update to the client
+              controller.enqueue(
+                `data: {"status": "Processing File", "message": "${fileId}"}\n\n`
+              );
+            } catch (error: any) {
+              // Handle any errors and notify the client
+              controller.enqueue(
+                `data: {"status": "Error Processing File", "message": ${fileId}}\n\n`
+              );
+            }
+          }
+
+          // When done, close the stream
+          controller.close();
+        }
+
+        processFiles();
+      }
+    });
+
+    return new NextResponse(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive'
+      }
+    });
+  } catch (error) {
+    return new NextResponse(
+      JSON.stringify({ message: 'Internal server error' }),
+      {
+        status: 500
+      }
+    );
   }
-  // Validate the request body
-  if (!Array.isArray(fileIds)) {
-    return NextResponse.json(fileIds, { status: 400 });
-  }
-
-  // Process the array of IDs
-  console.log(userServerData.knowledgebase.files);
-
-  return NextResponse.json({ fileIds, status: 200 });
 }
 
 async function processFiles(userId: string, files: string[]) {

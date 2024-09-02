@@ -43,7 +43,7 @@ import { EmptyCard } from '@/components/empty-card';
 import type { UploadedFile } from '@/types/uploadthing';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSession } from 'next-auth/react';
-import { processSelecedFiles } from '@/hooks/use-file-processing';
+import { processSelectedFiles } from '@/hooks/use-file-processing';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
@@ -289,7 +289,7 @@ export function UploadedFiles({
         description: 'Selected files are being processed.',
         variant: 'default'
       });
-      await processSelecedFiles(userId, selectedFiles);
+      await processSelectedFiles(userId, selectedFiles);
     } else {
       toast({
         title: 'No files selected',
