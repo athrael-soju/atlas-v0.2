@@ -1,3 +1,5 @@
+import { getServerSession } from 'next-auth/next';
+import authConfig from '@/auth.config';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -39,3 +41,10 @@ export function composeEventHandlers<E>(
     }
   };
 }
+
+
+export const getUserId = async () => {
+  const session = await getServerSession(authConfig);
+  console.log('Session in getUserId:', session);
+  return session?.user.id;
+};

@@ -1,21 +1,10 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
-import { UploadThingError } from 'uploadthing/server';
 import { UTApi } from 'uploadthing/server';
-import { getAuthSession } from '@/auth';
 import client from '@/lib/client/mongodb';
 import { ObjectId } from 'mongodb';
-
+import { getUserId } from '@/lib/utils';
 const utapi = new UTApi();
 const f = createUploadthing();
-
-// Centralized middleware to get the userId
-const getUserId = async () => {
-  const session = await getAuthSession();
-  if (!session?.user.id) {
-    throw new UploadThingError('Unauthorized');
-  }
-  return session.user.id;
-};
 
 // Utility function to handle database updates
 const updateUserFiles = async (userId: string, uploadedFile: any) => {

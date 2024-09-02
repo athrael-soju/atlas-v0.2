@@ -17,7 +17,7 @@ type MessageProps = {
   role: 'user' | 'assistant' | 'code';
   text: string;
 };
-
+// TODO: Refactor messaging functionality into a hook
 const UserMessage = ({ text }: { text: string }) => {
   return (
     <div className="rounded-lg bg-primary p-3 text-primary-foreground">

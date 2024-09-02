@@ -42,6 +42,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { EmptyCard } from '@/components/empty-card';
 import type { UploadedFile } from '@/types/uploadthing';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSession } from 'next-auth/react';
+import { processSelecedFiles } from '@/hooks/use-file-processing';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
@@ -56,6 +58,7 @@ export function UploadedFiles({
   setUploadedFiles,
   isFetchingFiles
 }: UploadedFilesProps) {
+  const { data: session } = useSession();
   const onDeleteFiles = async (files: UploadedFile[]) => {
     try {
       const response = await fetch('/api/uploadthing', {
@@ -98,16 +101,6 @@ export function UploadedFiles({
         variant: 'destructive'
       });
     }
-  };
-
-  const onProcessFiles = (files: UploadedFile[]) => {
-    // Placeholder for file processing logic
-    console.log('Processing files:', files);
-    toast({
-      title: 'Processing files',
-      description: `${files.length} file(s) are being processed`,
-      variant: 'default'
-    });
   };
 
   const columns: ColumnDef<UploadedFile>[] = [
@@ -265,12 +258,20 @@ export function UploadedFiles({
     }
   };
 
-  const handleProcessSelected = () => {
+  const handleProcessSelected = async () => {
     const selectedFiles = table
       .getSelectedRowModel()
-      .rows.map((row) => row.original);
+      .rows.map((row) => row.original.key) as string[];
+
+    const userId = session?.user.id as string;
+
     if (selectedFiles.length > 0) {
-      onProcessFiles(selectedFiles);
+      toast({
+        title: 'Processing files',
+        description: 'Selected files are being processed.',
+        variant: 'default'
+      });
+      await processSelecedFiles(userId, selectedFiles);
     } else {
       toast({
         title: 'No files selected',
