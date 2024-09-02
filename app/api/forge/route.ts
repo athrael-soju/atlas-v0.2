@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserData } from '@/lib/service/mongodb';
+import { IUser } from '@/models/User';
+
 export async function POST(req: NextRequest, res: NextResponse) {
   const formData = await req.formData(); // process file as FormData
   // retrieve the file array from FormData
   const fileIds = JSON.parse(formData.get('fileIds') as string);
-  const userId = formData.get('userId');
+  const userId = formData.get('userId') as string;
+
+  // Get User Data Object from db
+  const userServerData: IUser = await getUserData(userId);
 
   // Validate the user
-  const userValidated = await validateUser(userId);
+  const userValidated = userServerData._id.toString() === userId;
   if (!userValidated) {
     return NextResponse.json({ message: 'Invalid user' }, { status: 400 });
   }
@@ -16,16 +21,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
     return NextResponse.json(fileIds, { status: 400 });
   }
 
-  console.info(await getUserData(userId as string));
-
+  console.log(userServerData.knowledgebase.files);
   // Process the array of IDs
 
   return NextResponse.json({ fileIds, status: 200 });
-}
-async function validateUser(userId: FormDataEntryValue | null) {
-  if (!userId) {
-    return false;
-  }
 }
 
 async function processDocument(userId: string, files: string[]) {

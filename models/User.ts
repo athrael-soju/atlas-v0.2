@@ -17,9 +17,9 @@ export interface IUser {
       chunkOverlap: number;
       chunkBatch: number;
     };
-    knowledgebase?: {
-      files: UploadedFile[];
-    };
+  };
+  knowledgebase: {
+    files: UploadedFile[];
   };
 }
 
