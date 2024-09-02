@@ -24,3 +24,8 @@ export const getUserData = async (userId: string) => {
 
   return user;
 };
+
+export const getUserId = async () => {
+  const session = await getServerSession(authConfig);
+  return session?.user.id;
+};

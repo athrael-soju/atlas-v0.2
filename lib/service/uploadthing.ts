@@ -2,7 +2,7 @@ import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { UTApi } from 'uploadthing/server';
 import client from '@/lib/client/mongodb';
 import { ObjectId } from 'mongodb';
-import { getUserId } from '@/lib/utils';
+import { getUserId } from '@/lib/service/mongodb';
 const utapi = new UTApi();
 const f = createUploadthing();
 
