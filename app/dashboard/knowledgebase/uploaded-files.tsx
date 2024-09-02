@@ -159,13 +159,31 @@ export function UploadedFiles({
     },
     {
       accessorKey: 'dateUploaded',
-      header: 'Date Uploaded',
+      header: 'Uploaded',
       cell: ({ row }) => {
         const dateUploaded = new Date(row.getValue('dateUploaded'));
         return (
           <div>
             {dateUploaded.toLocaleDateString()}{' '}
             {dateUploaded.toLocaleTimeString()}
+          </div>
+        );
+      },
+      enableSorting: true
+    },
+    {
+      accessorKey: 'dateProcessed',
+      header: 'Processed',
+      cell: ({ row }) => {
+        const dateValue = row.getValue('dateProcessed') as Date;
+        if (!dateValue) {
+          return <div>N/A</div>;
+        }
+        const dateProcessed = new Date(dateValue);
+        return (
+          <div>
+            {dateProcessed.toLocaleDateString()}{' '}
+            {dateProcessed.toLocaleTimeString()}
           </div>
         );
       },

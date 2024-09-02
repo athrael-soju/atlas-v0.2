@@ -59,7 +59,10 @@ const authConfig: NextAuthOptions = {
                 role: 'guest',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                settings: {}
+                settings: {},
+                knowledgebase: {
+                  files: []
+                }
               };
 
               const result = await usersCollection.insertOne(newGuestUser);
@@ -115,7 +118,10 @@ const authConfig: NextAuthOptions = {
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               role: 'user',
-              settings: {}
+              settings: {},
+              knowledgebase: {
+                files: []
+              }
             };
 
             await usersCollection.insertOne(newUser);

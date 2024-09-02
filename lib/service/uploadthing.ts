@@ -44,7 +44,8 @@ const handleUploadComplete = async ({
     url: file.url,
     size: file.size,
     key: file.key,
-    dateUploaded: new Date().toISOString()
+    dateUploaded: new Date().toISOString(),
+    dateProcessed: null
   };
   await updateUserFiles(metadata.userId, uploadedFile);
 };
