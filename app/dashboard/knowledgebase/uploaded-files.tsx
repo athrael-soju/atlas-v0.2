@@ -1,7 +1,7 @@
 // app\dashboard\knowledgebase\uploaded-files.tsx
 'use client';
 
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, ReactNode, SetStateAction } from 'react';
 import {
   ColumnDef,
   SortingState,
@@ -22,6 +22,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import { Icons } from '@/components/icons';
 import {
   DropdownMenu,
@@ -35,6 +41,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { EmptyCard } from '@/components/empty-card';
 import type { UploadedFile } from '@/types/uploadthing';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
@@ -93,6 +100,16 @@ export function UploadedFiles({
     }
   };
 
+  const onProcessFiles = (files: UploadedFile[]) => {
+    // Placeholder for file processing logic
+    console.log('Processing files:', files);
+    toast({
+      title: 'Processing files',
+      description: `${files.length} file(s) are being processed`,
+      variant: 'default'
+    });
+  };
+
   const columns: ColumnDef<UploadedFile>[] = [
     {
       id: 'select',
@@ -119,7 +136,32 @@ export function UploadedFiles({
     {
       accessorKey: 'name',
       header: 'File Name',
-      cell: ({ row }) => <div className="truncate">{row.getValue('name')}</div>,
+      cell: ({ row }) => {
+        const fileName = row.getValue('name') as ReactNode;
+        const fileUrl: string | undefined = row.original.url;
+
+        return fileUrl ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cursor-pointer text-blue-500 hover:underline"
+                >
+                  <div className="max-w-[90%] truncate">{fileName}</div>
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{fileName}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span>{fileName}</span>
+        );
+      },
       enableSorting: true
     },
     {
@@ -134,22 +176,6 @@ export function UploadedFiles({
           </div>
         );
       },
-      enableSorting: true
-    },
-    {
-      accessorKey: 'url',
-      header: 'File URL',
-      cell: ({ row }) => (
-        <div className="truncate">
-          <a
-            href={row.getValue('url')}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {row.getValue('url')}
-          </a>
-        </div>
-      ),
       enableSorting: true
     },
     {
@@ -216,7 +242,12 @@ export function UploadedFiles({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    state: { sorting, globalFilter }
+    state: { sorting, globalFilter },
+    initialState: {
+      pagination: {
+        pageSize: 10
+      }
+    }
   });
 
   const handleDeleteSelected = () => {
@@ -234,10 +265,25 @@ export function UploadedFiles({
     }
   };
 
+  const handleProcessSelected = () => {
+    const selectedFiles = table
+      .getSelectedRowModel()
+      .rows.map((row) => row.original);
+    if (selectedFiles.length > 0) {
+      onProcessFiles(selectedFiles);
+    } else {
+      toast({
+        title: 'No files selected',
+        description: 'Please select files to process.',
+        variant: 'default'
+      });
+    }
+  };
+  // TODO: Allow horizontal scrolling for the table
   return (
     <>
       {uploadedFiles.length > 0 ? (
-        <div className="w-full" style={{ height: 'calc(60vh)' }}>
+        <div className="w-full" style={{ height: 'calc(55vh)' }}>
           <div className="flex h-full flex-col">
             <div className="flex flex-shrink-0 items-center justify-between py-4">
               <Input
@@ -248,85 +294,124 @@ export function UploadedFiles({
               />
               <Button
                 type="button"
-                variant="default"
+                variant="destructive"
                 onClick={handleDeleteSelected}
                 disabled={table.getSelectedRowModel().rows.length === 0}
+                className="mr-2"
               >
                 Delete Selected
               </Button>
             </div>
             <div className="flex-grow overflow-y-auto rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          onClick={header.column.getToggleSortingHandler()}
-                          className={
-                            header.column.getCanSort()
-                              ? 'cursor-pointer select-none'
-                              : ''
-                          }
-                        >
-                          <div className="flex items-center">
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                            <span
-                              style={{
-                                display: 'inline-block',
-                                width: '1em',
-                                marginLeft: '0.5em'
-                              }}
-                            >
-                              {header.column.getIsSorted() === 'asc' ? (
-                                <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
-                              ) : header.column.getIsSorted() === 'desc' ? (
-                                <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
-                              ) : (
-                                <span className="inline-block align-middle">
-                                  ⠀
-                                </span>
+              <ScrollArea className="h-full rounded-md border">
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-secondary">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                          <TableHead
+                            key={header.id}
+                            onClick={header.column.getToggleSortingHandler()}
+                            className={
+                              header.column.getCanSort()
+                                ? 'cursor-pointer select-none'
+                                : ''
+                            }
+                          >
+                            <div className="flex items-center">
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
                               )}
-                            </span>
-                          </div>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  width: '1em',
+                                  marginLeft: '0.5em'
+                                }}
+                              >
+                                {header.column.getIsSorted() === 'asc' ? (
+                                  <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
+                                ) : header.column.getIsSorted() === 'desc' ? (
+                                  <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
+                                ) : (
+                                  <div className="inline-block h-3 w-3 align-middle opacity-0" />
+                                )}
+                              </span>
+                            </div>
+                          </TableHead>
                         ))}
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && 'selected'}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className="h-24 text-center"
+                        >
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  Previous
+                </Button>
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  Next
+                </Button>
+              </div>
+              <span>
+                Page{' '}
+                <strong>
+                  {table.getState().pagination.pageIndex + 1} of{' '}
+                  {table.getPageCount()}
+                </strong>
+              </span>
+            </div>
+            <div className="mt-2 flex-shrink-0">
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleProcessSelected}
+                disabled={table.getSelectedRowModel().rows.length === 0}
+                className="w-full"
+              >
+                Process Selected
+              </Button>
             </div>
           </div>
         </div>
@@ -334,7 +419,7 @@ export function UploadedFiles({
         <EmptyCard
           title="No files uploaded"
           className="w-full"
-          style={{ height: 'calc(60vh)' }}
+          style={{ height: 'calc(55vh)' }}
           isFetchingFiles={isFetchingFiles}
         />
       )}

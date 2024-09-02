@@ -68,9 +68,13 @@ const defineFileRouter = (config: any) =>
 
 // FileRouter implementation
 export const ourFileRouter = {
-  image: defineFileRouter({ image: { maxFileSize: '4MB', maxFileCount: 1 } }),
-  attachment: defineFileRouter(['text', 'image', 'video', 'audio', 'pdf']),
-  video: defineFileRouter({ video: { maxFileCount: 1, maxFileSize: '512GB' } })
+  attachment: defineFileRouter({
+    text: { maxFileCount: 5, maxFileSize: '5MB' },
+    image: { maxFileCount: 5, maxFileSize: '10MB' },
+    video: { maxFileCount: 1, maxFileSize: '100MB' },
+    audio: { maxFileCount: 5, maxFileSize: '10MB' },
+    pdf: { maxFileCount: 5, maxFileSize: '10MB' }
+  })
 } satisfies FileRouter;
 
 // File deletion function
