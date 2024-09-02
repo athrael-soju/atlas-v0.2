@@ -279,7 +279,7 @@ export function UploadedFiles({
       });
     }
   };
-
+  // TODO: Allow horizontal scrolling for the table
   return (
     <>
       {uploadedFiles.length > 0 ? (
