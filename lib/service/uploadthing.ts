@@ -119,5 +119,14 @@ export const listFiles = async () => {
     throw new Error('Error listing files:', error);
   }
 };
+export const getFileUrls = async (list: string[]) => {
+  try {
+    const response = await utapi.getFileUrls(list);
+    return response;
+  } catch (error: any) {
+    console.error(error);
+    throw new Error('Error retrieving file urls', error);
+  }
+};
 
 export type OurFileRouter = typeof ourFileRouter;
