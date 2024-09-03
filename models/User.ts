@@ -1,4 +1,6 @@
 import { ObjectId } from 'mongodb';
+import { ForgeSettings } from '@/types/forge';
+import { UploadedFile } from '@/types/file-uploader';
 
 export interface IUser {
   _id: ObjectId;
@@ -8,26 +10,9 @@ export interface IUser {
   createdAt: string;
   updatedAt: string;
   settings: {
-    forge?: {
-      parsingProvider: string;
-      partitioningStrategy: string;
-      chunkingStrategy: string;
-      minChunkSize: number;
-      maxChunkSize: number;
-      chunkOverlap: number;
-      chunkBatch: number;
-    };
+    forge?: ForgeSettings;
   };
   knowledgebase: {
     files: UploadedFile[];
   };
-}
-
-interface UploadedFile {
-  name: string;
-  url: string;
-  size: number;
-  key: string;
-  dateUploaded: string;
-  dateProcessed: string;
 }

@@ -59,7 +59,17 @@ const authConfig: NextAuthOptions = {
                 role: 'guest',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                settings: {},
+                settings: {
+                  forge: {
+                    parsingProvider: 'io',
+                    minChunkSize: 0,
+                    maxChunkSize: 512,
+                    chunkOverlap: 0,
+                    chunkBatch: 50,
+                    partitioningStrategy: 'fast',
+                    chunkingStrategy: 'basic'
+                  }
+                },
                 knowledgebase: {
                   files: []
                 }
@@ -118,7 +128,17 @@ const authConfig: NextAuthOptions = {
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               role: 'user',
-              settings: {},
+              settings: {
+                forge: {
+                  parsingProvider: 'io',
+                  minChunkSize: 0,
+                  maxChunkSize: 512,
+                  chunkOverlap: 0,
+                  chunkBatch: 50,
+                  partitioningStrategy: 'fast',
+                  chunkingStrategy: 'basic'
+                }
+              },
               knowledgebase: {
                 files: []
               }

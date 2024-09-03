@@ -87,3 +87,12 @@ export interface FileCardProps {
   onRemove: () => void;
   progress?: number;
 }
+
+export interface UploadedFile {
+  name: string;
+  url: string;
+  size: number;
+  key: string;
+  dateUploaded: string;
+  dateProcessed: string;
+}
