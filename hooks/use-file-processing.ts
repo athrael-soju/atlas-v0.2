@@ -11,28 +11,41 @@ export const processSelectedFiles = async (
     body: formData
   });
 
-  if (response.ok) {
-    const reader = response.body?.getReader();
-    if (!reader) {
-      console.error('No reader available on the response body');
-      return;
-    }
-
+  if (response.body) {
+    const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    let buffer = '';
 
-      const chunk = decoder.decode(value, { stream: true });
-      // Each chunk corresponds to a line of data sent by SSE
-      // Parse and handle the chunk as JSON if it's structured data
+    const processStream = async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf('\n\n')) >= 0) {
+          const chunk = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 2);
+
+          if (chunk.startsWith('data:')) {
+            handleSSEChunk(chunk.slice(5).trim());
+          }
+        }
+      }
+    };
+
+    const handleSSEChunk = (data: string) => {
       try {
-        const { status, message } = JSON.parse(chunk.replace('data: ', ''));
-        console.info('Status:', status, ': ', message);
+        const { status, message } = JSON.parse(data);
+        console.info('Status: ', status, ' message: ', message);
       } catch (e) {
         console.error('Failed to parse chunk:', e);
       }
-    }
+    };
+
+    await processStream();
+    console.info('Processing complete');
   } else {
     console.error('Failed to start processing', response.statusText);
   }

@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserData } from '@/lib/service/mongodb';
 import { IUser } from '@/models/User';
-import { getFileUrls } from '@/lib/service/uploadthing';
 import { ForgeSettings } from '@/types/forge';
 import { parseAndChunk } from '@/lib/service/unstructured';
 import { UploadedFile } from '@/types/file-uploader';
+
+function sendUpdate(
+  status: string,
+  controller: ReadableStreamDefaultController,
+  message: string
+): void {
+  const data = JSON.stringify({ status, message });
+  controller.enqueue(`data: ${data}\n\n`);
+}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
@@ -22,11 +30,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     validateForgeSettings(forgeSettings);
 
     // Retrieve file data
-    const files = userServerData.knowledgebase.files;
-    // Get file URLs and corresponding names
+    const files = userServerData.knowledgebase.files.filter((file) =>
+      fileIds.includes(file.key)
+    );
 
     // Setup and return SSE stream
-    const stream = createSSEStream(userId, files, forgeSettings);
+    const stream = new ReadableStream({
+      start(controller) {
+        const send = (type: string, message: string) =>
+          sendUpdate(type, controller, message);
+        processFiles(userId, files, forgeSettings, send).then(() => {
+          controller.close();
+        });
+      }
+    });
 
     return new NextResponse(stream, {
       headers: {
@@ -67,56 +84,24 @@ function validateForgeSettings(forgeSettings: ForgeSettings): void {
   }
 }
 
-async function fetchFileData(fileIds: string[]) {
-  const fileUrlList = await getFileUrls(fileIds);
-  return fileUrlList.data;
-}
-
-function createSSEStream(
-  userId: string,
-  files: UploadedFile[],
-  forgeSettings: ForgeSettings
-): ReadableStream {
-  return new ReadableStream({
-    start(controller) {
-      processFiles(userId, files, forgeSettings, controller);
-    }
-  });
-}
-
 async function processFiles(
   userId: string,
   files: UploadedFile[],
   forgeSettings: ForgeSettings,
-  controller: ReadableStreamDefaultController
+  sendUpdate: (status: string, message: string) => void
 ) {
-  //console.log('fileData', files);
   for (const file of files) {
     try {
-      //const fileName = fileData[file];
-      controller.enqueue(
-        `data: {"status": "Processing File", "message": "${file.name}"}\n\n`
-      );
-      // console.log('file', file.name);
-      // const stuff = await parseAndChunk(userId, forgeSettings, file);
-      // console.log('stuff', stuff);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      sendUpdate('processing', `${file.name}`);
+      const chunks = await parseAndChunk(forgeSettings, file);
+      //await new Promise((resolve) => setTimeout(resolve, 1000));
+      sendUpdate('processed', `${chunks.length} chunks`);
     } catch (error: any) {
-      controller.enqueue(
-        `data: {"status": "Error Processing File", "message": "${error.message}"}\n\n`
-      );
+      sendUpdate('error', `Error processing '${file.name}': ${error.message}`);
+    } finally {
+      sendUpdate('done', `${file.name}`);
     }
   }
-  controller.close();
-}
-
-async function fetchAndSaveFile(url: string, fileName: string): Promise<File> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Failed to fetch the file from the URL');
-  }
-  const blob = await response.blob();
-  return new File([blob], fileName, { type: blob.type });
 }
 
 function handleErrorResponse(error: any): NextResponse {

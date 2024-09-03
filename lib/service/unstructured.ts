@@ -18,43 +18,58 @@ const unstructuredClient = new UnstructuredClient({
 });
 
 export async function parseAndChunk(
-  userId: string,
   forgeSettings: ForgeSettings,
   file: UploadedFile
-): Promise<void> {
-  const fileData = fs.readFileSync(file.url);
-  // const fileContent = file.content as File;
+): Promise<any> {
+  const fileResponse = await fetch(file.url);
+
+  // Convert ReadableStream to Blob
+  const fileBlob = await fileResponse.blob();
+
+  // Convert Blob to ArrayBuffer
+  const arrayBuffer = await fileBlob.arrayBuffer();
+
+  // Convert ArrayBuffer to Uint8Array
+  const uint8Array = new Uint8Array(arrayBuffer);
+
   const isCsv = file.name.endsWith('.csv');
   const partitionParameters: any = {
     files: {
-      content: fileData,
+      content: uint8Array, // Use Uint8Array here
       fileName: file.name
-    }
-    //strategy: partitioningStrategy
+    },
+    strategy: forgeSettings.partitioningStrategy
   };
-  // if (!isCsv) {
-  //   partitionParameters.chunkingStrategy = chunkingStrategy;
-  //   partitionParameters.maxCharacters = maxChunkSize;
-  //   partitionParameters.overlap = chunkOverlap;
-  //   partitionParameters.splitPdfPage = true;
-  //   partitionParameters.splitPdfConcurrencyLevel = 10;
-  // }
-  // const parsedDataResponse = await unstructuredClient.general.partition(
-  //   {
-  //     partitionParameters,
-  //   },
-  //   {
-  //     retries: {
-  //       strategy: 'backoff',
-  //       backoff: {
-  //         initialInterval: 1,
-  //         maxInterval: 50,
-  //         exponent: 1.1,
-  //         maxElapsedTime: 100,
-  //       },
-  //       retryConnectionErrors: false,
-  //     },
-  //   }
-  // );
-  // return parsedDataResponse?.elements || [];
+
+  if (!isCsv) {
+    partitionParameters.chunkingStrategy = forgeSettings.chunkingStrategy;
+    partitionParameters.maxCharacters = forgeSettings.maxChunkSize;
+    partitionParameters.overlap = forgeSettings.chunkOverlap;
+    partitionParameters.splitPdfPage = true;
+    partitionParameters.splitPdfConcurrencyLevel = 10;
+  }
+
+  try {
+    const parsedDataResponse = await unstructuredClient.general.partition(
+      {
+        partitionParameters
+      },
+      {
+        retries: {
+          strategy: 'backoff',
+          backoff: {
+            initialInterval: 1,
+            maxInterval: 50,
+            exponent: 1.1,
+            maxElapsedTime: 100
+          },
+          retryConnectionErrors: false
+        }
+      }
+    );
+    return parsedDataResponse?.elements || [];
+  } catch (error: any) {
+    console.error('Partition error for file:', file.name, error);
+    throw new Error(`Error processing '${file.name}': ${error.message}`);
+  }
 }
