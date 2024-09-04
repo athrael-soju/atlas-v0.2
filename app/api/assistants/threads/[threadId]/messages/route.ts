@@ -1,4 +1,4 @@
-import { openai } from '@/lib/service/openai';
+import { openai } from '@/lib/client/openai';
 
 const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
 

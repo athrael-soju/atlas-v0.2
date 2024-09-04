@@ -7,3 +7,16 @@ export interface ForgeSettings {
   chunkOverlap: number;
   chunkBatch: number;
 }
+
+export interface Embedding {
+  id: string;
+  values: number[];
+  metadata: {
+    text: any;
+    userId: string;
+  };
+}
+
+export interface ParsedElement {
+  [k: string]: any;
+}

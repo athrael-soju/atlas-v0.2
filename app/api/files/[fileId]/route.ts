@@ -1,4 +1,4 @@
-import { openai } from '@/lib/service/openai';
+import { openai } from '@/lib/client/openai';
 
 // download file by file ID
 export async function GET(

@@ -1,5 +1,4 @@
 import { UnstructuredClient } from 'unstructured-client';
-import * as fs from 'fs';
 import { UploadedFile } from '@/types/file-uploader';
 import { ForgeSettings } from '@/types/forge';
 

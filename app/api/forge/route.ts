@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserData } from '@/lib/service/mongodb';
 import { IUser } from '@/models/User';
-import { ForgeSettings } from '@/types/forge';
+import { Embedding, ForgeSettings, ParsedElement } from '@/types/forge';
 import { parseAndChunk } from '@/lib/service/unstructured';
 import { UploadedFile } from '@/types/file-uploader';
+import { embedDocument } from '@/lib/service/openai';
+import { upsertDocument } from '@/lib/service/pinecone';
 
 function sendUpdate(
   status: string,
-  controller: ReadableStreamDefaultController,
-  message: string
+  message: string,
+  controller: ReadableStreamDefaultController
 ): void {
   const data = JSON.stringify({ status, message });
   controller.enqueue(`data: ${data}\n\n`);
@@ -37,8 +39,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Setup and return SSE stream
     const stream = new ReadableStream({
       start(controller) {
-        const send = (type: string, message: string) =>
-          sendUpdate(type, controller, message);
+        const send = (state: string, message: string) =>
+          sendUpdate(state, message, controller);
         processFiles(userId, files, forgeSettings, send).then(() => {
           controller.close();
         });
@@ -92,10 +94,20 @@ async function processFiles(
 ) {
   for (const file of files) {
     try {
-      sendUpdate('processing', `${file.name}`);
-      const chunks = await parseAndChunk(forgeSettings, file);
-      //await new Promise((resolve) => setTimeout(resolve, 1000));
-      sendUpdate('processed', `${chunks.length} chunks`);
+      sendUpdate('Processing', `${file.name}`);
+
+      const chunks: ParsedElement[] = await parseAndChunk(forgeSettings, file);
+      sendUpdate('Parsed', `${chunks.length} chunks`);
+
+      const embeddings: Embedding[] = await embedDocument(userId, file, chunks);
+      sendUpdate('Embedded', `${embeddings.length} chunks`);
+
+      const upsertedCount = await upsertDocument(
+        userId,
+        embeddings,
+        forgeSettings.chunkBatch
+      );
+      sendUpdate('Upserted', `${upsertedCount} chunks`);
     } catch (error: any) {
       sendUpdate('error', `Error processing '${file.name}': ${error.message}`);
     } finally {
@@ -114,28 +126,3 @@ function handleErrorResponse(error: any): NextResponse {
     { status }
   );
 }
-
-//try {
-// Parse File
-//   await parse(
-//     config.parsingProvider,
-//     config.minChunkSize,
-//     config.maxChunkSize,
-//     config.chunkOverlap,
-//     config.chunkingStrategy,
-//     config.partitioningStrategy,
-//     atlasFile
-//   )
-// Embed Document
-// await embedDocument(atlasFile, parseResponse, userEmail),
-// Upsert Document
-//  await upsertDocument(embedResponse.embeddings, userEmail, config.chunkBatch),
-// Update user object to set files as processed
-//   return { success: true, fileName: file.name };
-// } catch (error: any) {
-//   sendUpdate('error', `Error processing '${file.name}': ${error.message}`);
-//   // Rollback changes
-//   await deleteFromVectorDb(atlasFile!, userEmail);
-//   await dbInstance.purgeArchive(userEmail, Purpose.Scribe, atlasFile!.id);
-//   return { success: false, fileName: file.name, error: error.message };
-// }
