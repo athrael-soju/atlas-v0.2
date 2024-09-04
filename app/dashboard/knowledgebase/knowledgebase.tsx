@@ -43,7 +43,7 @@ export function Knowledgebase() {
         data.processAll ? 'All Files' : 'New Files Only'
       }`
     });
-    //TODO: Implement the file processing logic based on `data.processAll`
+    // TODO: Implement the file processing logic based on `data.processAll`
   }
 
   return (
