@@ -1,6 +1,6 @@
 import { UnstructuredClient } from 'unstructured-client';
 import { UploadedFile } from '@/types/file-uploader';
-import { ForgeSettings } from '@/types/forge';
+import { ForgeSettings } from '@/types/settings';
 
 const apiKey = process.env.UNSTRUCTURED_API;
 const serverURL = process.env.UNSTRUCTURED_SERVER_URL;

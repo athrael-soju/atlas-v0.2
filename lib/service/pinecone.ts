@@ -1,5 +1,5 @@
 import { getIndex } from '@/lib/client/pinecone';
-import { Embedding } from '@/types/forge';
+import { Embedding } from '@/types/settings';
 
 function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   const result: T[][] = [];
@@ -71,7 +71,7 @@ export const upsertDocument = async (
         .upsert(chunk)
         .then(() => {
           upsertedCount++;
-          console.info(`Upserted ${upsertedCount} documents`);
+          //console.info(`Upserted ${upsertedCount} documents`);
         });
     }
     return upsertedCount;

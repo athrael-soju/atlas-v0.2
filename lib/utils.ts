@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getUserData } from '@/lib/service/mongodb';
+import { IUser } from '@/models/User';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -42,4 +44,12 @@ export function composeEventHandlers<E>(
 
 export const toAscii = (str: string): string => {
   return str.replace(/[^\x00-\x7F]/g, '');
+};
+
+export const validateUser = async (userId: string): Promise<IUser> => {
+  const userServerData = await getUserData(userId);
+  if (userServerData._id.toString() !== userId) {
+    throw new Error('Invalid user');
+  }
+  return userServerData;
 };

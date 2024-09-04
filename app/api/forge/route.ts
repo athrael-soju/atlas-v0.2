@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserData } from '@/lib/service/mongodb';
-import { IUser } from '@/models/User';
-import { Embedding, ForgeSettings, ParsedElement } from '@/types/forge';
+import { Embedding, ForgeSettings, ParsedElement } from '@/types/settings';
 import { parseAndChunk } from '@/lib/service/unstructured';
 import { UploadedFile } from '@/types/file-uploader';
 import { embedDocument } from '@/lib/service/openai';
 import { upsertDocument } from '@/lib/service/pinecone';
+import { validateUser } from '@/lib/utils';
 
 function sendUpdate(
   status: string,
@@ -18,7 +17,9 @@ function sendUpdate(
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const { fileIds, userId } = await parseRequest(req);
+    const formData = await req.formData();
+    const fileIds = JSON.parse(formData.get('fileIds') as string);
+    const userId = formData.get('userId') as string;
 
     // Validate user
     const userServerData = await validateUser(userId);
@@ -57,21 +58,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return handleErrorResponse(error);
   }
-}
-
-async function parseRequest(req: NextRequest) {
-  const formData = await req.formData();
-  const fileIds = JSON.parse(formData.get('fileIds') as string);
-  const userId = formData.get('userId') as string;
-  return { fileIds, userId };
-}
-
-async function validateUser(userId: string): Promise<IUser> {
-  const userServerData = await getUserData(userId);
-  if (userServerData._id.toString() !== userId) {
-    throw new Error('Invalid user');
-  }
-  return userServerData;
 }
 
 function validateFileIds(fileIds: any): void {

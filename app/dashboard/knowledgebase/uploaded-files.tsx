@@ -43,7 +43,7 @@ import { EmptyCard } from '@/components/empty-card';
 import type { UploadedFile } from '@/types/uploadthing';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSession } from 'next-auth/react';
-import { processSelectedFiles } from '@/hooks/use-file-processing';
+import { processSelectedFiles } from '@/lib/service/atlas';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];

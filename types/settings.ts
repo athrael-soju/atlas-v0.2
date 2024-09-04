@@ -20,3 +20,9 @@ export interface Embedding {
 export interface ParsedElement {
   [k: string]: any;
 }
+
+export interface KnowledgebaseSettings {
+  cohereTopN: number;
+  cohereRelevanceThreshold: number;
+  pineconeTopK: number;
+}

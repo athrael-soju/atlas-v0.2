@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { ForgeSettings } from '@/types/forge';
+import { ForgeSettings, KnowledgebaseSettings } from '@/types/settings';
 import { UploadedFile } from '@/types/file-uploader';
 
 export interface IUser {
@@ -11,6 +11,7 @@ export interface IUser {
   updatedAt: string;
   settings: {
     forge?: ForgeSettings;
+    knowledgebase?: KnowledgebaseSettings;
   };
   knowledgebase: {
     files: UploadedFile[];

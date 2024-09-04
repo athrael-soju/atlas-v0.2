@@ -66,6 +66,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "1.0.0",
+    "cohere-ai": "^7.13.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "eslint": "8.48.0",

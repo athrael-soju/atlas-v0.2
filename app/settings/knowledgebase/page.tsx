@@ -1,12 +1,12 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
-import { ForgeForm } from '@/app/dashboard/forge/forge';
+import { KnowledgebaseForm } from '@/app/settings/knowledgebase/knowledgebase';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 
 const breadcrumbItems = [
-  { title: 'Dashboard', link: '/dashboard' },
-  { title: 'Forge', link: '/dashboard/forge' }
+  { title: 'Settings', link: '/settings' },
+  { title: 'Knowledgebase', link: '/settings/knowledgebase' }
 ];
 
 export default function page() {
@@ -16,12 +16,12 @@ export default function page() {
         <Breadcrumbs items={breadcrumbItems} />
         <div className="flex items-start justify-between">
           <Heading
-            title={'Customize your Forge'}
-            description="Configure your Forge settings to achieve optimum results."
+            title={'Customize your Knowledgebase Retrieval settings'}
+            description="Configure your Knowledgebase settings to optimize your search results."
           />
         </div>
         <Separator />
-        <ForgeForm />
+        <KnowledgebaseForm />
       </div>
     </PageContainer>
   );
