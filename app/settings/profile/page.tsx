@@ -1,10 +1,10 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { CreateProfileOne } from '@/app/dashboard/profile/create-profile';
+import { CreateProfileOne } from '@/app/settings/profile/create-profile';
 import PageContainer from '@/components/layout/page-container';
 
 const breadcrumbItems = [
-  { title: 'Dashboard', link: '/dashboard' },
-  { title: 'Profile', link: '/dashboard/profile' }
+  { title: 'Settings', link: '/settings' },
+  { title: 'Profile', link: '/settings/profile' }
 ];
 export default function page() {
   return (

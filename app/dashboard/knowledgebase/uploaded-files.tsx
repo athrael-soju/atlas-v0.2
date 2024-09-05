@@ -1,4 +1,3 @@
-// app\dashboard\knowledgebase\uploaded-files.tsx
 'use client';
 
 import React, { Dispatch, ReactNode, SetStateAction } from 'react';
@@ -40,14 +39,15 @@ import { Trash2, MoreHorizontal } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { EmptyCard } from '@/components/empty-card';
-import type { UploadedFile } from '@/types/uploadthing';
+import type { UploadedFile } from '@/types/file-uploader';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSession } from 'next-auth/react';
+import { processSelectedFiles } from '@/lib/service/atlas';
+import { getUserData } from '@/lib/service/mongodb';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
-  setUploadedFiles: Dispatch<
-    SetStateAction<UploadedFile<unknown>[] | undefined>
-  >;
+  setUploadedFiles: Dispatch<SetStateAction<UploadedFile[] | undefined>>;
   isFetchingFiles: boolean;
 }
 
@@ -56,14 +56,17 @@ export function UploadedFiles({
   setUploadedFiles,
   isFetchingFiles
 }: UploadedFilesProps) {
+  const { data: session } = useSession();
+
   const onDeleteFiles = async (files: UploadedFile[]) => {
     try {
+      const userId = session?.user.id as string;
       const response = await fetch('/api/uploadthing', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ keys: files.map((file) => file.key) })
+        body: JSON.stringify({ userId, files })
       });
 
       if (!response.ok) {
@@ -77,17 +80,17 @@ export function UploadedFiles({
       }
 
       const result = await response.json();
-      if (result.success && result.deleteCount > 0) {
+      if (result.deletedFileCount > 0) {
         toast({
           title: 'Done!',
-          description: `${result.deleteCount} file(s) have been deleted successfully`,
+          description: `${result.deletedFileCount} file(s) have been deleted successfully`,
           variant: 'default'
         });
         setUploadedFiles(uploadedFiles.filter((file) => !files.includes(file)));
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
-          description: `Some files have not been deleted`,
+          description: `Some files may have not been deleted`,
           variant: 'destructive'
         });
       }
@@ -98,16 +101,6 @@ export function UploadedFiles({
         variant: 'destructive'
       });
     }
-  };
-
-  const onProcessFiles = (files: UploadedFile[]) => {
-    // Placeholder for file processing logic
-    console.log('Processing files:', files);
-    toast({
-      title: 'Processing files',
-      description: `${files.length} file(s) are being processed`,
-      variant: 'default'
-    });
   };
 
   const columns: ColumnDef<UploadedFile>[] = [
@@ -166,13 +159,31 @@ export function UploadedFiles({
     },
     {
       accessorKey: 'dateUploaded',
-      header: 'Date Uploaded',
+      header: 'Uploaded',
       cell: ({ row }) => {
         const dateUploaded = new Date(row.getValue('dateUploaded'));
         return (
           <div>
             {dateUploaded.toLocaleDateString()}{' '}
             {dateUploaded.toLocaleTimeString()}
+          </div>
+        );
+      },
+      enableSorting: true
+    },
+    {
+      accessorKey: 'dateProcessed',
+      header: 'Processed',
+      cell: ({ row }) => {
+        const dateValue = row.getValue('dateProcessed') as Date;
+        if (!dateValue) {
+          return <div>N/A</div>;
+        }
+        const dateProcessed = new Date(dateValue);
+        return (
+          <div>
+            {dateProcessed.toLocaleDateString()}{' '}
+            {dateProcessed.toLocaleTimeString()}
           </div>
         );
       },
@@ -265,12 +276,23 @@ export function UploadedFiles({
     }
   };
 
-  const handleProcessSelected = () => {
+  const handleProcessSelected = async () => {
     const selectedFiles = table
       .getSelectedRowModel()
-      .rows.map((row) => row.original);
+      .rows.map((row) => row.original.key) as string[];
+
+    const userId = session?.user.id as string;
     if (selectedFiles.length > 0) {
-      onProcessFiles(selectedFiles);
+      toast({
+        title: 'Processing files',
+        description: 'Selected files are being processed.',
+        variant: 'default'
+      });
+      await processSelectedFiles(userId, selectedFiles);
+      const userData = await getUserData(userId);
+      const userFiles = userData.knowledgebase.files as UploadedFile[];
+
+      setUploadedFiles(userFiles);
     } else {
       toast({
         title: 'No files selected',
@@ -279,7 +301,7 @@ export function UploadedFiles({
       });
     }
   };
-  // TODO: Allow horizontal scrolling for the table
+
   return (
     <>
       {uploadedFiles.length > 0 ? (

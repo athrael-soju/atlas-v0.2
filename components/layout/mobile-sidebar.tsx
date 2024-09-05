@@ -1,17 +1,22 @@
 'use client';
 import { DashboardNav } from '@/components/dashboard-nav';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { navItems } from '@/constants/data';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetDescription
+} from '@/components/ui/sheet'; // import SheetTitle
+import { NavItem } from '@/types';
 import { MenuIcon } from 'lucide-react';
 import { useState } from 'react';
-
-// import { Playlist } from "../data/playlists";
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'; // import VisuallyHidden
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
-  // playlists: Playlist[];
+  navItems: NavItem[];
 }
 
-export function MobileSidebar({ className }: SidebarProps) {
+export function MobileSidebar({ navItems }: SidebarProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -20,6 +25,10 @@ export function MobileSidebar({ className }: SidebarProps) {
           <MenuIcon />
         </SheetTrigger>
         <SheetContent side="left" className="!px-0">
+          <VisuallyHidden>
+            <SheetTitle />
+            <SheetDescription />
+          </VisuallyHidden>
           <div className="space-y-4 py-4">
             <div className="px-3 py-2">
               <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">

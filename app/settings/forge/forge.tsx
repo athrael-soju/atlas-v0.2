@@ -1,4 +1,3 @@
-// app/dashboard/forge/forge.tsx
 'use client';
 
 import { z } from 'zod';
@@ -125,7 +124,7 @@ export function ForgeForm() {
 
           if (response.ok) {
             const result = await response.json();
-            if (result?.user?.settings?.forge) {
+            if (result.user.settings.forge) {
               form.reset(result.user.settings.forge);
             }
           } else {

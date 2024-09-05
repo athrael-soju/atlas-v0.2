@@ -1,4 +1,4 @@
-import { openai } from '@/lib/service/openai';
+import { openai } from '@/lib/client/openai';
 
 const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
 
@@ -8,11 +8,11 @@ export async function POST(
   request: Request,
   { params: { threadId } }: { params: { threadId: string } }
 ) {
-  const { content } = await request.json();
+  const { text } = await request.json();
 
   await openai.beta.threads.messages.create(threadId, {
     role: 'user',
-    content: content
+    content: text
   });
 
   const stream = openai.beta.threads.runs.stream(threadId, {

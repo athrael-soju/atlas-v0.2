@@ -535,24 +535,39 @@ export const languages = [
   { code: 'zu', name: 'Zulu' }
 ];
 
-export const navItems: NavItem[] = [
+export const settingsNavItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: 'dashboard',
-    label: 'Dashboard'
+    title: 'Settings',
+    href: '/settings',
+    icon: 'settings',
+    label: 'Settings'
   },
   {
     title: 'Profile',
-    href: '/dashboard/profile',
+    href: '/settings/profile',
     icon: 'profile',
     label: 'profile'
   },
   {
     title: 'Forge',
-    href: '/dashboard/forge',
+    href: '/settings/forge',
     icon: 'anvil',
     label: 'Forge'
+  },
+  {
+    title: 'Knowledgebase',
+    href: '/settings/knowledgebase',
+    icon: 'bookmarked',
+    label: 'Knowledgebase'
+  }
+];
+
+export const dashboardNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: 'dashboard',
+    label: 'Dashboard'
   },
   {
     title: 'Knowledgebase',

@@ -1,10 +1,7 @@
-// app\api\user\route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import client from '@/lib/client/mongodb';
 import { ObjectId } from 'mongodb';
 import { getServerSession } from 'next-auth/next';
-
-// Ensure this is correctly imported from your auth config
 import authConfig from '@/auth.config';
 
 export async function POST(req: NextRequest) {
@@ -31,16 +28,15 @@ export async function POST(req: NextRequest) {
     // Extract the update data from the request body
     const updateData = await req.json();
 
-    // Remove any fields that should not be updated (e.g., _id, email)
-    delete updateData._id;
-    delete updateData.email; // Presumably, you don’t want the email to be updated
-
-    // Apply the update to the user's document under the "settings" key
+    // Determine which part of settings to update
+    const updatePath = Object.keys(updateData)[0];
+    const updateValue = updateData[updatePath];
+    // Apply the update to the specific field within settings
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(user._id) },
       {
         $set: {
-          settings: updateData,
+          [`settings.${updatePath}`]: updateValue,
           updatedAt: new Date().toISOString()
         }
       }
@@ -48,17 +44,17 @@ export async function POST(req: NextRequest) {
 
     if (result.modifiedCount === 1) {
       return NextResponse.json(
-        { message: 'User updated successfully' },
+        { message: 'User settings updated successfully' },
         { status: 200 }
       );
     } else {
       return NextResponse.json(
-        { message: 'Failed to update user' },
+        { message: 'Failed to update user settings' },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('Error updating user settings:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

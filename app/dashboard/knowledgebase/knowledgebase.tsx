@@ -1,4 +1,3 @@
-// app\dashboard\knowledgebase\knowledgebase.tsx
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +7,7 @@ import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
-import { UploadedFiles } from './uploaded-files';
+import { UploadedFiles } from '@/app/dashboard/knowledgebase/uploaded-files';
 import { useEffect } from 'react';
 
 const FormSchema = z.object({
@@ -44,7 +43,7 @@ export function Knowledgebase() {
         data.processAll ? 'All Files' : 'New Files Only'
       }`
     });
-    //TODO: Implement the file processing logic based on `data.processAll`
+    // TODO: Implement the file processing logic based on `data.processAll`
   }
 
   return (
