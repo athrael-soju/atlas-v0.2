@@ -11,7 +11,7 @@ if (!indexName) {
   throw new Error('PINECONE_INDEX is not set');
 }
 
-const pineconeClient = new Pinecone({ apiKey });
+const pineconeClient = new Pinecone({ apiKey, fetchApi: fetch });
 
 const getClient = async () => {
   return pineconeClient;

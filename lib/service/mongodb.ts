@@ -22,7 +22,12 @@ export const getUserData = async (userId: string) => {
     throw new Error('User not found in database');
   }
 
-  return user;
+  const plainUser = {
+    ...user,
+    _id: user._id.toString()
+  };
+
+  return plainUser;
 };
 
 export const getUserId = async () => {

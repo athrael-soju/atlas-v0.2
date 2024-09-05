@@ -39,7 +39,7 @@ import { Trash2, MoreHorizontal } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { EmptyCard } from '@/components/empty-card';
-import { UploadedFile } from '@/types/file-uploader';
+import type { UploadedFile } from '@/types/file-uploader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSession } from 'next-auth/react';
 import { processSelectedFiles } from '@/lib/service/atlas';
@@ -289,12 +289,9 @@ export function UploadedFiles({
         variant: 'default'
       });
       await processSelectedFiles(userId, selectedFiles);
-
-      // Fetch the updated files list
       const userData = await getUserData(userId);
       const userFiles = userData.knowledgebase.files as UploadedFile[];
 
-      // Update the state with the new files
       setUploadedFiles(userFiles);
     } else {
       toast({
