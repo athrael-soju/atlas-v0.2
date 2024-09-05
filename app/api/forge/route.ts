@@ -88,12 +88,12 @@ async function processFiles(
       const embeddings: Embedding[] = await embedDocument(userId, file, chunks);
       sendUpdate('Embedded', `${embeddings.length} chunks`);
 
-      const upsertedCount = await upsertDocument(
+      const upsertedChunkCount = await upsertDocument(
         userId,
         embeddings,
         forgeSettings.chunkBatch
       );
-      sendUpdate('Upserted', `${upsertedCount} chunks`);
+      sendUpdate('Upserted', `${upsertedChunkCount} chunks`);
     } catch (error: any) {
       sendUpdate('error', `Error processing '${file.name}': ${error.message}`);
     } finally {

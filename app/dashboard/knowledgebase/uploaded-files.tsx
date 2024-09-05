@@ -1,4 +1,3 @@
-// app\dashboard\knowledgebase\uploaded-files.tsx
 'use client';
 
 import React, { Dispatch, ReactNode, SetStateAction } from 'react';
@@ -61,12 +60,13 @@ export function UploadedFiles({
   const { data: session } = useSession();
   const onDeleteFiles = async (files: UploadedFile[]) => {
     try {
+      const userId = session?.user.id as string;
       const response = await fetch('/api/uploadthing', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ keys: files.map((file) => file.key) })
+        body: JSON.stringify({ userId, files })
       });
 
       if (!response.ok) {
@@ -80,17 +80,17 @@ export function UploadedFiles({
       }
 
       const result = await response.json();
-      if (result.success && result.deleteCount > 0) {
+      if (result.deletedFileCount > 0) {
         toast({
           title: 'Done!',
-          description: `${result.deleteCount} file(s) have been deleted successfully`,
+          description: `${result.deletedFileCount} file(s) have been deleted successfully`,
           variant: 'default'
         });
         setUploadedFiles(uploadedFiles.filter((file) => !files.includes(file)));
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
-          description: `Some files have not been deleted`,
+          description: `Some files may have not been deleted`,
           variant: 'destructive'
         });
       }
@@ -282,7 +282,6 @@ export function UploadedFiles({
       .rows.map((row) => row.original.key) as string[];
 
     const userId = session?.user.id as string;
-
     if (selectedFiles.length > 0) {
       toast({
         title: 'Processing files',
