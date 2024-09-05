@@ -56,7 +56,6 @@ const Chat = () => {
     inputDisabled,
     userInputRef,
     sendMessage,
-    setUserInputDisabled
   } = useMessaging();
 
   const handleSubmit = (e: { preventDefault: () => void }) => {

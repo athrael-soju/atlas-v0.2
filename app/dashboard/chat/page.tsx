@@ -33,7 +33,7 @@ export default function page() {
           />
         </div>
         <Separator />
-        <Chat functionCallHandler={functionCallHandler} />
+        <Chat />
       </div>
     </PageContainer>
   );

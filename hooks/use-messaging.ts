@@ -178,7 +178,6 @@ export const useMessaging = (
     isThinking,
     inputDisabled,
     userInputRef: messagesEndRef,
-    sendMessage,
-    setUserInputDisabled: setInputDisabled
+    sendMessage
   };
 };

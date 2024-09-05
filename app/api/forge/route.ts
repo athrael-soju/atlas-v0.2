@@ -5,6 +5,7 @@ import { UploadedFile } from '@/types/file-uploader';
 import { embedDocument } from '@/lib/service/openai';
 import { upsertDocument } from '@/lib/service/pinecone';
 import { validateUser } from '@/lib/utils';
+import { updateFileDateProcessed } from '@/lib/service/mongodb';
 
 function sendUpdate(
   status: string,
@@ -94,6 +95,8 @@ async function processFiles(
         forgeSettings.chunkBatch
       );
       sendUpdate('Upserted', `${upsertedChunkCount} chunks`);
+
+      await updateFileDateProcessed(userId, [file]);
     } catch (error: any) {
       sendUpdate('error', `Error processing '${file.name}': ${error.message}`);
     } finally {

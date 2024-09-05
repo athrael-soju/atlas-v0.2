@@ -29,3 +29,38 @@ export const getUserId = async () => {
   const session = await getServerSession(authConfig);
   return session?.user.id;
 };
+
+export const updateFileDateProcessed = async (
+  userId: string,
+  filesToUpdate: { key: string; dateProcessed: string }[]
+) => {
+  try {
+    const db = client.db('AtlasII');
+    const usersCollection = db.collection('users');
+    const date = new Date().toISOString();
+    const updateOperations = filesToUpdate.map((file) => ({
+      updateOne: {
+        filter: {
+          _id: new ObjectId(userId),
+          'knowledgebase.files.key': file.key
+        },
+        update: {
+          $set: {
+            'knowledgebase.files.$.dateProcessed': date,
+            updatedAt: new Date().toISOString()
+          }
+        }
+      }
+    }));
+
+    const result = await usersCollection.bulkWrite(updateOperations);
+
+    if (result.modifiedCount === 0) {
+      throw new Error('No files were updated');
+    }
+
+    return { message: 'File dateProcessed updated successfully' };
+  } catch (error: any) {
+    throw new Error(`Error updating file dateProcessed: ${error.message}`);
+  }
+};
