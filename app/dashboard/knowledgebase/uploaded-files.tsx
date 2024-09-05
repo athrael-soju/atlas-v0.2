@@ -39,16 +39,15 @@ import { Trash2, MoreHorizontal } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { EmptyCard } from '@/components/empty-card';
-import type { UploadedFile } from '@/types/uploadthing';
+import { UploadedFile } from '@/types/file-uploader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSession } from 'next-auth/react';
 import { processSelectedFiles } from '@/lib/service/atlas';
+import { getUserData } from '@/lib/service/mongodb';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
-  setUploadedFiles: Dispatch<
-    SetStateAction<UploadedFile<unknown>[] | undefined>
-  >;
+  setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>;
   isFetchingFiles: boolean;
 }
 
@@ -58,6 +57,7 @@ export function UploadedFiles({
   isFetchingFiles
 }: UploadedFilesProps) {
   const { data: session } = useSession();
+
   const onDeleteFiles = async (files: UploadedFile[]) => {
     try {
       const userId = session?.user.id as string;
@@ -289,6 +289,13 @@ export function UploadedFiles({
         variant: 'default'
       });
       await processSelectedFiles(userId, selectedFiles);
+
+      // Fetch the updated files list
+      const userData = await getUserData(userId);
+      const userFiles = userData.knowledgebase.files as UploadedFile[];
+
+      // Update the state with the new files
+      setUploadedFiles(userFiles);
     } else {
       toast({
         title: 'No files selected',
@@ -297,7 +304,7 @@ export function UploadedFiles({
       });
     }
   };
-  // TODO: Allow horizontal scrolling for the table
+
   return (
     <>
       {uploadedFiles.length > 0 ? (
