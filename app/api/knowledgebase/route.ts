@@ -29,7 +29,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Validate user
-    const userServerData: IUser = await validateUser(userId);
+    const userServerData = await validateUser(userId);
     const settings = userServerData.settings
       .knowledgebase as KnowledgebaseSettings;
 

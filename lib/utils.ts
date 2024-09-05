@@ -46,7 +46,8 @@ export const toAscii = (str: string): string => {
   return str.replace(/[^\x00-\x7F]/g, '');
 };
 
-export const validateUser = async (userId: string): Promise<IUser> => {
+// TODO: Make the User type consistent
+export const validateUser = async (userId: string): Promise<any> => {
   const userServerData = await getUserData(userId);
   if (userServerData._id.toString() !== userId) {
     throw new Error('Invalid user');

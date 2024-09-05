@@ -7,7 +7,7 @@ import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
-import { UploadedFiles } from './uploaded-files';
+import { UploadedFiles } from '@/app/dashboard/knowledgebase/uploaded-files';
 import { useEffect } from 'react';
 
 const FormSchema = z.object({

@@ -34,8 +34,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     validateForgeSettings(forgeSettings);
 
     // Retrieve file data
-    const files = userServerData.knowledgebase.files.filter((file) =>
-      fileIds.includes(file.key)
+    const files = userServerData.knowledgebase.files.filter(
+      (file: UploadedFile) => fileIds.includes(file.key)
     );
 
     // Setup and return SSE stream

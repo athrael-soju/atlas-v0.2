@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/lib/handle-error';
 import { uploadFiles } from '@/lib/uploadthing';
-import type { UploadedFile } from '@/types/uploadthing';
+import type { UploadedFile } from '@/types/file-uploader';
 import type { UploadFilesOptions } from 'uploadthing/types';
 import { type OurFileRouter } from '@/lib/service/uploadthing';
 import { useControllableState } from '@/hooks/use-controllable-state';
@@ -15,7 +15,7 @@ export function useHandleFiles(
   props: useHandleFilesProps = {}
 ) {
   const [uploadedFiles, setUploadedFiles] = useControllableState<
-    UploadedFile[]
+    UploadedFile[] | undefined
   >({
     defaultProp: [],
     onChange: (files) => {

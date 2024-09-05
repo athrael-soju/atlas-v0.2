@@ -47,7 +47,7 @@ import { getUserData } from '@/lib/service/mongodb';
 
 interface UploadedFilesProps {
   uploadedFiles: UploadedFile[];
-  setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>;
+  setUploadedFiles: Dispatch<SetStateAction<UploadedFile[] | undefined>>;
   isFetchingFiles: boolean;
 }
 
