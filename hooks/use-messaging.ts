@@ -21,12 +21,17 @@ export const useMessaging = (
   const [messages, setMessages] = useState<Message[]>([]);
   const [threadId, setThreadId] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   const { data: session } = useSession();
+
+  const abortStream = () => {
+    // TODO: Implement this
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -128,30 +133,37 @@ export const useMessaging = (
         handleRequiresAction(event);
       if (event.event === 'thread.run.completed') handleRunCompleted();
     });
+    stream.on('end', () => {
+      setIsStreaming(false);
+      setInputDisabled(false);
+    });
   };
 
-  const sendMessage = async (text: string) => {
-    setIsThinking(true);
+  const sendMessage = async (text: string, knowledgebaseEnabled: boolean) => {
+    setIsStreaming(true);
+    setInputDisabled(true);
     const userId = session?.user.id as string;
-
-    // TODO: Add a condition to retrieve the context-enriched message, or not
-    const contextEnrichedMessage = await fetchContextEnrichedMessage(
-      userId,
-      text
-    );
+    appendMessage('user', text);
+    if (knowledgebaseEnabled) {
+      const contextEnrichedMessage = await fetchContextEnrichedMessage(
+        userId,
+        text
+      );
+      if (contextEnrichedMessage) {
+        text = contextEnrichedMessage;
+      }
+    }
     const response = await fetch(
       `/api/assistants/threads/${threadId}/messages`,
       {
         method: 'POST',
-        body: JSON.stringify({ text: contextEnrichedMessage ?? text })
+        body: JSON.stringify({ text: text })
       }
     );
     const stream = AssistantStream.fromReadableStream(
       response.body as ReadableStream
     );
     handleReadableStream(stream);
-    appendMessage('user', text);
-    setInputDisabled(true);
     scrollToBottom();
   };
 
@@ -176,8 +188,10 @@ export const useMessaging = (
   return {
     messages,
     isThinking,
+    isStreaming,
     inputDisabled,
     userInputRef: messagesEndRef,
-    sendMessage
+    sendMessage,
+    abortStream
   };
 };

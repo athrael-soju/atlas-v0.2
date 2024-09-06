@@ -59,9 +59,9 @@ export function useHandleFiles(
   }, [setUploadedFiles, setIsFetchingFiles]);
 
   const onUpload = async (files: File[]) => {
-    setIsUploading(true);
     try {
-      uploadFiles(endpoint, {
+      setIsUploading(true);
+      await uploadFiles(endpoint, {
         ...props,
         files,
         onUploadProgress: ({ file, progress }) => {

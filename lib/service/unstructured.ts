@@ -48,27 +48,22 @@ export async function parseAndChunk(
     partitionParameters.splitPdfConcurrencyLevel = 10;
   }
 
-  try {
-    const parsedDataResponse = await unstructuredClient.general.partition(
-      {
-        partitionParameters
-      },
-      {
-        retries: {
-          strategy: 'backoff',
-          backoff: {
-            initialInterval: 1,
-            maxInterval: 50,
-            exponent: 1.1,
-            maxElapsedTime: 100
-          },
-          retryConnectionErrors: false
-        }
+  const parsedDataResponse = await unstructuredClient.general.partition(
+    {
+      partitionParameters
+    },
+    {
+      retries: {
+        strategy: 'backoff',
+        backoff: {
+          initialInterval: 1,
+          maxInterval: 50,
+          exponent: 1.1,
+          maxElapsedTime: 100
+        },
+        retryConnectionErrors: false
       }
-    );
-    return parsedDataResponse?.elements || [];
-  } catch (error: any) {
-    console.error('Partition error for file:', file.name, error);
-    throw new Error(`Error processing '${file.name}': ${error.message}`);
-  }
+    }
+  );
+  return parsedDataResponse?.elements || [];
 }

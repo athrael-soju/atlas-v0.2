@@ -50,6 +50,9 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
       },
       knowledgebase: {
         files: []
+      },
+      chat: {
+        knowledgebaseEnabled: false
       }
     };
 
@@ -98,6 +101,9 @@ async function findOrCreateUser(
       },
       knowledgebase: {
         files: []
+      },
+      chat: {
+        knowledgebaseEnabled: false
       }
     };
     await usersCollection.insertOne(newUser);

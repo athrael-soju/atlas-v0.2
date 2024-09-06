@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -34,10 +35,20 @@ const defaultValues: Partial<KnowledgebaseValues> = {
   pineconeTopK: 100
 };
 
+// ButtonLoading Component to show loading spinner
+export function ButtonLoading() {
+  return (
+    <Button disabled>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Please wait
+    </Button>
+  );
+}
+
 export function KnowledgebaseForm() {
   const { data: session } = useSession();
   const user = session?.user;
-  const userEmail = user?.email;
+  const userId = user?.id;
   const [loading, setLoading] = useState(true);
   const form = useForm<KnowledgebaseValues>({
     resolver: zodResolver(knowledgebaseSchema),
@@ -46,8 +57,9 @@ export function KnowledgebaseForm() {
 
   // Fetch user settings from the database on mount
   useEffect(() => {
-    if (userEmail) {
+    if (userId) {
       const fetchData = async () => {
+        setLoading(true);
         try {
           const response = await fetch('/api/user', {
             method: 'GET'
@@ -55,14 +67,29 @@ export function KnowledgebaseForm() {
 
           if (response.ok) {
             const result = await response.json();
-            if (result.user.settings.knowledgebase) {
-              form.reset(result.user.settings.knowledgebase);
+
+            // Ensure that `result.user` and `result.user.settings` exist
+            const knowledgebaseSettings = result?.settings?.knowledgebase;
+
+            if (knowledgebaseSettings) {
+              form.reset(knowledgebaseSettings);
+            } else {
+              form.reset(defaultValues);
             }
           } else {
-            console.error('Failed to fetch user settings');
+            toast({
+              title: 'Error',
+              description: 'Request failed. Please try again.',
+              variant: 'destructive'
+            });
+            form.reset(defaultValues);
           }
         } catch (error) {
-          console.error('Error fetching user settings:', error);
+          toast({
+            title: 'Error',
+            description: `${error}`,
+            variant: 'destructive'
+          });
         } finally {
           setLoading(false);
         }
@@ -70,7 +97,7 @@ export function KnowledgebaseForm() {
 
       fetchData();
     }
-  }, [form, userEmail]);
+  }, [form, userId]);
 
   async function onSubmit(data: KnowledgebaseValues) {
     const partialData: Partial<IUser> = {
@@ -102,10 +129,9 @@ export function KnowledgebaseForm() {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: `${error}`,
         variant: 'destructive'
       });
-      console.error('Failed to update settings:', error);
     }
   }
 
@@ -208,9 +234,13 @@ export function KnowledgebaseForm() {
           )}
         />
 
-        <Button type="submit" style={{ width: '100%' }}>
-          Update settings
-        </Button>
+        {loading ? (
+          <ButtonLoading />
+        ) : (
+          <Button type="submit" style={{ width: '100%' }}>
+            Update settings
+          </Button>
+        )}
       </form>
     </Form>
   );

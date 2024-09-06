@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getUserData } from '@/lib/service/mongodb';
-import { IUser } from '@/models/User';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
