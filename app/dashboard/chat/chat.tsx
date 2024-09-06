@@ -157,7 +157,7 @@ const Chat = () => {
   return (
     <TooltipProvider>
       <div
-        className="flex flex-col rounded-lg border bg-white p-4 shadow dark:bg-gray-900"
+        className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2"
         style={{ height: 'calc(76vh' }}
       >
         <div className="mb-4 flex-1 space-y-4 overflow-y-auto px-4">
