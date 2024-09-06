@@ -129,6 +129,7 @@ export const useMessaging = (
     stream.on('toolCallCreated', toolCallCreated);
     stream.on('toolCallDelta', toolCallDelta);
     stream.on('event', (event) => {
+      setIsStreaming(true);
       if (event.event === 'thread.run.requires_action')
         handleRequiresAction(event);
       if (event.event === 'thread.run.completed') handleRunCompleted();
@@ -140,7 +141,7 @@ export const useMessaging = (
   };
 
   const sendMessage = async (text: string, knowledgebaseEnabled: boolean) => {
-    setIsStreaming(true);
+    setIsThinking(true);
     setInputDisabled(true);
     const userId = session?.user.id as string;
     appendMessage('user', text);
