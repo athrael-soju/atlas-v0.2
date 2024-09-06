@@ -126,9 +126,10 @@ const Chat = () => {
     }
   };
 
-  if (loading) {
-    return <Spinner />; // Show a spinner or loading indicator while loading
-  }
+  // TODO: Define proper loading state for this and other components
+  // if (loading) {
+  //   return <Spinner />; // Show a spinner or loading indicator while loading
+  // }
 
   return (
     <TooltipProvider>
