@@ -210,7 +210,9 @@ const Chat = () => {
                   <Brain className="h-5 w-5" />
                 </motion.button>
               </TooltipTrigger>
-              <TooltipContent side="top">Toggle Enlighten</TooltipContent>
+              <TooltipContent side="top">
+                Enlighten your assistant
+              </TooltipContent>
             </Tooltip>
             <Button
               type="button"
