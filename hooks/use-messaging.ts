@@ -21,15 +21,18 @@ export const useMessaging = (
   const [messages, setMessages] = useState<Message[]>([]);
   const [threadId, setThreadId] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   const { data: session } = useSession();
+
   const abortStream = () => {
     // TODO: Implement this
-    };
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -130,10 +133,15 @@ export const useMessaging = (
         handleRequiresAction(event);
       if (event.event === 'thread.run.completed') handleRunCompleted();
     });
+    stream.on('end', () => {
+      setIsStreaming(false);
+      setInputDisabled(false);
+    });
   };
 
   const sendMessage = async (text: string, knowledgebaseEnabled: boolean) => {
-    setIsThinking(true);
+    setIsStreaming(true);
+    setInputDisabled(true);
     const userId = session?.user.id as string;
     appendMessage('user', text);
     if (knowledgebaseEnabled) {
@@ -156,8 +164,6 @@ export const useMessaging = (
       response.body as ReadableStream
     );
     handleReadableStream(stream);
-
-    setInputDisabled(true);
     scrollToBottom();
   };
 
@@ -182,6 +188,7 @@ export const useMessaging = (
   return {
     messages,
     isThinking,
+    isStreaming,
     inputDisabled,
     userInputRef: messagesEndRef,
     sendMessage,

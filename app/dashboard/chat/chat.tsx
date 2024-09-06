@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/spinner';
 import { useMessaging } from '@/hooks/use-messaging';
 import Markdown from 'react-markdown';
-import {
-  CornerDownLeft,
-  Mic,
-  Paperclip,
-  Brain,
-  StopCircle
-} from 'lucide-react';
+import { CornerDownLeft, Mic, Paperclip, Brain, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -68,11 +62,11 @@ const Chat = () => {
   const [knowledgebaseEnabled, setKnowledgebaseEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isStopped, setIsStopped] = useState(false); // New state for stopping the assistant
 
   const {
     messages,
     isThinking,
+    isStreaming,
     inputDisabled,
     userInputRef,
     sendMessage,
@@ -108,7 +102,6 @@ const Chat = () => {
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!userInput.trim()) return;
-    setIsStopped(false); // Reset the stopped state
     sendMessage(userInput, knowledgebaseEnabled);
     setUserInput('');
   };
@@ -141,8 +134,7 @@ const Chat = () => {
   };
 
   const handleStop = () => {
-    abortStream(); // This function should be provided by useMessaging to stop the assistant
-    setIsStopped(true);
+    abortStream();
   };
 
   return (
@@ -196,7 +188,7 @@ const Chat = () => {
                   whileHover={{ scale: 1.05 }}
                   className="rounded-full p-2 focus:outline-none"
                   style={{
-                    color: micEnabled ? '#f97316' : 'inherit' // Orange color when active
+                    color: micEnabled ? '#f97316' : 'inherit'
                   }}
                 >
                   <Mic className="h-5 w-5" />
@@ -221,30 +213,24 @@ const Chat = () => {
               <TooltipContent side="top">Toggle Enlighten</TooltipContent>
             </Tooltip>
             <Button
-              type="submit"
+              type="button"
               size="sm"
               className="ml-auto gap-1.5"
-              disabled={inputDisabled || isThinking}
+              onClick={isThinking || isStreaming ? handleStop : handleSubmit}
+              disabled={inputDisabled || userInput.trim() === ''}
             >
-              Send Message
-              <CornerDownLeft className="h-4 w-4" />
+              {isThinking || isStreaming || inputDisabled ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Stop Response
+                </>
+              ) : (
+                <>
+                  Send Message
+                  <CornerDownLeft className="h-4 w-4" />
+                </>
+              )}
             </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="destructive" // Assuming a 'destructive' variant exists
-                  className="ml-2 gap-1.5"
-                  onClick={handleStop}
-                  disabled={isThinking || isStopped} // Disable if not thinking or already stopped
-                >
-                  Stop
-                  <StopCircle className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Stop Message</TooltipContent>
-            </Tooltip>
           </div>
         </form>
       </div>
