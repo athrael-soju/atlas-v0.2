@@ -1,23 +1,23 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
+  FormDescription
 } from '@/components/ui/form';
-import { toast } from '@/components/ui/use-toast';
 import { Slider } from '@/components/ui/slider';
 import {
   Popover,
@@ -33,7 +33,7 @@ import {
   CommandList
 } from '@/components/ui/command';
 import { Searching } from '@/components/spinner';
-
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { IUser } from '@/models/User';
 
 const forgeFormSchema = z
@@ -102,6 +102,16 @@ const chunkingStrategyDescriptions = {
   by_similarity:
     'Uses the sentence-transformers/multi-qa-mpnet-base-dot-v1 model to group topically similar sequential elements into chunks.'
 };
+
+// ButtonLoading Component to show loading spinner
+export function ButtonLoading() {
+  return (
+    <Button disabled>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Please wait
+    </Button>
+  );
+}
 
 export function ForgeForm() {
   const { data: session } = useSession();
@@ -531,9 +541,14 @@ export function ForgeForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" style={{ width: '100%' }}>
-          Update settings
-        </Button>
+
+        {loading ? (
+          <ButtonLoading />
+        ) : (
+          <Button type="submit" style={{ width: '100%' }}>
+            Update settings
+          </Button>
+        )}
       </form>
     </Form>
   );

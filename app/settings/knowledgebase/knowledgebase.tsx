@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -33,6 +34,16 @@ const defaultValues: Partial<KnowledgebaseValues> = {
   cohereRelevanceThreshold: 50,
   pineconeTopK: 100
 };
+
+// ButtonLoading Component to show loading spinner
+export function ButtonLoading() {
+  return (
+    <Button disabled>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Please wait
+    </Button>
+  );
+}
 
 export function KnowledgebaseForm() {
   const { data: session } = useSession();
@@ -223,9 +234,13 @@ export function KnowledgebaseForm() {
           )}
         />
 
-        <Button type="submit" style={{ width: '100%' }}>
-          Update settings
-        </Button>
+        {loading ? (
+          <ButtonLoading />
+        ) : (
+          <Button type="submit" style={{ width: '100%' }}>
+            Update settings
+          </Button>
+        )}
       </form>
     </Form>
   );
