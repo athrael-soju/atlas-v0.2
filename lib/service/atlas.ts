@@ -7,14 +7,9 @@ const createFormData = (userId: string, selectedFiles: string[]): FormData => {
 let contextEnrichedMessage: string | null = null;
 
 const handleSSEChunk = (data: string) => {
-  try {
-    const { status, message } = JSON.parse(data);
-    console.info('Status: ', status, ' message: ', message);
-    if (status === 'Reranking complete') {
-      contextEnrichedMessage = message;
-    }
-  } catch (e) {
-    console.error('Failed to parse chunk:', e);
+  const { status, message } = JSON.parse(data);
+  if (status === 'Reranking complete') {
+    contextEnrichedMessage = message;
   }
 };
 
@@ -48,9 +43,8 @@ const fetchDataWithStream = async (url: string, options: RequestInit) => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     await processStream(reader, decoder);
-    console.info('Processing complete');
   } else {
-    console.error('Failed to start processing', response.statusText);
+    throw new Error(`Failed to start processing: ${response.statusText}`);
   }
 };
 

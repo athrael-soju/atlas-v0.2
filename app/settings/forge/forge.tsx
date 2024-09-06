@@ -117,6 +117,7 @@ export function ForgeForm() {
   useEffect(() => {
     if (userId) {
       const fetchData = async () => {
+        setLoading(true);
         try {
           const response = await fetch('/api/user', {
             method: 'GET'
@@ -128,13 +129,21 @@ export function ForgeForm() {
             if (result?.settings?.forge) {
               form.reset(result.settings.forge); // Reset the form with the forge settings
             } else {
-              console.error('Forge settings not found in user data');
+              form.reset(defaultValues);
             }
           } else {
-            console.error('Failed to fetch user settings');
+            toast({
+              title: 'Error',
+              description: 'Request failed. Please try again.',
+              variant: 'destructive'
+            });
           }
         } catch (error) {
-          console.error('Error fetching user settings:', error);
+          toast({
+            title: 'Error',
+            description: `${error}`,
+            variant: 'destructive'
+          });
         } finally {
           setLoading(false);
         }
@@ -148,7 +157,6 @@ export function ForgeForm() {
     const partialData: Partial<IUser> = {
       settings: { forge: data }
     };
-
     try {
       const response = await fetch('/api/user', {
         method: 'POST',
@@ -167,17 +175,17 @@ export function ForgeForm() {
       } else {
         toast({
           title: 'Error',
-          description: 'Failed to update settings. Please try again.',
+          description: 'Request failed. Please try again.',
           variant: 'destructive'
         });
+        form.reset(defaultValues);
       }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: `${error}`,
         variant: 'destructive'
       });
-      console.error('Failed to update settings:', error);
     }
   }
 

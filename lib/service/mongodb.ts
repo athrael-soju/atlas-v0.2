@@ -8,11 +8,7 @@ import { Db, ObjectId } from 'mongodb';
 
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
-  try {
-    return client.db('AtlasII');
-  } catch (error) {
-    throw new Error('Failed to connect to the database');
-  }
+  return client.db('AtlasII');
 };
 
 // Helper function to find a user by ID
@@ -28,22 +24,18 @@ export const updateUserField = async (
   userId: string,
   updateOperation: any
 ): Promise<{ message: string }> => {
-  try {
-    const db = await connectToDatabase();
-    const usersCollection = db.collection('users');
-    const result = await usersCollection.updateOne(
-      { _id: new ObjectId(userId) },
-      updateOperation
-    );
+  const db = await connectToDatabase();
+  const usersCollection = db.collection('users');
+  const result = await usersCollection.updateOne(
+    { _id: new ObjectId(userId) },
+    updateOperation
+  );
 
-    if (result.modifiedCount !== 1) {
-      throw new Error('Failed to update user document');
-    }
-
-    return { message: `User document updated successfully` };
-  } catch (error: any) {
-    throw new Error(`Error updating user document: ${error.message}`);
+  if (result.modifiedCount !== 1) {
+    throw new Error('Failed to update user document');
   }
+
+  return { message: `User document updated successfully` };
 };
 
 // Main functions

@@ -57,7 +57,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(response, { status: 200 });
   } catch (error: any) {
-    console.error('Error in POST request:', error.message);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -85,7 +84,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(userData, { status: 200 });
   } catch (error: any) {
-    console.error('Error in GET request:', error.message);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

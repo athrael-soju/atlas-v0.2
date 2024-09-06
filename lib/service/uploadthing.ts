@@ -48,82 +48,68 @@ export const ourFileRouter = {
 
 // TODO: Implement multiple file deletion
 export const deleteFiles = async (userId: string, files: UploadedFile[]) => {
-  try {
-    let deletedFileCount = 0;
-    const id = userId;
+  let deletedFileCount = 0;
+  const id = userId;
 
-    for (const file of files) {
-      if (file.dateProcessed) {
-        const deletedChunksCount = await deleteFromVectorDb(id, file);
+  for (const file of files) {
+    if (file.dateProcessed) {
+      const deletedChunksCount = await deleteFromVectorDb(id, file);
 
-        if (!deletedChunksCount) {
-          throw new Error(
-            `Failed to delete file chunks vector db: ${file.key}`
-          );
-        }
+      if (!deletedChunksCount) {
+        throw new Error(`Failed to delete file chunks vector db: ${file.key}`);
       }
-      const filesArray = files.map((file) => file.key);
-      const response = await utapi.deleteFiles(file.key);
-      if (!response.success || response.deletedCount < 1) {
-        throw new Error(`Failed to delete file: ${file.key}`);
-      }
-
-      const db = client.db('AtlasII');
-      const usersCollection = db.collection('users');
-
-      const result = await usersCollection.updateOne(
-        { _id: new ObjectId(userId) },
-        {
-          $pull: { 'knowledgebase.files': { key: { $in: filesArray } } as any },
-          $set: { updatedAt: new Date().toISOString() }
-        }
-      );
-
-      if (result.modifiedCount !== 1) {
-        throw new Error('Failed to update user after deleting files');
-      }
-      deletedFileCount++;
     }
-    return { deletedFileCount };
-  } catch (error: any) {
-    throw new Error(`Error deleting files: ${error.message}`);
+    const filesArray = files.map((file) => file.key);
+    const response = await utapi.deleteFiles(file.key);
+    if (!response.success || response.deletedCount < 1) {
+      throw new Error(`Failed to delete file: ${file.key}`);
+    }
+
+    const db = client.db('AtlasII');
+    const usersCollection = db.collection('users');
+
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { 'knowledgebase.files': { key: { $in: filesArray } } as any },
+        $set: { updatedAt: new Date().toISOString() }
+      }
+    );
+
+    if (result.modifiedCount !== 1) {
+      throw new Error('Failed to update user after deleting files');
+    }
+    deletedFileCount++;
   }
+  return { deletedFileCount };
 };
 
 // File listing function
 export const listFiles = async (files: string[] = []) => {
-  try {
-    const userId = await getUserId();
-    const db = client.db('AtlasII');
-    const usersCollection = db.collection('users');
+  const userId = await getUserId();
+  const db = client.db('AtlasII');
+  const usersCollection = db.collection('users');
 
-    const user = await usersCollection.findOne(
-      { _id: new ObjectId(userId) },
-      { projection: { 'knowledgebase.files': 1 } }
-    );
+  const user = await usersCollection.findOne(
+    { _id: new ObjectId(userId) },
+    { projection: { 'knowledgebase.files': 1 } }
+  );
 
-    // Retrieve the user's files or set to an empty array if not found
-    const allFiles = user?.knowledgebase?.files ?? [];
+  // Retrieve the user's files or set to an empty array if not found
+  const allFiles = user?.knowledgebase?.files ?? [];
 
-    // Filter the files if the files[] array is provided
-    const filteredFiles =
-      files.length > 0
-        ? allFiles.filter((file: string) => files.includes(file))
-        : allFiles;
+  // Filter the files if the files[] array is provided
+  const filteredFiles =
+    files.length > 0
+      ? allFiles.filter((file: string) => files.includes(file))
+      : allFiles;
 
-    return { files: filteredFiles, hasMore: false }; // Adjust hasMore based on pagination logic
-  } catch (error: any) {
-    throw new Error('Error listing files:', error);
-  }
+  return { files: filteredFiles, hasMore: false }; // Adjust hasMore based on pagination logic
 };
 
 export const getFileUrls = async (list: string[]) => {
-  try {
-    const response = await utapi.getFileUrls(list);
-    return response;
-  } catch (error: any) {
-    throw new Error('Error retrieving file urls', error);
-  }
+  const response = await utapi.getFileUrls(list);
+  return response;
 };
 
 export type OurFileRouter = typeof ourFileRouter;

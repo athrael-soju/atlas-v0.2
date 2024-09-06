@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
+import { toast } from '@/components/ui/use-toast';
 
 type MessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -87,10 +88,18 @@ const Chat = () => {
           const data = await response.json();
           setKnowledgebaseEnabled(data.settings.chat.knowledgebaseEnabled);
         } else {
-          console.error('Failed to retrieve user settings');
+          toast({
+            title: 'Error',
+            description: 'Request failed. Please try again.',
+            variant: 'destructive'
+          });
         }
       } catch (error) {
-        console.error('Error fetching user settings:', error);
+        toast({
+          title: 'Error',
+          description: `${error}`,
+          variant: 'destructive'
+        });
       } finally {
         setLoading(false);
       }
@@ -121,11 +130,19 @@ const Chat = () => {
 
       if (!response.ok) {
         setKnowledgebaseEnabled(!newValue);
-        console.error('Failed to update knowledgebase setting');
+        toast({
+          title: 'Error',
+          description: 'Request failed. Please try again.',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       setKnowledgebaseEnabled(!newValue);
-      console.error('Error updating knowledgebase setting:', error);
+      toast({
+        title: 'Error',
+        description: `${error}`,
+        variant: 'destructive'
+      });
     }
   };
 

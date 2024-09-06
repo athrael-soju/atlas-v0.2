@@ -13,31 +13,27 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 }
 
 export async function query(userEmail: string, embeddings: any, topK: number) {
-  try {
-    const response = await queryByNamespace(userEmail, topK, embeddings.values);
-    const context = response.matches.map((item: any) => {
-      const contextItem: any = {
-        text: item.metadata.text,
-        filename: item.metadata.filename,
-        filetype: item.metadata.filetype,
-        languages: item.metadata.languages.join(', '),
-        user_email: item.metadata.user_email
-      };
-      // If file is CSV, there is always 1 page.
-      if (item.metadata.page_number) {
-        contextItem.page_number = item.metadata.page_number.toString();
-      }
-      return contextItem;
-    });
-
-    return {
-      message: 'Pinecone query successful',
-      namespace: userEmail,
-      context
+  const response = await queryByNamespace(userEmail, topK, embeddings.values);
+  const context = response.matches.map((item: any) => {
+    const contextItem: any = {
+      text: item.metadata.text,
+      filename: item.metadata.filename,
+      filetype: item.metadata.filetype,
+      languages: item.metadata.languages.join(', '),
+      user_email: item.metadata.user_email
     };
-  } catch (error: any) {
-    throw new Error(`Failed to query Pinecone: ${error.message}`);
-  }
+    // If file is CSV, there is always 1 page.
+    if (item.metadata.page_number) {
+      contextItem.page_number = item.metadata.page_number.toString();
+    }
+    return contextItem;
+  });
+
+  return {
+    message: 'Pinecone query successful',
+    namespace: userEmail,
+    context
+  };
 }
 
 const queryByNamespace = async (
@@ -45,18 +41,14 @@ const queryByNamespace = async (
   topK: number,
   embeddedMessage: any
 ) => {
-  try {
-    const index = await getIndex();
-    const result = await index.namespace(namespace).query({
-      topK: topK,
-      vector: embeddedMessage,
-      includeValues: false,
-      includeMetadata: true
-    });
-    return result;
-  } catch (error: any) {
-    throw new Error(`Failed querying by namespace: ${error.message}`);
-  }
+  const index = await getIndex();
+  const result = await index.namespace(namespace).query({
+    topK: topK,
+    vector: embeddedMessage,
+    includeValues: false,
+    includeMetadata: true
+  });
+  return result;
 };
 
 export const upsertDocument = async (
@@ -64,18 +56,14 @@ export const upsertDocument = async (
   embeddings: Embedding[],
   chunkBatch: number
 ) => {
-  try {
-    let upsertedChunkCount = 0;
-    const index = await getIndex();
-    const chunkedData = chunkArray(embeddings, chunkBatch);
-    for (const chunk of chunkedData) {
-      index.namespace(userId).upsert(chunk);
-      upsertedChunkCount += chunk.length;
-    }
-    return upsertedChunkCount;
-  } catch (error: any) {
-    throw new Error(`Failed to upsert documents: ${error.message}`);
+  let upsertedChunkCount = 0;
+  const index = await getIndex();
+  const chunkedData = chunkArray(embeddings, chunkBatch);
+  for (const chunk of chunkedData) {
+    index.namespace(userId).upsert(chunk);
+    upsertedChunkCount += chunk.length;
   }
+  return upsertedChunkCount;
 };
 
 export async function deleteFromVectorDb(
@@ -89,26 +77,20 @@ export async function deleteFromVectorDb(
   const index = await getIndex();
   const namespace = index.namespace(userId);
   do {
-    try {
-      const result = await listArchiveChunks(
-        file,
-        namespace,
-        pageSize,
-        paginationToken
-      );
-      if (result.chunks.length === 0) {
-        break;
-      }
-
-      const chunkIds = result.chunks.map((chunk) => chunk.id);
-      await namespace.deleteMany(chunkIds);
-      deletedCount += chunkIds.length;
-      paginationToken = result.paginationToken;
-    } catch (error: any) {
-      throw new Error(
-        `Purge archive in Vector DB failed: ${error.message} for document ${file.key}`
-      );
+    const result = await listArchiveChunks(
+      file,
+      namespace,
+      pageSize,
+      paginationToken
+    );
+    if (result.chunks.length === 0) {
+      break;
     }
+
+    const chunkIds = result.chunks.map((chunk) => chunk.id);
+    await namespace.deleteMany(chunkIds);
+    deletedCount += chunkIds.length;
+    paginationToken = result.paginationToken;
   } while (paginationToken !== undefined);
   return deletedCount;
 }

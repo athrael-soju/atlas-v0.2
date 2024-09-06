@@ -63,14 +63,22 @@ export function KnowledgebaseForm() {
             if (knowledgebaseSettings) {
               form.reset(knowledgebaseSettings);
             } else {
-              console.warn('Knowledgebase settings not found, using defaults');
               form.reset(defaultValues);
             }
           } else {
-            console.error('Failed to fetch user settings');
+            toast({
+              title: 'Error',
+              description: 'Request failed. Please try again.',
+              variant: 'destructive'
+            });
+            form.reset(defaultValues);
           }
         } catch (error) {
-          console.error('Error fetching user settings:', error);
+          toast({
+            title: 'Error',
+            description: `${error}`,
+            variant: 'destructive'
+          });
         } finally {
           setLoading(false);
         }
@@ -110,10 +118,9 @@ export function KnowledgebaseForm() {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: `${error}`,
         variant: 'destructive'
       });
-      console.error('Failed to update settings:', error);
     }
   }
 

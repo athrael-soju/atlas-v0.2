@@ -35,40 +35,34 @@ export async function rerank(
   cohereTopN: number,
   cohereRelevanceThreshold: number
 ): Promise<string> {
-  try {
-    if (queryResults.length < 1) {
-      return 'Context: Query results are empty. No relevant documents found.';
-    }
+  if (queryResults.length < 1) {
+    return 'Context: Query results are empty. No relevant documents found.';
+  }
 
-    const rerankResponse = await cohere.rerank({
-      model: model,
-      documents: queryResults,
-      rankFields: ['text', 'filename', 'page_number', 'filetype', 'languages'],
-      query: userMessage,
-      topN: cohereTopN,
-      returnDocuments: true
-    });
+  const rerankResponse = await cohere.rerank({
+    model: model,
+    documents: queryResults,
+    rankFields: ['text', 'filename', 'page_number', 'filetype', 'languages'],
+    query: userMessage,
+    topN: cohereTopN,
+    returnDocuments: true
+  });
 
-    if (rerankResponse.results.length > 0) {
-      // Filter results based on relevance score
-      const filteredResults = rerankResponse.results.filter(
-        (result) => result.relevanceScore >= cohereRelevanceThreshold
-      );
-
-      if (filteredResults.length > 0) {
-        const formattedResults = filteredResults
-          .map(formatResult)
-          .join('\n---\n');
-        return `Context: The following are the top ${cohereTopN} most relevant documents you can use to respond to user message: "${userMessage}". Each document is separated by "---".\n\n${formattedResults}\n\nContext: End of results.\n\nUser message: ${userMessage}\n\n`;
-      } else {
-        return `Context: No relevant documents found with a relevance score of ${cohereRelevanceThreshold} or higher.\n\nUser message: ${userMessage}\n\n`;
-      }
-    } else {
-      return 'Context: No relevant documents found.\n\nUser message: ${userMessage}\n\n';
-    }
-  } catch (error: any) {
-    throw new Error(
-      `Context: An error occurred while reranking documents: ${error.message}`
+  if (rerankResponse.results.length > 0) {
+    // Filter results based on relevance score
+    const filteredResults = rerankResponse.results.filter(
+      (result) => result.relevanceScore >= cohereRelevanceThreshold
     );
+
+    if (filteredResults.length > 0) {
+      const formattedResults = filteredResults
+        .map(formatResult)
+        .join('\n---\n');
+      return `Context: The following are the top ${cohereTopN} most relevant documents you can use to respond to user message: "${userMessage}". Each document is separated by "---".\n\n${formattedResults}\n\nContext: End of results.\n\nUser message: ${userMessage}\n\n`;
+    } else {
+      return `Context: No relevant documents found with a relevance score of ${cohereRelevanceThreshold} or higher.\n\nUser message: ${userMessage}\n\n`;
+    }
+  } else {
+    return 'Context: No relevant documents found.\n\nUser message: ${userMessage}\n\n';
   }
 }
