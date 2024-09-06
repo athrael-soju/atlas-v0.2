@@ -48,6 +48,7 @@ export function KnowledgebaseForm() {
   useEffect(() => {
     if (userId) {
       const fetchData = async () => {
+        setLoading(true);
         try {
           const response = await fetch('/api/user', {
             method: 'GET'
@@ -55,7 +56,6 @@ export function KnowledgebaseForm() {
 
           if (response.ok) {
             const result = await response.json();
-            console.log('Fetched user settings:', result); // Log to inspect the response
 
             // Ensure that `result.user` and `result.user.settings` exist
             const knowledgebaseSettings = result?.settings?.knowledgebase;

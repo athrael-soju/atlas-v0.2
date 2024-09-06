@@ -36,43 +36,65 @@ interface UploadedFilesProps {
     React.SetStateAction<UploadedFile[] | undefined>
   >;
   isFetchingFiles: boolean;
+  working: boolean;
+  setWorking: React.Dispatch<React.SetStateAction<boolean>>;
+  isUploading: boolean;
 }
 
 export function UploadedFiles({
   uploadedFiles,
   setUploadedFiles,
-  isFetchingFiles
+  isFetchingFiles,
+  working,
+  setWorking,
+  isUploading
 }: UploadedFilesProps) {
   const { data: session } = useSession();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
   const onDeleteFiles = async (files: UploadedFile[]) => {
-    try {
-      const userId = session?.user.id as string;
-      const response = await fetch('/api/uploadthing', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, files })
+    const userId = session?.user.id as string;
+    const response = await fetch('/api/uploadthing', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, files })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete files');
+    }
+
+    const result = await response.json();
+    if (result.deletedFileCount > 0) {
+      toast({
+        title: 'Done!',
+        description: `${result.deletedFileCount} file(s) have been deleted successfully`,
+        variant: 'default'
       });
+      setUploadedFiles(uploadedFiles.filter((file) => !files.includes(file)));
+    } else {
+      toast({
+        title: 'Uh oh! Something went wrong.',
+        description: `Some files may have not been deleted`,
+        variant: 'destructive'
+      });
+    }
+  };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete files');
-      }
-
-      const result = await response.json();
-      if (result.deletedFileCount > 0) {
-        toast({
-          title: 'Done!',
-          description: `${result.deletedFileCount} file(s) have been deleted successfully`,
-          variant: 'default'
-        });
-        setUploadedFiles(uploadedFiles.filter((file) => !files.includes(file)));
+  const handleDeleteSelected = async () => {
+    try {
+      setWorking(true);
+      const selectedFiles = table
+        .getSelectedRowModel()
+        .rows.map((row) => row.original);
+      if (selectedFiles.length > 0) {
+        await onDeleteFiles(selectedFiles);
       } else {
         toast({
-          title: 'Uh oh! Something went wrong.',
-          description: `Some files may have not been deleted`,
+          title: 'No files selected',
+          description: 'Please select files to delete.',
           variant: 'destructive'
         });
       }
@@ -82,46 +104,44 @@ export function UploadedFiles({
         description: `${error}`,
         variant: 'destructive'
       });
-    }
-  };
-
-  const handleDeleteSelected = () => {
-    const selectedFiles = table
-      .getSelectedRowModel()
-      .rows.map((row) => row.original);
-    if (selectedFiles.length > 0) {
-      onDeleteFiles(selectedFiles);
-    } else {
-      toast({
-        title: 'No files selected',
-        description: 'Please select files to delete.',
-        variant: 'destructive'
-      });
+    } finally {
+      setWorking(false);
     }
   };
 
   const handleProcessSelected = async () => {
-    const selectedFiles = table
-      .getSelectedRowModel()
-      .rows.map((row) => row.original.key) as string[];
-    const userId = session?.user.id as string;
+    try {
+      setWorking(true);
+      const selectedFiles = table
+        .getSelectedRowModel()
+        .rows.map((row) => row.original.key) as string[];
+      const userId = session?.user.id as string;
 
-    if (selectedFiles.length > 0) {
+      if (selectedFiles.length > 0) {
+        toast({
+          title: 'Processing files',
+          description: 'Selected files are being processed.',
+          variant: 'default'
+        });
+        await processSelectedFiles(userId, selectedFiles);
+        const userData = await getUserData(userId);
+        const userFiles = userData.knowledgebase.files as UploadedFile[];
+        setUploadedFiles(userFiles);
+      } else {
+        toast({
+          title: 'No files selected',
+          description: 'Please select files to process.',
+          variant: 'default'
+        });
+      }
+    } catch (error) {
       toast({
-        title: 'Processing files',
-        description: 'Selected files are being processed.',
-        variant: 'default'
+        title: 'Uh oh! Something went wrong.',
+        description: `${error}`,
+        variant: 'destructive'
       });
-      await processSelectedFiles(userId, selectedFiles);
-      const userData = await getUserData(userId);
-      const userFiles = userData.knowledgebase.files as UploadedFile[];
-      setUploadedFiles(userFiles);
-    } else {
-      toast({
-        title: 'No files selected',
-        description: 'Please select files to process.',
-        variant: 'default'
-      });
+    } finally {
+      setWorking(false);
     }
   };
 
@@ -138,6 +158,18 @@ export function UploadedFiles({
     state: { sorting, globalFilter },
     initialState: { pagination: { pageSize: 10 } }
   });
+
+  if (working || isUploading) {
+    return (
+      <EmptyCard
+        title=""
+        className="w-full"
+        style={{ height: 'calc(55vh)' }}
+        isFetchingFiles={isFetchingFiles}
+        isWorking={working || isUploading}
+      />
+    );
+  }
 
   return (
     <>

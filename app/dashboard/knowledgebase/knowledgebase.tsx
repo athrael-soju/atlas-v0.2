@@ -8,7 +8,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
 import { UploadedFiles } from '@/app/dashboard/knowledgebase/uploaded-files';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const FormSchema = z.object({
   processAll: z.boolean().default(false)
@@ -24,6 +24,7 @@ export function Knowledgebase() {
     fetchUploadedFiles,
     isFetchingFiles
   } = useHandleFiles('attachment');
+  const [working, setWorking] = useState(false);
 
   useEffect(() => {
     fetchUploadedFiles();
@@ -37,14 +38,14 @@ export function Knowledgebase() {
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: 'Processing Files',
-      description: `Processing ${
-        data.processAll ? 'All Files' : 'New Files Only'
-      }`
-    });
-
     try {
+      toast({
+        title: 'Processing Files',
+        description: `Processing ${
+          data.processAll ? 'All Files' : 'New Files Only'
+        }`
+      });
+
       const response = await fetch('/api/process-files', {
         method: 'POST',
         headers: {
@@ -95,16 +96,10 @@ export function Knowledgebase() {
           uploadedFiles={uploadedFiles ?? []}
           setUploadedFiles={setUploadedFiles}
           isFetchingFiles={isFetchingFiles ?? false}
+          working={working}
+          setWorking={setWorking}
+          isUploading={isUploading ?? false}
         />
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={isUploading}
-        >
-          Process Files
-        </button>
       </form>
     </Form>
   );

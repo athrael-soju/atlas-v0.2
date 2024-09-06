@@ -1,4 +1,4 @@
-import { Comment, MagnifyingGlass } from 'react-loader-spinner';
+import { Comment, Hourglass, MagnifyingGlass } from 'react-loader-spinner';
 import { useEffect, useState } from 'react';
 
 export const Spinner = () => {
@@ -46,6 +46,20 @@ export const Searching = () => {
       wrapperClass="magnifying-glass-wrapper"
       glassColor="#c0efff"
       color="#e15b64"
+    />
+  );
+};
+
+export const Working = () => {
+  return (
+    <Hourglass
+      visible={true}
+      height="80"
+      width="80"
+      ariaLabel="hourglass-loading"
+      wrapperStyle={{}}
+      wrapperClass=""
+      colors={['#306cce', '#72a1ed']}
     />
   );
 };

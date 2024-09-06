@@ -2,7 +2,7 @@ import { ImageIcon } from '@radix-ui/react-icons';
 
 import { cn } from '@/lib/utils';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
-import { Searching } from '@/components/spinner';
+import { Searching, Working } from '@/components/spinner';
 
 interface EmptyCardProps extends React.ComponentPropsWithoutRef<typeof Card> {
   title: string;
@@ -10,6 +10,7 @@ interface EmptyCardProps extends React.ComponentPropsWithoutRef<typeof Card> {
   action?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
   isFetchingFiles?: boolean;
+  isWorking?: boolean;
 }
 
 export function EmptyCard({
@@ -17,6 +18,7 @@ export function EmptyCard({
   description,
   icon: Icon = ImageIcon,
   isFetchingFiles,
+  isWorking,
   action,
   className,
   ...props
@@ -34,6 +36,8 @@ export function EmptyCard({
           <div className="h-50vh flex items-center justify-center">
             <Searching />
           </div>
+        ) : isWorking ? (
+          <Working />
         ) : (
           <Icon className="size-8 text-muted-foreground" aria-hidden="true" />
         )}

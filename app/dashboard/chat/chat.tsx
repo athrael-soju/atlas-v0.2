@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/spinner';
 import { useMessaging } from '@/hooks/use-messaging';
 import Markdown from 'react-markdown';
-import { CornerDownLeft, Mic, Paperclip } from 'lucide-react';
+import {
+  CornerDownLeft,
+  Mic,
+  Paperclip,
+  Brain,
+  StopCircle
+} from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -15,6 +20,7 @@ import {
   TooltipProvider
 } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
 
 type MessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -59,12 +65,20 @@ const Message = ({ role, text }: MessageProps) => {
 
 const Chat = () => {
   const [userInput, setUserInput] = useState('');
-  const [knowledgebaseEnabled, setKnowledgebaseEnabled] = useState(false); // State for knowledgebase switch
-  const [loading, setLoading] = useState(true); // State to track loading status
-  const { messages, isThinking, inputDisabled, userInputRef, sendMessage } =
-    useMessaging();
+  const [knowledgebaseEnabled, setKnowledgebaseEnabled] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isStopped, setIsStopped] = useState(false); // New state for stopping the assistant
 
-  // Fetch the current setting on component load
+  const {
+    messages,
+    isThinking,
+    inputDisabled,
+    userInputRef,
+    sendMessage,
+    abortStream
+  } = useMessaging();
+
   useEffect(() => {
     const fetchUserSettings = async () => {
       try {
@@ -77,7 +91,6 @@ const Chat = () => {
 
         if (response.ok) {
           const data = await response.json();
-          // Assuming the structure of the user data includes the knowledgebaseEnabled field
           setKnowledgebaseEnabled(data.settings.chat.knowledgebaseEnabled);
         } else {
           console.error('Failed to retrieve user settings');
@@ -85,23 +98,24 @@ const Chat = () => {
       } catch (error) {
         console.error('Error fetching user settings:', error);
       } finally {
-        setLoading(false); // Stop loading once the request is complete
+        setLoading(false);
       }
     };
 
     fetchUserSettings();
-  }, []); // Empty dependency array means this runs once on component mount
+  }, []);
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!userInput.trim()) return;
+    setIsStopped(false); // Reset the stopped state
     sendMessage(userInput, knowledgebaseEnabled);
     setUserInput('');
   };
 
-  const handleKnowledgebaseToggle = async (checked: boolean) => {
-    // Optimistically update the UI
-    setKnowledgebaseEnabled(checked);
+  const handleKnowledgebaseToggle = async () => {
+    const newValue = !knowledgebaseEnabled;
+    setKnowledgebaseEnabled(newValue);
 
     try {
       const response = await fetch('/api/user', {
@@ -109,33 +123,33 @@ const Chat = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ knowledgebaseEnabled: checked })
+        body: JSON.stringify({ knowledgebaseEnabled: newValue })
       });
 
       if (!response.ok) {
-        // If the response is not OK, revert the UI update
-        setKnowledgebaseEnabled(!checked);
+        setKnowledgebaseEnabled(!newValue);
         console.error('Failed to update knowledgebase setting');
-      } else {
-        // Add any other actions you want to perform when the switch is toggled
       }
     } catch (error) {
-      // If there's an error, revert the UI update and log the error
-      setKnowledgebaseEnabled(!checked);
+      setKnowledgebaseEnabled(!newValue);
       console.error('Error updating knowledgebase setting:', error);
     }
   };
 
-  // TODO: Define proper loading state for this and other components
-  // if (loading) {
-  //   return <Spinner />; // Show a spinner or loading indicator while loading
-  // }
+  const handleMicToggle = () => {
+    setMicEnabled(!micEnabled);
+  };
+
+  const handleStop = () => {
+    abortStream(); // This function should be provided by useMessaging to stop the assistant
+    setIsStopped(true);
+  };
 
   return (
     <TooltipProvider>
       <div
         className="flex flex-col rounded-lg border bg-white p-4 shadow dark:bg-gray-900"
-        style={{ height: 'calc(100vh - 200px)' }}
+        style={{ height: 'calc(76vh' }}
       >
         <div className="mb-4 flex-1 space-y-4 overflow-y-auto px-4">
           {messages.map((msg, index) => (
@@ -163,8 +177,12 @@ const Chat = () => {
           <div className="flex items-center p-3 pt-0">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Paperclip className="size-4" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={knowledgebaseEnabled}
+                >
+                  <Paperclip className="h-5 w-5" />
                   <span className="sr-only">Attach file</span>
                 </Button>
               </TooltipTrigger>
@@ -172,30 +190,61 @@ const Chat = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Mic className="size-4" />
-                  <span className="sr-only">Use Microphone</span>
-                </Button>
+                <motion.button
+                  onClick={handleMicToggle}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  style={{
+                    color: micEnabled ? '#f97316' : 'inherit' // Orange color when active
+                  }}
+                >
+                  <Mic className="h-5 w-5" />
+                </motion.button>
               </TooltipTrigger>
               <TooltipContent side="top">Use Microphone</TooltipContent>
             </Tooltip>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="knowledgebase-switch"
-                checked={knowledgebaseEnabled}
-                onCheckedChange={handleKnowledgebaseToggle} // Handle switch toggle
-              />
-              <Label htmlFor="knowledgebase-switch">Enlighten</Label>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleKnowledgebaseToggle}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  style={{
+                    color: knowledgebaseEnabled ? '#facc15' : 'inherit'
+                  }}
+                >
+                  <Brain className="h-5 w-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Toggle Enlighten</TooltipContent>
+            </Tooltip>
             <Button
               type="submit"
               size="sm"
               className="ml-auto gap-1.5"
-              disabled={inputDisabled}
+              disabled={inputDisabled || isThinking}
             >
               Send Message
-              <CornerDownLeft className="size-3.5" />
+              <CornerDownLeft className="h-4 w-4" />
             </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive" // Assuming a 'destructive' variant exists
+                  className="ml-2 gap-1.5"
+                  onClick={handleStop}
+                  disabled={isThinking || isStopped} // Disable if not thinking or already stopped
+                >
+                  Stop
+                  <StopCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Stop Message</TooltipContent>
+            </Tooltip>
           </div>
         </form>
       </div>

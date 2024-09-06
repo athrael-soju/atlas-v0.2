@@ -27,7 +27,9 @@ export const useMessaging = (
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   const { data: session } = useSession();
-
+  const abortStream = () => {
+    // TODO: Implement this
+    };
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -182,6 +184,7 @@ export const useMessaging = (
     isThinking,
     inputDisabled,
     userInputRef: messagesEndRef,
-    sendMessage
+    sendMessage,
+    abortStream
   };
 };
