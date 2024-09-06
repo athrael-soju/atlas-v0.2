@@ -36,35 +36,76 @@ export function Knowledgebase() {
     }
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
     toast({
       title: 'Processing Files',
       description: `Processing ${
         data.processAll ? 'All Files' : 'New Files Only'
       }`
     });
-    // TODO: Implement the file processing logic based on `data.processAll`
+
+    try {
+      const response = await fetch('/api/process-files', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          processAll: data.processAll
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Processing Complete',
+          description: `Files have been successfully processed.`,
+          variant: 'default'
+        });
+      } else {
+        toast({
+          title: 'Error Processing Files',
+          description:
+            'There was an error processing the files. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Unexpected Error',
+        description: 'An unexpected error occurred while processing the files.',
+        variant: 'destructive'
+      });
+    }
   }
 
   return (
-    <>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* TODO: Ensure consistency between FileUploader and UploadThing */}
-          <FileUploader
-            maxFileCount={5}
-            maxSize={4 * 1024 * 1024}
-            progress={progress}
-            onUpload={onUpload}
-            disabled={isUploading}
-          />
-          <UploadedFiles
-            uploadedFiles={uploadedFiles ?? []}
-            setUploadedFiles={setUploadedFiles}
-            isFetchingFiles={isFetchingFiles ?? false}
-          />
-        </form>
-      </Form>
-    </>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* File Uploader Component */}
+        <FileUploader
+          maxFileCount={5}
+          maxSize={4 * 1024 * 1024} // 4 MB
+          progress={progress}
+          onUpload={onUpload}
+          disabled={isUploading}
+        />
+
+        {/* Uploaded Files Display Component */}
+        <UploadedFiles
+          uploadedFiles={uploadedFiles ?? []}
+          setUploadedFiles={setUploadedFiles}
+          isFetchingFiles={isFetchingFiles ?? false}
+        />
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isUploading}
+        >
+          Process Files
+        </button>
+      </form>
+    </Form>
   );
 }

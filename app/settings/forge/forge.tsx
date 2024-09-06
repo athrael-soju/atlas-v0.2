@@ -106,7 +106,7 @@ const chunkingStrategyDescriptions = {
 export function ForgeForm() {
   const { data: session } = useSession();
   const user = session?.user;
-  const userEmail = user?.email;
+  const userId = user?.id;
   const [loading, setLoading] = useState(true);
   const form = useForm<ForgeFormValues>({
     resolver: zodResolver(forgeFormSchema),
@@ -115,7 +115,7 @@ export function ForgeForm() {
 
   // Fetch user settings from the database on mount
   useEffect(() => {
-    if (userEmail) {
+    if (userId) {
       const fetchData = async () => {
         try {
           const response = await fetch('/api/user', {
@@ -124,8 +124,11 @@ export function ForgeForm() {
 
           if (response.ok) {
             const result = await response.json();
-            if (result.user.settings.forge) {
-              form.reset(result.user.settings.forge);
+            // Ensure that `result` contains the correct structure
+            if (result?.settings?.forge) {
+              form.reset(result.settings.forge); // Reset the form with the forge settings
+            } else {
+              console.error('Forge settings not found in user data');
             }
           } else {
             console.error('Failed to fetch user settings');
@@ -139,7 +142,7 @@ export function ForgeForm() {
 
       fetchData();
     }
-  }, [form, userEmail]);
+  }, [form, userId]);
 
   async function onSubmit(data: ForgeFormValues) {
     const partialData: Partial<IUser> = {

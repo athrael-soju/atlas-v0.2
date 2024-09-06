@@ -1,60 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
-import client from '@/lib/client/mongodb';
-import { ObjectId } from 'mongodb';
+import { getUserData, updateUserField } from '@/lib/service/mongodb'; // Adjust the import path accordingly
+
 import { getServerSession } from 'next-auth/next';
 import authConfig from '@/auth.config';
 
 export async function POST(req: NextRequest) {
   try {
-    // Get the current session
     const session = await getServerSession(authConfig);
 
-    if (!session || !session.user || !session.user.email) {
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Connect to the database
-    const db = client.db('AtlasII');
-    const usersCollection = db.collection('users');
-
-    // Find the user in the database by email
-    const userEmail = session.user.email;
-    const user = await usersCollection.findOne({ email: userEmail });
-
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-
-    // Extract the update data from the request body
+    const userId = session.user.id;
     const updateData = await req.json();
-
-    // Determine which part of settings to update
-    const updatePath = Object.keys(updateData)[0];
-    const updateValue = updateData[updatePath];
-    // Apply the update to the specific field within settings
-    const result = await usersCollection.updateOne(
-      { _id: new ObjectId(user._id) },
-      {
+    console.log(updateData);
+    // Handle updating `knowledgebaseEnabled`
+    if (typeof updateData.knowledgebaseEnabled === 'boolean') {
+      const response = await updateUserField(userId, {
         $set: {
-          [`settings.${updatePath}`]: updateValue,
+          'settings.chat.knowledgebaseEnabled': updateData.knowledgebaseEnabled,
           updatedAt: new Date().toISOString()
         }
-      }
-    );
-
-    if (result.modifiedCount === 1) {
-      return NextResponse.json(
-        { message: 'User settings updated successfully' },
-        { status: 200 }
-      );
-    } else {
-      return NextResponse.json(
-        { message: 'Failed to update user settings' },
-        { status: 500 }
-      );
+      });
+      return NextResponse.json(response, { status: 200 });
     }
-  } catch (error) {
-    console.error('Error updating user settings:', error);
+
+    // Handle updating `settings.forge`
+    if (updateData.forge) {
+      const response = await updateUserField(userId, {
+        $set: {
+          'settings.forge': updateData.forge, // Use the correct key path for updating
+          updatedAt: new Date().toISOString()
+        }
+      });
+      return NextResponse.json(response, { status: 200 });
+    }
+
+    // Handle updating `settings.knowledgebase`
+    if (updateData.knowledgebase) {
+      const response = await updateUserField(userId, {
+        $set: {
+          'settings.knowledgebase': updateData.knowledgebase, // Update the knowledgebase settings
+          updatedAt: new Date().toISOString()
+        }
+      });
+      return NextResponse.json(response, { status: 200 });
+    }
+
+    // Handle file upload
+    if (updateData.uploadedFile) {
+      const response = await updateUserField(userId, {
+        $push: { 'knowledgebase.files': updateData.uploadedFile },
+        $set: { updatedAt: new Date().toISOString() }
+      });
+      return NextResponse.json(response, { status: 200 });
+    }
+
+    // Handle invalid update operations
+    return NextResponse.json(
+      { message: 'Invalid update operation' },
+      { status: 400 }
+    );
+  } catch (error: any) {
+    console.error('Error in POST request:', error.message);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -62,30 +71,29 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+// GET route to retrieve user data
+export async function GET(req: NextRequest) {
   try {
-    // Get the current session
+    // TODO: Validage the user session with front end
     const session = await getServerSession(authConfig);
 
-    if (!session || !session.user || !session.user.email) {
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Connect to the database
-    const db = client.db('AtlasII');
-    const usersCollection = db.collection('users');
+    const userId = session.user.id;
+    const userData = await getUserData(userId);
 
-    // Find the user in the database by email
-    const userEmail = session.user.email;
-    const user = await usersCollection.findOne({ email: userEmail });
-
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    if (!userData || !userData.settings) {
+      return NextResponse.json(
+        { message: 'Settings not found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ user }, { status: 200 });
-  } catch (error) {
-    console.error('Error getting user:', error);
+    return NextResponse.json(userData, { status: 200 });
+  } catch (error: any) {
+    console.error('Error in GET request:', error.message);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

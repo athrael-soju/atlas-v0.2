@@ -1,44 +1,25 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
-import Dropzone, { type FileRejection } from 'react-dropzone';
+import Dropzone, { FileRejection } from 'react-dropzone';
 import { toast } from 'sonner';
-import { Icons } from '@/components/icons';
 import { cn, formatBytes } from '@/lib/utils';
 import { useControllableState } from '@/hooks/use-controllable-state';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger
-} from '@/components/ui/drawer';
+import { FileCard } from '@/app/dashboard/knowledgebase/file-card';
 import { FileUploaderProps } from '@/types/file-uploader';
-
-interface FilePreviewProps {
-  file: File & { preview: string };
-}
-
-interface FileCardProps {
-  file: File;
-  onRemove: () => void;
-  progress?: number;
-}
+import {
+  DialogOrDrawer,
+  DialogOrDrawerTrigger,
+  DialogOrDrawerContent,
+  DialogOrDrawerHeader,
+  DialogOrDrawerTitle
+} from '@/app/dashboard/knowledgebase/dialog-or-drawer';
+import { Icons } from '@/components/icons';
+import { DialogDescription } from '@/components/ui/dialog';
 
 export function FileUploader(props: FileUploaderProps) {
-  // TODO: Add configurable Interface
   const {
     value: valueProp,
     onValueChange,
@@ -108,24 +89,23 @@ export function FileUploader(props: FileUploaderProps) {
         });
       }
 
-      setOpen(true); // Open the dialog or drawer when files are dropped
+      setOpen(true);
     },
     [files, maxFileCount, multiple, onUpload, setFiles]
   );
 
-  function onRemove(index: number) {
+  const onRemove = (index: number) => {
     if (!files) return;
     const newFiles = files.filter((_, i) => i !== index);
     setFiles(newFiles);
     onValueChange?.(newFiles);
-  }
+  };
 
-  // Revoke preview url when component unmounts
   React.useEffect(() => {
     return () => {
       if (!files) return;
       files.forEach((file) => {
-        if (isFileWithPreview(file)) {
+        if ('preview' in file && typeof file.preview === 'string') {
           URL.revokeObjectURL(file.preview);
         }
       });
@@ -140,17 +120,10 @@ export function FileUploader(props: FileUploaderProps) {
   const title = allUploaded ? 'Files Uploaded!' : 'Uploading Files';
   const emoticon = allUploaded ? '😊' : '🚚';
 
-  const DialogOrDrawer = isDesktop ? Dialog : Drawer;
-  const DialogOrDrawerTrigger = isDesktop ? DialogTrigger : DrawerTrigger;
-  const DialogOrDrawerContent = isDesktop ? DialogContent : DrawerContent;
-  const DialogOrDrawerHeader = isDesktop ? DialogHeader : DrawerHeader;
-  const DialogOrDrawerTitle = isDesktop ? DialogTitle : DrawerTitle;
-
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
 
     if (!isOpen) {
-      // Clear files when the dialog or drawer is closed
       setFiles([]);
     }
   };
@@ -180,12 +153,10 @@ export function FileUploader(props: FileUploaderProps) {
             <input {...getInputProps()} />
             {isDragActive ? (
               <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                <div className="rounded-full border border-dashed p-3">
-                  <Icons.uploadIcon
-                    className="size-7 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                </div>
+                <Icons.uploadIcon
+                  className="size-7 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <p className="font-medium text-muted-foreground">
                   Drop the files here
                 </p>
@@ -244,71 +215,5 @@ export function FileUploader(props: FileUploaderProps) {
         </DialogOrDrawerContent>
       </DialogOrDrawer>
     </div>
-  );
-}
-
-function FileCard({ file, progress }: FileCardProps) {
-  const isUploading = progress !== undefined && progress < 100;
-  const isUploaded = progress !== undefined && progress === 100;
-
-  return (
-    <div className="relative flex items-center gap-2.5">
-      <div className="flex flex-1 gap-2.5">
-        {isFileWithPreview(file) ? <FilePreview file={file} /> : null}
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex flex-col gap-px">
-            <p className="line-clamp-1 text-sm font-medium text-foreground/80">
-              {file.name}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {formatBytes(file.size)}
-            </p>
-          </div>
-          {progress !== undefined ? (
-            <div className="flex items-center gap-2">
-              <Progress value={progress} />
-              <span
-                className="text-xl"
-                style={{ width: '1.5em', textAlign: 'center' }}
-              >
-                {isUploaded ? (
-                  <Icons.checkIcon className="text-success" />
-                ) : isUploading ? (
-                  <Icons.squareIcon className="text-muted-foreground" />
-                ) : (
-                  <Icons.squareIcon className="text-muted-foreground" />
-                )}
-              </span>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function isFileWithPreview(file: File): file is File & { preview: string } {
-  return 'preview' in file && typeof file.preview === 'string';
-}
-
-function FilePreview({ file }: FilePreviewProps) {
-  if (file.type.startsWith('image/')) {
-    return (
-      <Image
-        src={file.preview}
-        alt={file.name}
-        width={48}
-        height={48}
-        loading="lazy"
-        className="aspect-square shrink-0 rounded-md object-cover"
-      />
-    );
-  }
-
-  return (
-    <Icons.fileTextIcon
-      className="size-10 text-muted-foreground"
-      aria-hidden="true"
-    />
   );
 }

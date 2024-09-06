@@ -37,7 +37,7 @@ const defaultValues: Partial<KnowledgebaseValues> = {
 export function KnowledgebaseForm() {
   const { data: session } = useSession();
   const user = session?.user;
-  const userEmail = user?.email;
+  const userId = user?.id;
   const [loading, setLoading] = useState(true);
   const form = useForm<KnowledgebaseValues>({
     resolver: zodResolver(knowledgebaseSchema),
@@ -46,7 +46,7 @@ export function KnowledgebaseForm() {
 
   // Fetch user settings from the database on mount
   useEffect(() => {
-    if (userEmail) {
+    if (userId) {
       const fetchData = async () => {
         try {
           const response = await fetch('/api/user', {
@@ -55,8 +55,16 @@ export function KnowledgebaseForm() {
 
           if (response.ok) {
             const result = await response.json();
-            if (result.user.settings.knowledgebase) {
-              form.reset(result.user.settings.knowledgebase);
+            console.log('Fetched user settings:', result); // Log to inspect the response
+
+            // Ensure that `result.user` and `result.user.settings` exist
+            const knowledgebaseSettings = result?.settings?.knowledgebase;
+
+            if (knowledgebaseSettings) {
+              form.reset(knowledgebaseSettings);
+            } else {
+              console.warn('Knowledgebase settings not found, using defaults');
+              form.reset(defaultValues);
             }
           } else {
             console.error('Failed to fetch user settings');
@@ -70,7 +78,7 @@ export function KnowledgebaseForm() {
 
       fetchData();
     }
-  }, [form, userEmail]);
+  }, [form, userId]);
 
   async function onSubmit(data: KnowledgebaseValues) {
     const partialData: Partial<IUser> = {

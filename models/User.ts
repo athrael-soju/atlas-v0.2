@@ -16,4 +16,7 @@ export interface IUser {
   knowledgebase: {
     files: UploadedFile[];
   };
+  chat: {
+    knowledgebaseEnabled: boolean;
+  };
 }

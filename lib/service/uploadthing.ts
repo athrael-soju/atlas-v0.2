@@ -6,31 +6,9 @@ import { getUserId } from '@/lib/service/mongodb';
 const utapi = new UTApi();
 import { deleteFromVectorDb } from './pinecone';
 import { UploadedFile } from '@/types/file-uploader';
+import { updateUserFiles } from '@/lib/service/mongodb';
+
 const f = createUploadthing();
-
-// Utility function to handle database updates
-const updateUserFiles = async (userId: string, uploadedFile: any) => {
-  try {
-    const db = client.db('AtlasII');
-    const usersCollection = db.collection('users');
-
-    const result = await usersCollection.updateOne(
-      { _id: new ObjectId(userId) },
-      {
-        $push: { 'knowledgebase.files': uploadedFile },
-        $set: { updatedAt: new Date().toISOString() }
-      }
-    );
-
-    if (result.modifiedCount !== 1) {
-      throw new Error('Failed to update user');
-    }
-
-    return { message: 'User updated successfully' };
-  } catch (error: any) {
-    throw new Error(`Error updating user: ${error.message}`);
-  }
-};
 
 // Function to handle the upload completion logic
 const handleUploadComplete = async ({
@@ -75,12 +53,15 @@ export const deleteFiles = async (userId: string, files: UploadedFile[]) => {
     const id = userId;
 
     for (const file of files) {
-      const deletedChunksCount = await deleteFromVectorDb(id, file);
+      if (file.dateProcessed) {
+        const deletedChunksCount = await deleteFromVectorDb(id, file);
 
-      if (!deletedChunksCount) {
-        throw new Error(`Failed to delete file chunks vector db: ${file.key}`);
+        if (!deletedChunksCount) {
+          throw new Error(
+            `Failed to delete file chunks vector db: ${file.key}`
+          );
+        }
       }
-
       const filesArray = files.map((file) => file.key);
       const response = await utapi.deleteFiles(file.key);
       if (!response.success || response.deletedCount < 1) {

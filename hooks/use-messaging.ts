@@ -130,27 +130,31 @@ export const useMessaging = (
     });
   };
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, knowledgebaseEnabled: boolean) => {
     setIsThinking(true);
     const userId = session?.user.id as string;
-
-    // TODO: Add a condition to retrieve the context-enriched message, or not
-    const contextEnrichedMessage = await fetchContextEnrichedMessage(
-      userId,
-      text
-    );
+    appendMessage('user', text);
+    if (knowledgebaseEnabled) {
+      const contextEnrichedMessage = await fetchContextEnrichedMessage(
+        userId,
+        text
+      );
+      if (contextEnrichedMessage) {
+        text = contextEnrichedMessage;
+      }
+    }
     const response = await fetch(
       `/api/assistants/threads/${threadId}/messages`,
       {
         method: 'POST',
-        body: JSON.stringify({ text: contextEnrichedMessage ?? text })
+        body: JSON.stringify({ text: text })
       }
     );
     const stream = AssistantStream.fromReadableStream(
       response.body as ReadableStream
     );
     handleReadableStream(stream);
-    appendMessage('user', text);
+
     setInputDisabled(true);
     scrollToBottom();
   };
