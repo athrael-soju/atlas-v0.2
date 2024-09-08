@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSession } from 'next-auth/react';
@@ -35,30 +34,14 @@ import {
 import { Searching } from '@/components/spinner';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { IUser } from '@/models/User';
-
-const forgeFormSchema = z
-  .object({
-    parsingProvider: z.string({
-      required_error: 'Please select a Parsing provider.'
-    }),
-    minChunkSize: z.number().min(0).max(1024).step(256),
-    maxChunkSize: z.number().min(0).max(1024).step(256),
-    chunkOverlap: z.number().min(0).max(256).step(1),
-    chunkBatch: z.number().min(50).max(150).step(50),
-    partitioningStrategy: z.string({
-      required_error: 'Please select a partitioning strategy.'
-    }),
-    chunkingStrategy: z.string({
-      required_error: 'Please select a chunking strategy.'
-    })
-  })
-  .refine((data) => data.minChunkSize <= data.maxChunkSize, {
-    message: 'Max chunk size cannot be smaller than min chunk size.',
-    path: ['maxChunkSize']
-  });
-
-type ForgeFormValues = z.infer<typeof forgeFormSchema>;
-
+import { forgeFormSchema, ForgeFormValues } from '@/lib/form-schema';
+import {
+  parsingProviders,
+  partitioningStrategies,
+  chunkingStrategies,
+  partitioningStrategyDescriptions,
+  chunkingStrategyDescriptions
+} from '@/constants/forge';
 const defaultValues: Partial<ForgeFormValues> = {
   parsingProvider: 'io',
   partitioningStrategy: 'fast',
@@ -67,40 +50,6 @@ const defaultValues: Partial<ForgeFormValues> = {
   maxChunkSize: 1024,
   chunkOverlap: 0,
   chunkBatch: 50
-};
-
-const parsingProviders = [{ label: 'Unstructured.io', value: 'io' }] as const;
-const partitioningStrategies = [
-  { label: 'Fast', value: 'fast' },
-  { label: 'Hi Res', value: 'hi_res' },
-  { label: 'Auto', value: 'auto' },
-  { label: 'OCR Only', value: 'ocr_only' }
-] as const;
-const chunkingStrategies = [
-  { label: 'Basic', value: 'basic' },
-  { label: 'By Title', value: 'by_title' },
-  { label: 'By Page', value: 'by_page' },
-  { label: 'By Similarity', value: 'by_similarity' }
-] as const;
-
-const partitioningStrategyDescriptions = {
-  fast: 'The “rule-based” strategy quickly pulls all text elements using traditional NLP extraction techniques. It is not recommended for image-based file types.',
-  hi_res:
-    'The “model-based” strategy uses document layout for additional information, making it ideal for use cases needing accurate classification of document elements.',
-  auto: 'The “auto” strategy selects the best partitioning approach based on document characteristics and function parameters.',
-  ocr_only:
-    'A “model-based” strategy that uses Optical Character Recognition to extract text from image-based files.'
-};
-
-const chunkingStrategyDescriptions = {
-  basic:
-    'Combines sequential elements to fill chunks while respecting max_characters (hard-max) and new_after_n_chars (soft-max) values.',
-  by_title:
-    'Preserves section boundaries, ensuring each chunk contains text from only one section, optionally considering page boundaries.',
-  by_page:
-    'Ensures content from different pages remains separate, starting a new chunk when a new page is detected.',
-  by_similarity:
-    'Uses the sentence-transformers/multi-qa-mpnet-base-dot-v1 model to group topically similar sequential elements into chunks.'
 };
 
 // ButtonLoading Component to show loading spinner

@@ -188,7 +188,7 @@ export function FileUploader(props: FileUploaderProps) {
           </div>
         )}
       </Dropzone>
-
+      {/* TODO: Potentially find an alternative to the progress bar overlay */}
       <DialogOrDrawer open={open} onOpenChange={handleOpenChange}>
         <DialogOrDrawerTrigger asChild>
           <Button variant="outline" className="hidden">

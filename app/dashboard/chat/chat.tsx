@@ -74,6 +74,7 @@ const Chat = () => {
     abortStream
   } = useMessaging();
 
+  // TODO: likely refactor for duplication
   useEffect(() => {
     const fetchUserSettings = async () => {
       try {

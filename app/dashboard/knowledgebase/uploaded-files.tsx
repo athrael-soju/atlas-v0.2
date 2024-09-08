@@ -176,12 +176,12 @@ export function UploadedFiles({
       {uploadedFiles.length > 0 ? (
         <div className="w-full" style={{ height: 'calc(55vh)' }}>
           <div className="flex h-full flex-col">
-            <div className="flex flex-shrink-0 items-center justify-between py-4">
+            <div className="flex flex-shrink-0 items-center justify-between space-x-4 py-4">
               <Input
                 placeholder="Filter by name..."
                 value={globalFilter}
                 onChange={(event) => setGlobalFilter(event.target.value)}
-                className="max-w-sm"
+                className="min-w-0 max-w-full flex-grow sm:max-w-sm"
               />
               <Button
                 type="button"

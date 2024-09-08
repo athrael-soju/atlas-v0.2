@@ -35,7 +35,7 @@ export function createColumns(
               rel="noopener noreferrer"
               className="cursor-pointer text-blue-500 hover:underline"
             >
-              <div className="max-w-[90%] truncate">{fileName}</div>
+              <div>{fileName}</div>
             </a>
           </TooltipTrigger>
           <TooltipContent>
