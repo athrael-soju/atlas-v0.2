@@ -1,6 +1,6 @@
 import Header from '@/components/layout/header';
 import Sidebar from '@/components/layout/sidebar';
-import { dashboardNavItems } from '@/constants/data';
+import { dashboardNavItems } from '@/constants/nav-items';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

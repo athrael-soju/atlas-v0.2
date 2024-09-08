@@ -141,6 +141,7 @@ const authConfig: NextAuthOptions = {
       credentials: { email: { type: 'email' }, password: { type: 'password' } },
       async authorize(credentials) {
         try {
+          // TODO: Add offline login
           await client.connect();
           const db = client.db('AtlasII');
           const usersCollection = db.collection('users');

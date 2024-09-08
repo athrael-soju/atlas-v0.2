@@ -1,15 +1,5 @@
-import { CohereClient } from 'cohere-ai';
 import { RerankResponseResultsItem } from 'cohere-ai/api/types';
-
-const cohere = new CohereClient({
-  token: process.env.COHERE_API_KEY ?? ''
-});
-
-if (!process.env.COHERE_API_KEY) {
-  throw new Error('COHERE_API_KEY is not set');
-}
-
-const model = process.env.COHERE_API_MODEL || 'rerank-multilingual-v3.0';
+import { cohere, model } from '@/lib/client/cohere';
 
 function formatResult(
   result: RerankResponseResultsItem,

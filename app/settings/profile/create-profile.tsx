@@ -32,7 +32,7 @@ import { AlertTriangleIcon, Trash, Trash2Icon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
-import { countries, languages } from '@/constants/data';
+import { countries, languages } from '@/constants/profile';
 
 interface ProfileFormType {
   initialData: any | null;

@@ -1,6 +1,5 @@
 'use client';
 
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -20,14 +19,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Searching } from '@/components/spinner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IUser } from '@/models/User';
-
-const knowledgebaseSchema = z.object({
-  cohereTopN: z.number().min(1).max(100).step(1),
-  cohereRelevanceThreshold: z.number().min(0).max(100).step(5),
-  pineconeTopK: z.number().min(100).max(1000).step(100)
-});
-
-type KnowledgebaseValues = z.infer<typeof knowledgebaseSchema>;
+import { knowledgebaseSchema, KnowledgebaseValues } from '@/lib/form-schema';
 
 const defaultValues: Partial<KnowledgebaseValues> = {
   cohereTopN: 10,

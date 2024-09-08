@@ -1,20 +1,6 @@
-import { UnstructuredClient } from 'unstructured-client';
 import { UploadedFile } from '@/types/file-uploader';
 import { ForgeSettings } from '@/types/settings';
-
-const apiKey = process.env.UNSTRUCTURED_API;
-const serverURL = process.env.UNSTRUCTURED_SERVER_URL;
-
-if (!apiKey) {
-  throw new Error('UNSTRUCTURED_API is not set');
-}
-
-const unstructuredClient = new UnstructuredClient({
-  security: {
-    apiKeyAuth: apiKey
-  },
-  serverURL
-});
+import { unstructuredClient } from '@/lib/client/unstructured';
 
 export async function parseAndChunk(
   forgeSettings: ForgeSettings,

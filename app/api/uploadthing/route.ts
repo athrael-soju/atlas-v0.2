@@ -1,10 +1,6 @@
 import { createRouteHandler } from 'uploadthing/next';
-
-import {
-  ourFileRouter,
-  deleteFiles,
-  listFiles
-} from '@/lib/service/uploadthing';
+import { ourFileRouter } from '@/lib/client/uploadthing';
+import { deleteFiles, listFiles } from '@/lib/service/uploadthing';
 import { NextRequest, NextResponse } from 'next/server';
 export const { POST } = createRouteHandler({
   router: ourFileRouter,

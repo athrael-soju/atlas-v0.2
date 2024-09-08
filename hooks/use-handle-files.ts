@@ -4,7 +4,7 @@ import { getErrorMessage } from '@/lib/handle-error';
 import { uploadFiles } from '@/lib/uploadthing';
 import type { UploadedFile } from '@/types/file-uploader';
 import type { UploadFilesOptions } from 'uploadthing/types';
-import { type OurFileRouter } from '@/lib/service/uploadthing';
+import { type OurFileRouter } from '@/lib/client/uploadthing';
 import { useControllableState } from '@/hooks/use-controllable-state';
 
 interface useHandleFilesProps
