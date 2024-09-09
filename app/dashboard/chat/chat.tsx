@@ -87,7 +87,7 @@ const Chat = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setKnowledgebaseEnabled(data.settings.chat.knowledgebaseEnabled);
+          setKnowledgebaseEnabled(data.chat.knowledgebaseEnabled);
         } else {
           toast({
             title: 'Error',
