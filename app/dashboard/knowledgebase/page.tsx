@@ -10,7 +10,7 @@ const breadcrumbItems = [
   { title: 'Knowledgebase', link: '/dashboard/knowledgebase' }
 ];
 
-export default function page() {
+export default function Page() {
   return (
     <PageContainer scrollable={true}>
       <div className="flex h-full flex-col space-y-2">
