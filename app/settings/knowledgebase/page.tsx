@@ -9,10 +9,10 @@ const breadcrumbItems = [
   { title: 'Knowledgebase', link: '/settings/knowledgebase' }
 ];
 
-export default function page() {
+export default function Page() {
   return (
     <PageContainer scrollable={true}>
-      <div className="space-y-2">
+      <div className="flex h-full flex-col space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
         <div className="flex items-start justify-between">
           <Heading
