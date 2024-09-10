@@ -46,13 +46,13 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
           cohereTopN: 10,
           cohereRelevanceThreshold: 50,
           pineconeTopK: 100
+        },
+        chat: {
+          knowledgebaseEnabled: false
         }
       },
       knowledgebase: {
         files: []
-      },
-      chat: {
-        knowledgebaseEnabled: false
       }
     };
 
@@ -97,13 +97,13 @@ async function findOrCreateUser(
           cohereTopN: 10,
           cohereRelevanceThreshold: 50,
           pineconeTopK: 100
+        },
+        chat: {
+          knowledgebaseEnabled: false
         }
       },
       knowledgebase: {
         files: []
-      },
-      chat: {
-        knowledgebaseEnabled: false
       }
     };
     await usersCollection.insertOne(newUser);

@@ -1,5 +1,9 @@
 import { ObjectId } from 'mongodb';
-import { ForgeSettings, KnowledgebaseSettings } from '@/types/settings';
+import {
+  ChatSettings,
+  ForgeSettings,
+  KnowledgebaseSettings
+} from '@/types/settings';
 import { UploadedFile } from '@/types/file-uploader';
 
 export interface IUser {
@@ -12,11 +16,9 @@ export interface IUser {
   settings: {
     forge?: ForgeSettings;
     knowledgebase?: KnowledgebaseSettings;
+    chat?: ChatSettings;
   };
   knowledgebase: {
     files: UploadedFile[];
-  };
-  chat: {
-    knowledgebaseEnabled: boolean;
   };
 }

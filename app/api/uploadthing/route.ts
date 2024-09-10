@@ -8,6 +8,7 @@ export const { POST } = createRouteHandler({
     logLevel: 'info'
   }
 });
+
 export async function GET() {
   try {
     const result = await listFiles();

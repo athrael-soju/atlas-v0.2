@@ -16,6 +16,7 @@ Relevance Score: ${result.relevanceScore.toFixed(4)}
 
 Content:
 ${doc.text || 'No content available'}
+Citation: ${doc.citation || 'N/A'}
 `;
 }
 
@@ -48,6 +49,7 @@ export async function rerank(
       const formattedResults = filteredResults
         .map(formatResult)
         .join('\n---\n');
+      //console.log(formattedResults);
       return `Context: The following are the top ${cohereTopN} most relevant documents you can use to respond to user message: "${userMessage}". Each document is separated by "---".\n\n${formattedResults}\n\nContext: End of results.\n\nUser message: ${userMessage}\n\n`;
     } else {
       return `Context: No relevant documents found with a relevance score of ${cohereRelevanceThreshold} or higher.\n\nUser message: ${userMessage}\n\n`;

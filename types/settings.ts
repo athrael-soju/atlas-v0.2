@@ -26,3 +26,6 @@ export interface KnowledgebaseSettings {
   cohereRelevanceThreshold: number;
   pineconeTopK: number;
 }
+export interface ChatSettings {
+  knowledgebaseEnabled: boolean;
+}

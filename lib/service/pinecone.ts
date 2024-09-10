@@ -20,7 +20,9 @@ export async function query(userEmail: string, embeddings: any, topK: number) {
       filename: item.metadata.filename,
       filetype: item.metadata.filetype,
       languages: item.metadata.languages.join(', '),
-      user_email: item.metadata.user_email
+      user_email: item.metadata.user_email,
+      url: item.metadata.url,
+      citation: item.metadata.citation
     };
     // If file is CSV, there is always 1 page.
     if (item.metadata.page_number) {

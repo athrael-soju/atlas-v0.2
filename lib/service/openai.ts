@@ -1,6 +1,7 @@
 import { UploadedFile } from '@/types/file-uploader';
 import OpenAI, { ClientOptions } from 'openai';
 import { toAscii } from '@/lib/utils';
+import { ParsedElement } from '@/types/settings';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -54,32 +55,43 @@ export async function embedMessage(userId: string, content: string) {
 export async function embedDocument(
   userId: string,
   file: UploadedFile,
-  data: any[]
+  chunks: ParsedElement[]
 ) {
   const chunkIdList: string[] = [];
 
   let chunkNumber = 0;
   const embeddings = await Promise.all(
-    data.map(async (item: any) => {
+    chunks.map(async (chunk: any) => {
       await delay(13); // Temporary fix for rate limiting 5000 RPM
       const response = await openai.embeddings.create({
         model: embeddingApiModel,
-        input: item.text,
+        input: chunk.text,
         encoding_format: 'float'
       });
-      const transformedMetadata = transformObjectValues(item.metadata);
+      const transformedMetadata = transformObjectValues(chunk.metadata);
+
       const newId = `${toAscii(file.name)}#${file.key}#${++chunkNumber}`;
       chunkIdList.push(newId);
       const embeddingValues = response.data[0].embedding;
 
+      // Add citation field to the metadata
+      const pageInfo = chunk.metadata.page_number
+        ? `, Page ${chunk.metadata.page_number}`
+        : '';
+      const citation = `[${file.url}](${file.name}${pageInfo})`;
+
+      const metadata = {
+        ...transformedMetadata,
+        text: chunk.text,
+        userId: userId,
+        url: file.url,
+        citation: citation
+      };
+
       return {
         id: newId,
         values: embeddingValues,
-        metadata: {
-          ...transformedMetadata,
-          text: item.text,
-          userId: userId
-        }
+        metadata: metadata
       };
     })
   );
