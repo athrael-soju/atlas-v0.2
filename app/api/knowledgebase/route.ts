@@ -29,8 +29,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // Validate user
     const userServerData = await validateUser(userId);
-    const settings = userServerData.settings
-      .knowledgebase as KnowledgebaseSettings;
+    const settings = userServerData.settings;
 
     // Retrieve context
     const stream = new ReadableStream({
@@ -58,7 +57,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 async function retrieveContext(
   userId: string,
   message: string,
-  settings: KnowledgebaseSettings,
+  settings: any,
   sendUpdate: (status: string, message: string) => void
 ): Promise<void> {
   let rerankingContext = '';
@@ -71,15 +70,15 @@ async function retrieveContext(
     const queryResults = await query(
       userId,
       embeddingResults,
-      settings.pineconeTopK
+      settings.knowledgebase.pineconeTopK
     );
     sendUpdate('Query complete', `${message}`);
 
     rerankingContext = await rerank(
       message,
       queryResults.context,
-      settings.cohereTopN,
-      settings.cohereRelevanceThreshold
+      settings.knowledgebase,
+      settings.profile
     );
     sendUpdate('Reranking complete', `${rerankingContext}`);
   } catch (error: any) {

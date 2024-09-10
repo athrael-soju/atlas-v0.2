@@ -29,3 +29,13 @@ export interface KnowledgebaseSettings {
 export interface ChatSettings {
   knowledgebaseEnabled: boolean;
 }
+
+export interface ProfileSettings {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  contactNumber?: number;
+  countryOfOrigin?: string;
+  preferredLanguage: string;
+  personalizedResponses: boolean;
+}

@@ -1,6 +1,8 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { CreateProfileOne } from '@/app/settings/profile/create-profile';
+import { ProfileForm } from '@/app/settings/profile/profile';
 import PageContainer from '@/components/layout/page-container';
+import { Heading } from '@/components/ui/heading';
+import { Separator } from '@/components/ui/separator';
 
 const breadcrumbItems = [
   { title: 'Settings', link: '/settings' },
@@ -11,7 +13,14 @@ export default function Page() {
     <PageContainer scrollable={true}>
       <div className="flex h-full flex-col space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
-        <CreateProfileOne categories={[]} initialData={null} />
+        <div className="flex items-start justify-between">
+          <Heading
+            title={'Customize your Profile settings'}
+            description="Configure your profile settings to personalize your experience."
+          />
+        </div>
+        <Separator />
+        <ProfileForm />
       </div>
     </PageContainer>
   );

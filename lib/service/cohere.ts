@@ -1,30 +1,24 @@
 import { RerankResponseResultsItem } from 'cohere-ai/api/types';
 import { cohere, model } from '@/lib/client/cohere';
+import { KnowledgebaseSettings, ProfileSettings } from '@/types/settings';
+import { addPersonalizedInfo, formatFilteredResults } from '@/lib/utils';
 
-function formatResult(
-  result: RerankResponseResultsItem,
-  index: number
-): string {
-  const doc = result.document as any;
-  return `
-Document ${index + 1}:
-Filename: ${doc.filename || 'N/A'}
-Filetype: ${doc.filetype || 'N/A'}
-Languages: ${doc.languages || 'N/A'}
-Page Number: ${doc.page_number || 'N/A'}
-Relevance Score: ${result.relevanceScore.toFixed(4)}
-
-Content:
-${doc.text || 'No content available'}
-Citation: ${doc.citation || 'N/A'}
-`;
+// Function to filter the results based on the relevance score threshold
+function filterResults(
+  results: RerankResponseResultsItem[],
+  relevanceThreshold: number
+): RerankResponseResultsItem[] {
+  return results.filter(
+    (result) => result.relevanceScore >= relevanceThreshold
+  );
 }
 
+// Main function to rerank and handle the response
 export async function rerank(
   userMessage: string,
   queryResults: any[],
-  cohereTopN: number,
-  cohereRelevanceThreshold: number
+  knowledgebaseSettings: KnowledgebaseSettings,
+  profileSettings: ProfileSettings
 ): Promise<string> {
   if (queryResults.length < 1) {
     return 'Context: Query results are empty. No relevant documents found.';
@@ -35,24 +29,26 @@ export async function rerank(
     documents: queryResults,
     rankFields: ['text', 'filename', 'page_number', 'filetype', 'languages'],
     query: userMessage,
-    topN: cohereTopN,
+    topN: knowledgebaseSettings.cohereTopN,
     returnDocuments: true
   });
 
   if (rerankResponse.results.length > 0) {
-    // Filter results based on relevance score
-    const filteredResults = rerankResponse.results.filter(
-      (result) => result.relevanceScore >= cohereRelevanceThreshold
+    const filteredResults = filterResults(
+      rerankResponse.results,
+      knowledgebaseSettings.cohereRelevanceThreshold
     );
 
     if (filteredResults.length > 0) {
-      const formattedResults = filteredResults
-        .map(formatResult)
-        .join('\n---\n');
-      //console.log(formattedResults);
-      return `Context: The following are the top ${cohereTopN} most relevant documents you can use to respond to user message: "${userMessage}". Each document is separated by "---".\n\n${formattedResults}\n\nContext: End of results.\n\nUser message: ${userMessage}\n\n`;
+      let message = formatFilteredResults(
+        filteredResults,
+        knowledgebaseSettings.cohereTopN,
+        userMessage
+      );
+      message = addPersonalizedInfo(message, profileSettings);
+      return message;
     } else {
-      return `Context: No relevant documents found with a relevance score of ${cohereRelevanceThreshold} or higher.\n\nUser message: ${userMessage}\n\n`;
+      return `Context: No relevant documents found with a relevance score of ${knowledgebaseSettings.cohereRelevanceThreshold} or higher.\n\nUser message: ${userMessage}\n\n`;
     }
   } else {
     return 'Context: No relevant documents found.\n\nUser message: ${userMessage}\n\n';
