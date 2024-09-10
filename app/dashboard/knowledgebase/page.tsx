@@ -13,7 +13,7 @@ const breadcrumbItems = [
 export default function page() {
   return (
     <PageContainer scrollable={true}>
-      <div className="space-y-2">
+      <div className="flex h-full flex-col space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
         <div className="flex items-start justify-between">
           <Heading

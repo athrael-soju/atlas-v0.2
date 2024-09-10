@@ -164,7 +164,7 @@ export function UploadedFiles({
       <EmptyCard
         title=""
         className="w-full"
-        style={{ height: 'calc(55vh)' }}
+        style={{ height: 'calc(100vh - 350px)' }} // Adjust to fit your actual layout
         isFetchingFiles={isFetchingFiles}
         isWorking={working || isUploading}
       />
@@ -174,7 +174,10 @@ export function UploadedFiles({
   return (
     <>
       {uploadedFiles.length > 0 ? (
-        <div className="w-full" style={{ height: 'calc(55vh)' }}>
+        <div
+          className="w-full"
+          style={{ height: 'calc(100vh - 350px)' }} // Adjust to fit your actual layout
+        >
           <div className="flex h-full flex-col">
             <div className="flex flex-shrink-0 items-center justify-between space-x-4 py-4">
               <Input
@@ -304,7 +307,7 @@ export function UploadedFiles({
         <EmptyCard
           title="No files uploaded"
           className="w-full"
-          style={{ height: 'calc(55vh)' }}
+          style={{ height: 'calc(100vh - 350px)' }}
           isFetchingFiles={isFetchingFiles}
         />
       )}
