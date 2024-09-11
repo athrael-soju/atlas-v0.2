@@ -128,7 +128,7 @@ User Profile:
   Country of Origin: ${country}
   Preferred Language: ${preferredLanguage}
 ${message}`;
-    console.log(finalMessage);
+    // TODO: Simplify / make more readable
     return finalMessage;
   }
 
