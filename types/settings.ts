@@ -39,3 +39,7 @@ export interface ProfileSettings {
   preferredLanguage: string;
   personalizedResponses: boolean;
 }
+
+export interface MiscSettings {
+  sidebarExpanded: boolean;
+}

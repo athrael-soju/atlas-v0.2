@@ -26,7 +26,7 @@ const defaultValues: Partial<ForgeFormValues> = {
   partitioningStrategy: 'fast',
   chunkingStrategy: 'basic',
   minChunkSize: 0,
-  maxChunkSize: 1024,
+  maxChunkSize: 512,
   chunkOverlap: 0,
   chunkBatch: 50
 };

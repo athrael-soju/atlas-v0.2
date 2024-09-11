@@ -3,7 +3,8 @@ import {
   ChatSettings,
   ForgeSettings,
   KnowledgebaseSettings,
-  ProfileSettings
+  ProfileSettings,
+  MiscSettings,
 } from '@/types/settings';
 import { UploadedFile } from '@/types/file-uploader';
 
@@ -19,6 +20,7 @@ export interface IUser {
     knowledgebase?: KnowledgebaseSettings;
     chat?: ChatSettings;
     profile?: ProfileSettings;
+    misc?: MiscSettings;
   };
   knowledgebase: {
     files: UploadedFile[];
