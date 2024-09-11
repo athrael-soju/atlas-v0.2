@@ -123,8 +123,7 @@ User Profile:
   Email: ${email}
   Contact Number: ${contactNumber}
   Country of Origin: ${country}
-  Preferred Language: ${preferredLanguage}
-${message}`;
+  Preferred Language: ${preferredLanguage}${message}`;
     // TODO: Simplify / make more readable
     return finalMessage;
   }
