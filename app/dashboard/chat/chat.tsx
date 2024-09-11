@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/spinner';
 import { useMessaging } from '@/hooks/use-messaging';
-import { zodResolver } from '@hookform/resolvers/zod';
 import Markdown from 'react-markdown';
 import { CornerDownLeft, Mic, Paperclip, Brain, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,11 +15,8 @@ import {
 } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
-import { toast } from '@/components/ui/use-toast';
-import { useForm } from 'react-hook-form';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
-import { useSession } from 'next-auth/react';
-import { IUser } from '@/models/User';
+import { useUserForm } from '@/hooks/use-fetch-and-submit'; // Import the custom hook
 
 const defaultValues: Partial<ChatFormValues> = {
   knowledgebaseEnabled: false
@@ -70,16 +66,6 @@ const Message = ({ role, text }: MessageProps) => {
 const Chat = () => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
-  const user = session?.user;
-  const userId = user?.id;
-
-  const form = useForm<ChatFormValues>({
-    resolver: zodResolver(chatFormSchema),
-    defaultValues
-  });
-
   const {
     messages,
     isThinking,
@@ -90,49 +76,13 @@ const Chat = () => {
     abortStream
   } = useMessaging();
 
-  // Watch the knowledgebaseEnabled field from form state
+  const { form, onSubmit } = useUserForm<ChatFormValues>(
+    chatFormSchema,
+    defaultValues,
+    'chat' // Form path in user settings
+  );
+
   const knowledgebaseEnabled = form.watch('knowledgebaseEnabled', false);
-
-  // Fetch user settings on component load
-  useEffect(() => {
-    if (userId) {
-      const fetchUserSettings = async () => {
-        try {
-          const response = await fetch('/api/user', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            if (result?.settings?.chat) {
-              form.reset(result.settings.chat); // Reset the form with the settings
-            } else {
-              form.reset(defaultValues);
-            }
-          } else {
-            toast({
-              title: 'Error',
-              description: 'Request failed. Please try again.',
-              variant: 'destructive'
-            });
-          }
-        } catch (error) {
-          toast({
-            title: 'Error',
-            description: `${error}`,
-            variant: 'destructive'
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchUserSettings();
-    }
-  }, [form, userId]);
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -145,51 +95,8 @@ const Chat = () => {
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault(); // Prevent form submission if it triggers
-
-    // Update form state with the new knowledgebaseEnabled value
-    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
-
-    const partialData: Partial<IUser> = {
-      settings: {
-        chat: {
-          knowledgebaseEnabled: !knowledgebaseEnabled
-        }
-      }
-    };
-
-    try {
-      const response = await fetch('/api/user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(partialData.settings?.chat)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Settings Updated',
-          description: 'Your settings have been successfully updated.',
-          variant: 'default'
-        });
-      } else {
-        // If request fails, revert the form value
-        form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
-        toast({
-          title: 'Error',
-          description: 'Request failed. Please try again.',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      // Revert form value on error
-      form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
-      toast({
-        title: 'Error',
-        description: `${error}`,
-        variant: 'destructive'
-      });
-    }
+    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled); // Toggle knowledgebase
+    await onSubmit(form.getValues()); // Submit the form
   };
 
   const handleMicToggle = () => {
@@ -250,9 +157,7 @@ const Chat = () => {
                   whileTap={{ scale: 0.95 }}
                   whileHover={{ scale: 1.05 }}
                   className="rounded-full p-2 focus:outline-none"
-                  style={{
-                    color: micEnabled ? '#f97316' : 'inherit'
-                  }}
+                  style={{ color: micEnabled ? '#f97316' : 'inherit' }}
                 >
                   <Mic className="h-5 w-5" />
                 </motion.button>

@@ -38,4 +38,10 @@ export interface ProfileSettings {
   countryOfOrigin?: string;
   preferredLanguage: string;
   personalizedResponses: boolean;
+  dateOfBirth?: string;
+  technicalAptitude?: string;
+}
+
+export interface MiscSettings {
+  sidebarExpanded: boolean;
 }

@@ -1,117 +1,24 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { toast } from '@/components/ui/use-toast';
-import { Searching } from '@/components/spinner';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { IUser } from '@/models/User';
-import { knowledgebaseSchema, KnowledgebaseValues } from '@/lib/form-schema';
 import { FormSlider } from '@/components/form-slider';
-import { Loader2 } from 'lucide-react';
+import { knowledgebaseSchema, KnowledgebaseValues } from '@/lib/form-schema';
+import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import { Searching } from '@/components/spinner';
 
 const defaultValues: Partial<KnowledgebaseValues> = {
   cohereTopN: 10,
-  cohereRelevanceThreshold: 50,
+  cohereRelevanceThreshold: 0,
   pineconeTopK: 100
 };
 
-// ButtonLoading Component to show loading spinner
-export function ButtonLoading() {
-  return (
-    <Button disabled>
-      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      Please wait
-    </Button>
-  );
-}
-
 export function KnowledgebaseForm() {
-  const { data: session } = useSession();
-  const user = session?.user;
-  const userId = user?.id;
-  const [loading, setLoading] = useState(true);
-  const form = useForm<KnowledgebaseValues>({
-    resolver: zodResolver(knowledgebaseSchema),
-    defaultValues
-  });
-
-  // Fetch user settings from the database on mount
-  useEffect(() => {
-    if (userId) {
-      const fetchData = async () => {
-        setLoading(true);
-        try {
-          const response = await fetch('/api/user', { method: 'GET' });
-
-          if (response.ok) {
-            const result = await response.json();
-            const knowledgebaseSettings = result?.settings?.knowledgebase;
-
-            if (knowledgebaseSettings) {
-              form.reset(knowledgebaseSettings);
-            } else {
-              form.reset(defaultValues);
-            }
-          } else {
-            toast({
-              title: 'Error',
-              description: 'Request failed. Please try again.',
-              variant: 'destructive'
-            });
-            form.reset(defaultValues);
-          }
-        } catch (error) {
-          toast({
-            title: 'Error',
-            description: `${error}`,
-            variant: 'destructive'
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchData();
-    }
-  }, [form, userId]);
-
-  async function onSubmit(data: KnowledgebaseValues) {
-    const partialData: Partial<IUser> = {
-      settings: { knowledgebase: data }
-    };
-
-    try {
-      const response = await fetch('/api/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(partialData.settings)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Settings Updated',
-          description: 'Your settings have been successfully updated.',
-          variant: 'default'
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to update settings. Please try again.',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: `${error}`,
-        variant: 'destructive'
-      });
-    }
-  }
+  const { form, loading, onSubmit } = useUserForm<KnowledgebaseValues>(
+    knowledgebaseSchema,
+    defaultValues,
+    'knowledgebase'
+  );
 
   if (loading) {
     return (
@@ -161,13 +68,9 @@ export function KnowledgebaseForm() {
           description="Set the top K results to retrieve (100-1000)"
         />
 
-        {loading ? (
-          <ButtonLoading />
-        ) : (
-          <Button type="submit" style={{ width: '100%' }}>
-            Update settings
-          </Button>
-        )}
+        <Button type="submit" style={{ width: '100%' }}>
+          Update settings
+        </Button>
       </form>
     </Form>
   );

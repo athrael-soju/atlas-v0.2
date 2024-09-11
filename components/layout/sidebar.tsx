@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { cn } from '@/lib/utils';
@@ -6,47 +7,66 @@ import { ChevronLeft } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import Link from 'next/link';
 import { NavItem } from '@/types';
+import Image from 'next/image';
+import { useUserForm } from '@/hooks/use-fetch-and-submit'; // Import the hook
+import {
+  sidebarSettingsSchema,
+  SidebarSettingsValues
+} from '@/lib/form-schema'; // Import the schema
 
 type SidebarProps = {
   className?: string;
   navItems: NavItem[];
 };
 
+const defaultValues: Partial<SidebarSettingsValues> = {
+  sidebarExpanded: false
+};
+
 export default function Sidebar({ className, navItems }: SidebarProps) {
-  const { isMinimized, toggle } = useSidebar();
+  const { toggle } = useSidebar();
+
+  // Initialize the useUserForm hook with the sidebar settings schema and default values
+  const { form, onSubmit } = useUserForm<{ sidebarExpanded: boolean }>(
+    sidebarSettingsSchema,
+    defaultValues,
+    'misc'
+  );
 
   const handleToggle = () => {
     toggle();
+
+    // Update the form with the new sidebar state
+    form.setValue('sidebarExpanded', !form.getValues('sidebarExpanded'));
+
+    // Trigger the form submission to save the new state
+    form.handleSubmit(onSubmit)();
   };
 
   return (
     <aside
       className={cn(
-        `relative  hidden h-screen flex-none border-r bg-card transition-[width] duration-500 md:block`,
-        !isMinimized ? 'w-72' : 'w-[72px]',
+        `relative hidden h-screen flex-none border-r bg-card transition-[width] duration-500 md:block`,
+        form.getValues('sidebarExpanded') ? 'w-72' : 'w-[72px]',
         className
       )}
     >
       <div className="hidden p-5 pt-10 lg:block">
         <Link href={'https://github.com/athrael-soju/Atlas-II'} target="_blank">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mr-2 h-6 w-6"
-          >
-            <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-          </svg>
+          <Image
+            src={'/atlas.png'}
+            alt={'Atlas'}
+            width={84}
+            height={84}
+            loading="lazy"
+            style={{ marginTop: '-30px' }}
+          />
         </Link>
       </div>
       <ChevronLeft
         className={cn(
-          'absolute -right-3 top-10 z-50  cursor-pointer rounded-full border bg-background text-3xl text-foreground',
-          isMinimized && 'rotate-180'
+          'absolute -right-3 top-10 z-50 cursor-pointer rounded-full border bg-background text-3xl text-foreground',
+          form.getValues('sidebarExpanded') && 'rotate-180'
         )}
         onClick={handleToggle}
       />

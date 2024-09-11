@@ -9,7 +9,9 @@ export const profileFormSchema = z.object({
   preferredLanguage: z
     .string()
     .min(1, { message: 'Please select a preferred language' }),
-  personalizedResponses: z.boolean().default(false)
+  personalizedResponses: z.boolean().default(false),
+  dateOfBirth: z.string().optional(),
+  technicalAptitude: z.string().optional()
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -50,3 +52,9 @@ export const chatFormSchema = z.object({
 });
 
 export type ChatFormValues = z.infer<typeof chatFormSchema>;
+
+export const sidebarSettingsSchema = z.object({
+  sidebarExpanded: z.boolean()
+});
+
+export type SidebarSettingsValues = z.infer<typeof sidebarSettingsSchema>;
