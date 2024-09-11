@@ -2,7 +2,6 @@ import { rerank } from '@/lib/service/cohere';
 import { embedMessage } from '@/lib/service/openai';
 import { query } from '@/lib/service/pinecone';
 import { validateUser } from '@/lib/utils';
-import { KnowledgebaseSettings } from '@/types/settings';
 import { NextRequest, NextResponse } from 'next/server';
 
 function sendUpdate(
