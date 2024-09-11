@@ -78,3 +78,56 @@
     height: 100dvh;
   }
 }
+.gradient-animation {
+  background: linear-gradient(270deg, hsl(20 25% 86%), hsl(20 51% 4%));
+  background-size: 1000% 1000%;
+  -webkit-animation: AnimationNameNeutral 40s ease infinite;
+  -moz-animation: AnimationNameNeutral 40s ease infinite;
+  -o-animation: AnimationNameNeutral 40s ease infinite;
+  animation: AnimationNameNeutral 40s ease infinite;
+}
+
+@-webkit-keyframes AnimationNameNeutral {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@-moz-keyframes AnimationNameNeutral {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@-o-keyframes AnimationNameNeutral {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes AnimationNameNeutral {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

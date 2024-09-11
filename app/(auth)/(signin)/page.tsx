@@ -1,9 +1,17 @@
-// app/(auth)/(signin)/page.tsx
 import { Metadata } from 'next';
 import Link from 'next/link';
 import UserAuthForm from '@/components/forms/user-auth-form';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
+
+// Import the font for Atlas II
+import { Spectral } from 'next/font/google';
+
+const spectral = Spectral({
+  subsets: ['latin'],
+  weight: '200'
+});
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -23,21 +31,27 @@ export default function AuthenticationPage() {
         Login
       </Link>
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-        <div className="absolute inset-0 bg-zinc-900" />
-        <div className="relative z-20 flex items-center text-lg font-medium">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mr-2 h-6 w-6"
+        <div className="gradient-animation absolute inset-0" />
+        <div
+          className="relative flex flex-col items-center justify-center"
+          style={{ marginTop: '-20px', marginLeft: '-20px' }}
+        >
+          <Image
+            src={'/atlas.png'}
+            alt={'Atlas'}
+            width={64}
+            height={64}
+            loading="lazy"
+            className="aspect-square shrink-0 rounded-md object-cover"
+          />
+          <h2
+            className={`mt-4 text-3xl font-bold ${spectral.className}`}
+            style={{
+              fontFamily: "'Spectral', serif" // Spectral for a Greek-inspired look
+            }}
           >
-            <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-          </svg>
-          Logo
+            Atlas II
+          </h2>
         </div>
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
@@ -45,7 +59,7 @@ export default function AuthenticationPage() {
               &ldquo;Welcome to Atlas; the best platform for building your next
               big idea. &rdquo;
             </p>
-            <footer className="text-sm">Sofia Davis</footer>
+            <footer className="text-sm">Anonymous user</footer>
           </blockquote>
         </div>
       </div>
