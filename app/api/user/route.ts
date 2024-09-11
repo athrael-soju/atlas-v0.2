@@ -3,6 +3,15 @@ import { getUserData, updateUserField } from '@/lib/service/mongodb'; // Adjust 
 import { getServerSession } from 'next-auth/next';
 import authConfig from '@/auth.config';
 
+// Utility function to fetch and validate session
+async function getValidSession() {
+  const session = await getServerSession(authConfig);
+  if (!session || !session.user || !session.user.id) {
+    return null;
+  }
+  return session;
+}
+
 // Utility function to handle updating fields
 async function handleUpdate(
   userId: string,
@@ -19,52 +28,46 @@ async function handleUpdate(
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session || !session.user || !session.user.id) {
+    const session = await getValidSession();
+    if (!session) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
     const updateData = await req.json();
-    let response;
 
-    if (typeof updateData.knowledgebaseEnabled === 'boolean') {
-      response = await handleUpdate(
-        userId,
-        updateData.knowledgebaseEnabled,
-        'settings.chat.knowledgebaseEnabled'
-      );
-    } else if (updateData.forge) {
-      response = await handleUpdate(userId, updateData.forge, 'settings.forge');
-    } else if (updateData.knowledgebase) {
-      response = await handleUpdate(
-        userId,
-        updateData.knowledgebase,
-        'settings.knowledgebase'
-      );
-    } else if (updateData.uploadedFile) {
-      response = await updateUserField(userId, {
+    const updateMappings = {
+      'settings.chat': updateData.chat,
+      'settings.misc': updateData.misc,
+      'settings.forge': updateData.forge,
+      'settings.knowledgebase': updateData.knowledgebase,
+      'settings.profile': updateData.profile
+    };
+
+    // Check for valid update fields and handle them dynamically
+    for (const [fieldPath, data] of Object.entries(updateMappings)) {
+      if (data) {
+        const response = await handleUpdate(userId, data, fieldPath);
+        return NextResponse.json(response, { status: 200 });
+      }
+    }
+
+    // Handle special case for uploadedFile separately
+    if (updateData.uploadedFile) {
+      const response = await updateUserField(userId, {
         $push: { 'knowledgebase.files': updateData.uploadedFile },
         $set: { updatedAt: new Date().toISOString() }
       });
-    } else if (updateData.profile) {
-      response = await handleUpdate(
-        userId,
-        updateData.profile,
-        'settings.profile'
-      );
-    } else {
-      return NextResponse.json(
-        { message: 'Invalid update operation' },
-        { status: 400 }
-      );
+      return NextResponse.json(response, { status: 200 });
     }
 
-    return NextResponse.json(response, { status: 200 });
+    return NextResponse.json(
+      { message: 'Invalid update operation' },
+      { status: 400 }
+    );
   } catch (error: any) {
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', error: error.message },
       { status: 500 }
     );
   }
@@ -72,9 +75,8 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session || !session.user || !session.user.id) {
+    const session = await getValidSession();
+    if (!session) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -91,7 +93,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(userData, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', error: error.message },
       { status: 500 }
     );
   }

@@ -50,3 +50,9 @@ export const chatFormSchema = z.object({
 });
 
 export type ChatFormValues = z.infer<typeof chatFormSchema>;
+
+export const sidebarSettingsSchema = z.object({
+  sidebarExpanded: z.boolean()
+});
+
+export type SidebarSettingsValues = z.infer<typeof sidebarSettingsSchema>;

@@ -107,16 +107,13 @@ export function addPersonalizedInfo(
       (language) => language.value === profileSettings.preferredLanguage
     )?.label;
 
+    const firstName = profileSettings?.firstName?.trim() || '';
+    const lastName = profileSettings?.lastName?.trim() || '';
     const fullName =
-      profileSettings.firstName !== '' && profileSettings.lastName !== ''
-        ? `${profileSettings.firstName} ${profileSettings.lastName}`
-        : 'N/A';
-    const email = profileSettings.email !== '' ? profileSettings.email : 'N/A';
-    const contactNumber =
-      profileSettings.contactNumber !== 0
-        ? profileSettings.contactNumber
-        : 'N/A';
-    const country = countryOfOrigin !== '' ? countryOfOrigin : 'N/A';
+      firstName === '' && lastName === '' ? 'N/A' : `${firstName} ${lastName}`;
+    const email = profileSettings?.email?.trim() || 'N/A';
+    const contactNumber = profileSettings?.contactNumber || 'N/A';
+    const country = countryOfOrigin?.trim() || 'N/A';
 
     const finalMessage = `
 ==============

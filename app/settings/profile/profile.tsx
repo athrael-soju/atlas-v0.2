@@ -1,120 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
 import {
   Form,
-  FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormControl,
+  FormMessage,
+  FormDescription
 } from '@/components/ui/form';
-import { Searching } from '@/components/spinner';
-import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
-import { FormSelect } from '@/components/form-select';
-import { countryOptions, languageOptions } from '@/constants/profile';
-import { IUser } from '@/models/User';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { FormSelect } from '@/components/form-select';
+import { Searching } from '@/components/spinner';
+import { ButtonLoading } from '@/components/button-loading';
+import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
+import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import { countryOptions, languageOptions } from '@/constants/profile';
 
 const defaultValues: Partial<ProfileFormValues> = {
   preferredLanguage: 'en_US',
   personalizedResponses: false
 };
 
-// ButtonLoading Component to show loading spinner
-export function ButtonLoading() {
-  return (
-    <Button disabled>
-      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      Please wait
-    </Button>
-  );
-}
-
 export function ProfileForm() {
-  const { data: session } = useSession();
-  const user = session?.user;
-  const userId = user?.id;
-  const [loading, setLoading] = useState(true);
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues
-  });
-
-  useEffect(() => {
-    if (userId) {
-      const fetchData = async () => {
-        setLoading(true);
-        try {
-          const response = await fetch('/api/user', { method: 'GET' });
-          if (response.ok) {
-            const result = await response.json();
-            if (result?.settings?.profile) {
-              form.reset(result.settings.profile);
-            } else {
-              form.reset(defaultValues);
-            }
-          } else {
-            toast({
-              title: 'Error',
-              description: 'Request failed. Please try again.',
-              variant: 'destructive'
-            });
-          }
-        } catch (error) {
-          toast({
-            title: 'Error',
-            description: `${error}`,
-            variant: 'destructive'
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchData();
-    }
-  }, [form, userId]);
-
-  async function onSubmit(data: ProfileFormValues) {
-    const partialData: Partial<IUser> = { settings: { profile: data } };
-    try {
-      const response = await fetch('/api/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(partialData.settings)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Profile Updated',
-          description: 'Your profile has been successfully updated.',
-          variant: 'default'
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Request failed. Please try again.',
-          variant: 'destructive'
-        });
-        form.reset(defaultValues);
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: `${error}`,
-        variant: 'destructive'
-      });
-    }
-  }
+  // Use the custom hook for form handling
+  const { form, loading, onSubmit } = useUserForm<ProfileFormValues>(
+    profileFormSchema,
+    defaultValues,
+    'profile'
+  );
 
   if (loading) {
     return (
@@ -148,19 +64,21 @@ export function ProfileForm() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="lastName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>First Name</FormLabel>
+                <FormLabel>Last Name</FormLabel>
                 <FormControl>
-                  <Input disabled={loading} placeholder="John" {...field} />
+                  <Input disabled={loading} placeholder="Doe" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="email"
@@ -170,7 +88,7 @@ export function ProfileForm() {
                 <FormControl>
                   <Input
                     disabled={loading}
-                    placeholder="johndoe@gmail.com"
+                    placeholder="john@doe.com"
                     {...field}
                   />
                 </FormControl>
@@ -178,6 +96,7 @@ export function ProfileForm() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="contactNumber"
@@ -196,6 +115,7 @@ export function ProfileForm() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="countryOfOrigin"
@@ -226,6 +146,7 @@ export function ProfileForm() {
             )}
           />
         </div>
+
         <FormField
           control={form.control}
           name="personalizedResponses"
@@ -249,6 +170,7 @@ export function ProfileForm() {
             </FormItem>
           )}
         />
+
         {loading ? (
           <ButtonLoading />
         ) : (

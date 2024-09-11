@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { cn } from '@/lib/utils';
@@ -7,24 +8,46 @@ import { useSidebar } from '@/hooks/useSidebar';
 import Link from 'next/link';
 import { NavItem } from '@/types';
 import Image from 'next/image';
+import { useUserForm } from '@/hooks/use-fetch-and-submit'; // Import the hook
+import {
+  sidebarSettingsSchema,
+  SidebarSettingsValues
+} from '@/lib/form-schema'; // Import the schema
 
 type SidebarProps = {
   className?: string;
   navItems: NavItem[];
 };
 
+const defaultValues: Partial<SidebarSettingsValues> = {
+  sidebarExpanded: false
+};
+
 export default function Sidebar({ className, navItems }: SidebarProps) {
-  const { isMinimized, toggle } = useSidebar();
+  const { toggle } = useSidebar();
+
+  // Initialize the useUserForm hook with the sidebar settings schema and default values
+  const { form, onSubmit } = useUserForm<{ sidebarExpanded: boolean }>(
+    sidebarSettingsSchema,
+    defaultValues,
+    'misc'
+  );
 
   const handleToggle = () => {
     toggle();
+
+    // Update the form with the new sidebar state
+    form.setValue('sidebarExpanded', !form.getValues('sidebarExpanded'));
+
+    // Trigger the form submission to save the new state
+    form.handleSubmit(onSubmit)();
   };
 
   return (
     <aside
       className={cn(
-        `relative  hidden h-screen flex-none border-r bg-card transition-[width] duration-500 md:block`,
-        !isMinimized ? 'w-72' : 'w-[72px]',
+        `relative hidden h-screen flex-none border-r bg-card transition-[width] duration-500 md:block`,
+        form.getValues('sidebarExpanded') ? 'w-72' : 'w-[72px]',
         className
       )}
     >
@@ -42,8 +65,8 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
       </div>
       <ChevronLeft
         className={cn(
-          'absolute -right-3 top-10 z-50  cursor-pointer rounded-full border bg-background text-3xl text-foreground',
-          isMinimized && 'rotate-180'
+          'absolute -right-3 top-10 z-50 cursor-pointer rounded-full border bg-background text-3xl text-foreground',
+          form.getValues('sidebarExpanded') && 'rotate-180'
         )}
         onClick={handleToggle}
       />

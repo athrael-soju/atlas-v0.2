@@ -47,7 +47,7 @@ export function FormSelect({
               variant="outline"
               role="combobox"
               className={cn(
-                'w-[200px] justify-between',
+                'w-full justify-between',
                 !value && 'text-muted-foreground'
               )}
             >
@@ -58,7 +58,7 @@ export function FormSelect({
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
+        <PopoverContent className="w-full p-0">
           <Command>
             <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
             <CommandList>
