@@ -17,11 +17,32 @@ import { Searching } from '@/components/spinner';
 import { ButtonLoading } from '@/components/button-loading';
 import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
 import { useUserForm } from '@/hooks/use-fetch-and-submit';
-import { countryOptions, languageOptions } from '@/constants/profile';
+import {
+  countryOptions,
+  languageOptions,
+  technicalAptitudeOptions
+} from '@/constants/profile';
+
+import * as React from 'react';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 const defaultValues: Partial<ProfileFormValues> = {
+  firstName: undefined,
+  lastName: undefined,
+  email: undefined,
+  contactNumber: undefined,
+  countryOfOrigin: undefined,
   preferredLanguage: 'en_US',
-  personalizedResponses: false
+  personalizedResponses: false,
+  dateOfBirth: undefined,
+  technicalAptitude: undefined
 };
 
 export function ProfileForm() {
@@ -118,6 +139,48 @@ export function ProfileForm() {
 
           <FormField
             control={form.control}
+            name="dateOfBirth"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date of Birth</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={'outline'}
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        new Date(field.value).toLocaleDateString()
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const localDate = new Date(date.setHours(0, 0, 0, 0));
+                          field.onChange(localDate.toISOString().split('T')[0]);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="countryOfOrigin"
             render={({ field }) => (
               <FormSelect
@@ -142,6 +205,21 @@ export function ProfileForm() {
                 onChange={(val) => form.setValue('preferredLanguage', val)}
                 placeholder="Select language"
                 description="Select your preferred language"
+              />
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="technicalAptitude"
+            render={({ field }) => (
+              <FormSelect
+                label="Technical Aptitude"
+                options={technicalAptitudeOptions}
+                value={field.value || ''}
+                onChange={(val) => form.setValue('technicalAptitude', val)}
+                placeholder="Select your technical aptitude level"
+                description="Rate your technical skills from beginner to expert"
               />
             )}
           />

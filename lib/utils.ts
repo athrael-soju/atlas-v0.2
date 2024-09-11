@@ -114,7 +114,8 @@ export function addPersonalizedInfo(
     const email = profileSettings?.email?.trim() || 'N/A';
     const contactNumber = profileSettings?.contactNumber || 'N/A';
     const country = countryOfOrigin?.trim() || 'N/A';
-
+    const dateOfBirth = profileSettings?.dateOfBirth || 'N/A';
+    const technicalAptitude = profileSettings?.technicalAptitude || 'N/A';
     const finalMessage = `
 ==============
 User Profile:
@@ -123,7 +124,9 @@ User Profile:
   Email: ${email}
   Contact Number: ${contactNumber}
   Country of Origin: ${country}
-  Preferred Language: ${preferredLanguage}${message}`;
+  Preferred Language: ${preferredLanguage}${message}
+  Date of Birth: ${dateOfBirth}
+  Technical Aptitude: ${technicalAptitude}`;
     // TODO: Simplify / make more readable
     return finalMessage;
   }
