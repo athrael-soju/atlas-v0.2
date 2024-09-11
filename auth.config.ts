@@ -49,6 +49,10 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
         },
         chat: {
           knowledgebaseEnabled: false
+        },
+        profile: {
+          preferredLanguage: 'en_US',
+          personalizedResponses: false
         }
       },
       knowledgebase: {
@@ -100,6 +104,10 @@ async function findOrCreateUser(
         },
         chat: {
           knowledgebaseEnabled: false
+        },
+        profile: {
+          preferredLanguage: 'en_US',
+          personalizedResponses: false
         }
       },
       knowledgebase: {

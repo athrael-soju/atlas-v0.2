@@ -2,7 +2,8 @@ import { ObjectId } from 'mongodb';
 import {
   ChatSettings,
   ForgeSettings,
-  KnowledgebaseSettings
+  KnowledgebaseSettings,
+  ProfileSettings
 } from '@/types/settings';
 import { UploadedFile } from '@/types/file-uploader';
 
@@ -17,6 +18,7 @@ export interface IUser {
     forge?: ForgeSettings;
     knowledgebase?: KnowledgebaseSettings;
     chat?: ChatSettings;
+    profile?: ProfileSettings;
   };
   knowledgebase: {
     files: UploadedFile[];

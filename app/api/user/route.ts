@@ -48,6 +48,12 @@ export async function POST(req: NextRequest) {
         $push: { 'knowledgebase.files': updateData.uploadedFile },
         $set: { updatedAt: new Date().toISOString() }
       });
+    } else if (updateData.profile) {
+      response = await handleUpdate(
+        userId,
+        updateData.profile,
+        'settings.profile'
+      );
     } else {
       return NextResponse.json(
         { message: 'Invalid update operation' },
