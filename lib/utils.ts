@@ -64,16 +64,13 @@ export function formatResult(
 ): string {
   const doc = result.document as any;
   return `
-Document ${index + 1}:
-Filename: ${doc.filename || 'N/A'}
-Filetype: ${doc.filetype || 'N/A'}
-Languages: ${doc.languages || 'N/A'}
-Page Number: ${doc.page_number || 'N/A'}
-Relevance Score: ${result.relevanceScore.toFixed(4)}
-
-Content:
-${doc.text || 'No content available'}
-Citation: ${doc.citation || 'N/A'}
+  Document ${index + 1}, Filename: ${doc.filename || 'N/A'}, Filetype: ${
+    doc.filetype || 'N/A'
+  }, Languages: ${doc.languages || 'N/A'}, Page Number: ${
+    doc.page_number || 'N/A'
+  }, Relevance Score: ${result.relevanceScore.toFixed(4)}
+  Content: ${doc.text || 'No content available'}
+  Citation: ${doc.citation || 'N/A'}
 `;
 }
 
@@ -83,12 +80,18 @@ export function formatFilteredResults(
   topN: number,
   userMessage: string
 ): string {
-  const formattedResults = filteredResults.map(formatResult).join('\n---\n');
+  const formattedResults = filteredResults.map(formatResult).join('');
 
-  return `Context: The following are the top ${topN} most relevant documents you can use to respond to user message: "${userMessage}". Each document is separated by "---".\n\n
-  ${formattedResults}\n\n
-  Context: End of results.\n\n
-  User message: ${userMessage}\n\n`;
+  return `
+==============
+Context: Start
+==============${formattedResults}==============
+Context: End
+==============
+Instructions: Use available context to respond to the user message.
+==============
+USER MESSAGE: "${userMessage}"
+==============`;
 }
 
 // Function to include personalized information in the response (if applicable)
@@ -104,13 +107,30 @@ export function addPersonalizedInfo(
       (language) => language.value === profileSettings.preferredLanguage
     )?.label;
 
-    return `${message}Personalized your response by using the following settings:\n\n
-    Name: ${profileSettings.firstName} ${profileSettings.lastName}\n
-    Email: ${profileSettings.email}\n
-    Contact Number: ${profileSettings.contactNumber}\n
-    Country of Origin: ${countryOfOrigin}\n
-    Preferred Language: ${preferredLanguage}\n
-    `;
+    const fullName =
+      profileSettings.firstName !== '' && profileSettings.lastName !== ''
+        ? `${profileSettings.firstName} ${profileSettings.lastName}`
+        : 'N/A';
+    const email = profileSettings.email !== '' ? profileSettings.email : 'N/A';
+    const contactNumber =
+      profileSettings.contactNumber !== 0
+        ? profileSettings.contactNumber
+        : 'N/A';
+    const country = countryOfOrigin !== '' ? countryOfOrigin : 'N/A';
+
+    const finalMessage = `
+==============
+User Profile:
+==============
+  Name: ${fullName}
+  Email: ${email}
+  Contact Number: ${contactNumber}
+  Country of Origin: ${country}
+  Preferred Language: ${preferredLanguage}
+${message}`;
+    console.log(finalMessage);
+    return finalMessage;
   }
+
   return message;
 }

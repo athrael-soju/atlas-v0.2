@@ -48,9 +48,11 @@ export async function rerank(
       message = addPersonalizedInfo(message, profileSettings);
       return message;
     } else {
-      return `Context: No relevant documents found with a relevance score of ${knowledgebaseSettings.cohereRelevanceThreshold} or higher.\n\nUser message: ${userMessage}\n\n`;
+      return `Context: No relevant documents found with a relevance score of ${knowledgebaseSettings.cohereRelevanceThreshold} or higher.
+      User message: ${userMessage}`;
     }
   } else {
-    return 'Context: No relevant documents found.\n\nUser message: ${userMessage}\n\n';
+    return `Context: No relevant documents found.
+    User message: ${userMessage}`;
   }
 }
