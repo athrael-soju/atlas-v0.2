@@ -10,7 +10,7 @@ export const defaultUserSettings = {
   },
   knowledgebase: {
     cohereTopN: 10,
-    cohereRelevanceThreshold: 50,
+    cohereRelevanceThreshold: 0,
     pineconeTopK: 100
   },
   chat: {
