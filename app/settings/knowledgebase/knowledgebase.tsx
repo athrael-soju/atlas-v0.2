@@ -14,11 +14,11 @@ const defaultValues: Partial<KnowledgebaseValues> = {
 };
 
 export function KnowledgebaseForm() {
-  const { form, loading, onSubmit } = useUserForm<KnowledgebaseValues>(
-    knowledgebaseSchema,
+  const { form, loading, onSubmit } = useUserForm<KnowledgebaseValues>({
+    schema: knowledgebaseSchema,
     defaultValues,
-    'knowledgebase'
-  );
+    formPath: 'knowledgebase'
+  });
 
   if (loading) {
     return (

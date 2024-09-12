@@ -17,15 +17,8 @@ export const defaultUserSettings = {
     knowledgebaseEnabled: false
   },
   profile: {
-    firstName: undefined,
-    lastName: undefined,
-    email: undefined,
-    contactNumber: undefined,
-    countryOfOrigin: undefined,
     preferredLanguage: 'en_US',
-    personalizedResponses: false,
-    dateOfBirth: undefined,
-    technicalAptitude: undefined
+    personalizedResponses: false
   },
   misc: {
     sidebarExpanded: true

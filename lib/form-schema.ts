@@ -3,13 +3,11 @@ import * as z from 'zod';
 export const profileFormSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  email: z.string().optional(),
+  email: z.string().email().optional(),
   contactNumber: z.coerce.number().optional(),
   countryOfOrigin: z.string().optional(),
-  preferredLanguage: z
-    .string()
-    .min(1, { message: 'Please select a preferred language' }),
-  personalizedResponses: z.boolean().default(false),
+  preferredLanguage: z.string(),
+  personalizedResponses: z.boolean(),
   dateOfBirth: z.string().optional(),
   technicalAptitude: z.string().optional()
 });

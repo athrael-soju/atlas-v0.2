@@ -27,11 +27,11 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
   const { toggle } = useSidebar();
 
   // Initialize the useUserForm hook with the sidebar settings schema and default values
-  const { form, onSubmit } = useUserForm<{ sidebarExpanded: boolean }>(
-    sidebarSettingsSchema,
+  const { form, onSubmit } = useUserForm<{ sidebarExpanded: boolean }>({
+    schema: sidebarSettingsSchema,
     defaultValues,
-    'misc'
-  );
+    formPath: 'misc'
+  });
 
   const handleToggle = () => {
     toggle();

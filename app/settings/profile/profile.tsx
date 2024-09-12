@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -22,8 +23,6 @@ import {
   languageOptions,
   technicalAptitudeOptions
 } from '@/constants/profile';
-
-import * as React from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -33,25 +32,17 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 
-const defaultValues: Partial<ProfileFormValues> = {
-  firstName: undefined,
-  lastName: undefined,
-  email: undefined,
-  contactNumber: undefined,
-  countryOfOrigin: undefined,
+const defaultValues: ProfileFormValues = {
   preferredLanguage: 'en_US',
-  personalizedResponses: false,
-  dateOfBirth: undefined,
-  technicalAptitude: undefined
+  personalizedResponses: false
 };
 
-export function ProfileForm() {
-  // Use the custom hook for form handling
-  const { form, loading, onSubmit } = useUserForm<ProfileFormValues>(
-    profileFormSchema,
+export function ProfileForm(): React.ReactElement {
+  const { form, loading, onSubmit } = useUserForm<ProfileFormValues>({
+    schema: profileFormSchema,
     defaultValues,
-    'profile'
-  );
+    formPath: 'profile'
+  });
 
   if (loading) {
     return (
