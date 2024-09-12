@@ -170,7 +170,6 @@ export function ProfileForm() {
                           field.onChange(localDate.toISOString().split('T')[0]);
                         }
                       }}
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>
