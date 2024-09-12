@@ -17,6 +17,9 @@ export const defaultUserSettings = {
     knowledgebaseEnabled: false
   },
   profile: {
+    firstName: '',
+    lastName: '',
+    email: '',
     preferredLanguage: 'en_US',
     personalizedResponses: false
   },
