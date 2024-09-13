@@ -1,12 +1,21 @@
 'use client';
 
 import Image from 'next/image';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Assuming this is the correct path
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/spinner';
 import { useMessaging } from '@/hooks/use-messaging';
 import Markdown from 'react-markdown';
-import { CornerDownLeft, Mic, Paperclip, Brain, Loader2 } from 'lucide-react';
+import {
+  CornerDownLeft,
+  Mic,
+  Paperclip,
+  Brain,
+  Loader2,
+  UserIcon,
+  Bot
+} from 'lucide-react'; // Import User and Bot icons
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -29,19 +38,31 @@ type MessageProps = {
 };
 
 const UserMessage = ({ text }: { text: string }) => (
-  <div className="rounded-lg bg-primary p-3 text-primary-foreground">
-    {text}
+  <div className="relative mb-4 flex items-center justify-end">
+    <div className="flex items-center rounded-lg bg-primary p-3 text-primary-foreground shadow-lg">
+      <span className="break-words">{text}</span>
+    </div>
+    <UserIcon
+      className="absolute right-[-2rem] h-6 w-6 flex-shrink-0 text-primary"
+      style={{ top: '50%', transform: 'translateY(-50%)' }}
+    />
   </div>
 );
 
 const AssistantMessage = ({ text }: { text: string }) => (
-  <div className="rounded-lg bg-card p-3 text-card-foreground">
-    <Markdown>{text}</Markdown>
+  <div className="relative mb-4 flex items-center justify-start">
+    <Bot
+      className="absolute left-[-2rem] h-6 w-6 flex-shrink-0 text-card-foreground"
+      style={{ top: '50%', transform: 'translateY(-50%)' }}
+    />
+    <div className="flex rounded-lg bg-card p-3 text-card-foreground shadow-lg">
+      <Markdown className="break-words">{text}</Markdown>
+    </div>
   </div>
 );
 
 const CodeMessage = ({ text }: { text: string }) => (
-  <div className="rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground">
+  <div className="mb-4 rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
     {text.split('\n').map((line, index) => (
       <div key={index} className="flex">
         <span className="mr-2 text-muted-foreground">{`${index + 1}. `}</span>
@@ -111,25 +132,25 @@ const Chat = () => {
   return (
     <TooltipProvider>
       <div
-        className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2 "
+        className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl bg-muted/50 p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}
       >
-        <div className="mb-4 flex-1 space-y-4 overflow-y-auto px-4">
+        <ScrollArea
+          className="mb-4 w-full max-w-[800px] flex-1 rounded-xl pr-4"
+          style={{ paddingTop: '10px', paddingBottom: '10px' }} // Added padding for top and bottom
+        >
           {messages.map((msg, index) => (
-            <Message key={index} role={msg.role} text={msg.text} />
+            <div key={index} className="mx-auto max-w-full">
+              <Message role={msg.role} text={msg.text} />
+            </div>
           ))}
           {isThinking && <Spinner />}
           <div ref={userInputRef} />
-          {/* <div className="flex h-full items-center justify-center">
-            <div className="flex h-full items-center justify-center">
-              <Image src="/atlas.png" alt="Chatting" width={100} height={100} />
-            </div>
-          </div> */}
-        </div>
+        </ScrollArea>
 
         <form
           onSubmit={handleSubmit}
-          className="relative mx-auto w-full max-w-[600px] overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
+          className="relative w-full max-w-[800px] overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
         >
           <Label htmlFor="message" className="sr-only">
             Message
