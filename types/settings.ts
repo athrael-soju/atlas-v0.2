@@ -34,12 +34,14 @@ export interface ProfileSettings {
   firstName?: string;
   lastName?: string;
   email?: string;
-  contactNumber?: number;
   countryOfOrigin?: string;
   preferredLanguage: string;
   personalizedResponses: boolean;
   dateOfBirth?: string;
+  gender?: string;
+  occupation?: string;
   technicalAptitude?: string;
+  militaryStatus?: string;
 }
 
 export interface MiscSettings {

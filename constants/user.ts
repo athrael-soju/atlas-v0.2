@@ -10,22 +10,18 @@ export const defaultUserSettings = {
   },
   knowledgebase: {
     cohereTopN: 10,
-    cohereRelevanceThreshold: 50,
+    cohereRelevanceThreshold: 0,
     pineconeTopK: 100
   },
   chat: {
     knowledgebaseEnabled: false
   },
   profile: {
-    firstName: undefined,
-    lastName: undefined,
-    email: undefined,
-    contactNumber: undefined,
-    countryOfOrigin: undefined,
+    firstName: '',
+    lastName: '',
+    email: '',
     preferredLanguage: 'en_US',
-    personalizedResponses: false,
-    dateOfBirth: undefined,
-    technicalAptitude: undefined
+    personalizedResponses: false
   },
   misc: {
     sidebarExpanded: true

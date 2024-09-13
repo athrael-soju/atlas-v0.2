@@ -112,21 +112,26 @@ export function addPersonalizedInfo(
     const fullName =
       firstName === '' && lastName === '' ? 'N/A' : `${firstName} ${lastName}`;
     const email = profileSettings?.email?.trim() || 'N/A';
-    const contactNumber = profileSettings?.contactNumber || 'N/A';
     const country = countryOfOrigin?.trim() || 'N/A';
     const dateOfBirth = profileSettings?.dateOfBirth || 'N/A';
     const technicalAptitude = profileSettings?.technicalAptitude || 'N/A';
+    const gender = profileSettings.gender || 'N/A';
+    const occupation = profileSettings.occupation || 'N/A';
+    const militaryStatus = profileSettings.militaryStatus || 'N/A';
+
     const finalMessage = `
 ==============
 User Profile:
 ==============
   Name: ${fullName}
   Email: ${email}
-  Contact Number: ${contactNumber}
-  Country of Origin: ${country}
-  Preferred Language: ${preferredLanguage}${message}
   Date of Birth: ${dateOfBirth}
-  Technical Aptitude: ${technicalAptitude}`;
+  Country of Origin: ${country}
+  Gender: ${gender}
+  Preferred Language: ${preferredLanguage}${message}
+  Occupation: ${occupation}
+  Technical Aptitude: ${technicalAptitude}
+  Military Status: ${militaryStatus}`;
     // TODO: Simplify / make more readable
     return finalMessage;
   }

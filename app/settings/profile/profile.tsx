@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -19,11 +20,12 @@ import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
 import { useUserForm } from '@/hooks/use-fetch-and-submit';
 import {
   countryOptions,
+  genderOptions,
   languageOptions,
+  militaryStatusOptions,
+  occupationOptions,
   technicalAptitudeOptions
 } from '@/constants/profile';
-
-import * as React from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -33,25 +35,19 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 
-const defaultValues: Partial<ProfileFormValues> = {
-  firstName: undefined,
-  lastName: undefined,
-  email: undefined,
-  contactNumber: undefined,
-  countryOfOrigin: undefined,
+const defaultValues: ProfileFormValues = {
+  firstName: '',
+  lastName: '',
   preferredLanguage: 'en_US',
-  personalizedResponses: false,
-  dateOfBirth: undefined,
-  technicalAptitude: undefined
+  personalizedResponses: false
 };
 
-export function ProfileForm() {
-  // Use the custom hook for form handling
-  const { form, loading, onSubmit } = useUserForm<ProfileFormValues>(
-    profileFormSchema,
+export function ProfileForm(): React.ReactElement {
+  const { form, loading, onSubmit } = useUserForm<ProfileFormValues>({
+    schema: profileFormSchema,
     defaultValues,
-    'profile'
-  );
+    formPath: 'profile'
+  });
 
   if (loading) {
     return (
@@ -111,25 +107,7 @@ export function ProfileForm() {
                     disabled={loading}
                     placeholder="john@doe.com"
                     {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="contactNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact Number</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter your contact number"
-                    disabled={loading}
-                    {...field}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -196,6 +174,21 @@ export function ProfileForm() {
 
           <FormField
             control={form.control}
+            name="gender"
+            render={({ field }) => (
+              <FormSelect
+                label="Gender"
+                options={genderOptions}
+                value={field.value || ''}
+                onChange={(val) => form.setValue('gender', val)}
+                placeholder="Select gender"
+                description="Select your gender"
+              />
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="preferredLanguage"
             render={({ field }) => (
               <FormSelect
@@ -205,6 +198,21 @@ export function ProfileForm() {
                 onChange={(val) => form.setValue('preferredLanguage', val)}
                 placeholder="Select language"
                 description="Select your preferred language"
+              />
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="occupation"
+            render={({ field }) => (
+              <FormSelect
+                label="Occupation"
+                options={occupationOptions}
+                value={field.value || ''}
+                onChange={(val) => form.setValue('occupation', val)}
+                placeholder="Select occupation"
+                description="Select your occupation"
               />
             )}
           />
@@ -223,6 +231,21 @@ export function ProfileForm() {
               />
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="militaryStatus"
+            render={({ field }) => (
+              <FormSelect
+                label="Military Status"
+                options={militaryStatusOptions}
+                value={field.value || ''}
+                onChange={(val) => form.setValue('militaryStatus', val)}
+                placeholder="Select military status"
+                description="Select your military status"
+              />
+            )}
+          />
         </div>
 
         <FormField
@@ -235,8 +258,8 @@ export function ProfileForm() {
                   Personalized Responses
                 </FormLabel>
                 <FormDescription>
-                  Enable this option to use your profile information to
-                  personalize responses.
+                  Enable this option to personalize assistant responses based on
+                  your profile.
                 </FormDescription>
               </div>
               <FormControl>

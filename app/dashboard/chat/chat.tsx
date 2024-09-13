@@ -76,11 +76,11 @@ const Chat = () => {
     abortStream
   } = useMessaging();
 
-  const { form, onSubmit } = useUserForm<ChatFormValues>(
-    chatFormSchema,
+  const { form, onSubmit } = useUserForm<ChatFormValues>({
+    schema: chatFormSchema,
     defaultValues,
-    'chat' // Form path in user settings
-  );
+    formPath: 'chat'
+  });
 
   const knowledgebaseEnabled = form.watch('knowledgebaseEnabled', false);
 

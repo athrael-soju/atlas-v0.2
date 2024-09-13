@@ -1,4 +1,53 @@
+export const militaryStatusOptions = [
+  { label: 'Prefer not to say', value: 'prefer-not-to-say' },
+  { label: 'Active Duty', value: 'active-duty' },
+  { label: 'Veteran', value: 'veteran' },
+  { label: 'Reserve', value: 'reserve' },
+  { label: 'National Guard', value: 'national-guard' },
+  { label: 'Spouse', value: 'spouse' },
+  { label: 'Dependent', value: 'dependent' },
+  { label: 'Civilian', value: 'civilian' }
+];
+
+export const occupationOptions = [
+  { label: 'Prefer not to say', value: 'prefer-not-to-say' },
+  { label: 'Software Engineer', value: 'software-engineer' },
+  { label: 'Data Scientist', value: 'data-scientist' },
+  { label: 'Product Manager', value: 'product-manager' },
+  { label: 'Designer', value: 'designer' },
+  { label: 'Marketing Specialist', value: 'marketing-specialist' },
+  { label: 'Sales Representative', value: 'sales-representative' },
+  { label: 'Customer Support', value: 'customer-support' },
+  { label: 'Human Resources', value: 'human-resources' },
+  { label: 'Finance Manager', value: 'finance-manager' },
+  { label: 'Teacher', value: 'teacher' },
+  { label: 'Researcher', value: 'researcher' },
+  { label: 'Consultant', value: 'consultant' },
+  { label: 'Entrepreneur', value: 'entrepreneur' },
+  { label: 'Healthcare Professional', value: 'healthcare-professional' },
+  { label: 'Engineer', value: 'engineer' },
+  { label: 'Technician', value: 'technician' },
+  { label: 'Writer', value: 'writer' },
+  { label: 'Artist', value: 'artist' },
+  { label: 'Lawyer', value: 'lawyer' },
+  { label: 'Other', value: 'other' }
+];
+
+export const genderOptions = [
+  { label: 'Prefer not to say', value: 'prefer-not-to-say' },
+  { label: 'Male', value: 'male' },
+  { label: 'Female', value: 'female' },
+  { label: 'Non-binary', value: 'non-binary' },
+  { label: 'Genderqueer', value: 'genderqueer' },
+  { label: 'Genderfluid', value: 'genderfluid' },
+  { label: 'Agender', value: 'agender' },
+  { label: 'Bigender', value: 'bigender' },
+  { label: 'Two-Spirit', value: 'two-spirit' },
+  { label: 'Other', value: 'other' }
+];
+
 export const countryOptions = [
+  { label: 'Prefer not to say', value: 'prefer-not-to-say' },
   { label: 'Afghanistan', value: 'AF', code: '004' },
   { label: 'Åland Islands', value: 'AX', code: '248' },
   { label: 'Albania', value: 'AL', code: '008' },
@@ -327,6 +376,7 @@ export const countryOptions = [
 ];
 
 export const languageOptions = [
+  { label: 'Prefer not to say', value: 'prefer-not-to-say' },
   {
     label: 'English (US)',
     value: 'en_US'
@@ -350,6 +400,7 @@ export const languageOptions = [
 ];
 
 export const technicalAptitudeOptions = [
+  { label: 'Prefer not to say', value: 'prefer-not-to-say' },
   {
     label: 'Beginner',
     value: 'beginner'

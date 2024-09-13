@@ -3,15 +3,15 @@ import * as z from 'zod';
 export const profileFormSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  email: z.string().optional(),
-  contactNumber: z.coerce.number().optional(),
+  email: z.string().email().optional(),
   countryOfOrigin: z.string().optional(),
-  preferredLanguage: z
-    .string()
-    .min(1, { message: 'Please select a preferred language' }),
-  personalizedResponses: z.boolean().default(false),
+  gender: z.string().optional(),
+  occupation: z.string().optional(),
+  preferredLanguage: z.string(),
+  personalizedResponses: z.boolean(),
   dateOfBirth: z.string().optional(),
-  technicalAptitude: z.string().optional()
+  technicalAptitude: z.string().optional(),
+  militaryStatus: z.string().optional()
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;

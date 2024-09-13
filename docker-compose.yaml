@@ -12,6 +12,7 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
+    restart: always
     ports:
       - '4000:3000'
     depends_on:

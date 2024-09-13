@@ -26,11 +26,11 @@ const defaultValues: Partial<ForgeFormValues> = {
 };
 
 export function ForgeForm() {
-  const { form, loading, onSubmit } = useUserForm<ForgeFormValues>(
-    forgeFormSchema,
+  const { form, loading, onSubmit } = useUserForm<ForgeFormValues>({
+    schema: forgeFormSchema,
     defaultValues,
-    'forge'
-  );
+    formPath: 'forge'
+  });
 
   if (loading) {
     return (

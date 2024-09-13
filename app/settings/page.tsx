@@ -47,29 +47,69 @@ export default function SettingsPage() {
             </p>
 
             <p className="text-sm text-muted-foreground">
-              Similarly, <strong>Pinecone Top K</strong> governs the number of
-              top results retrieved from a vector database, balancing the need
-              for broader search results with precision. Atlas provides further
-              search customization through parameters like relevance thresholds
-              and result limits. Features such as the &quot;Cohere Top N&quot;
-              and &quot;Pinecone Top K&quot; settings allow users to fine-tune
-              how search results are ranked and displayed. Together, these
-              features make Atlas a versatile and adaptable tool, capable of
-              enhancing retrieval precision and efficiency across various data
-              needs.
+              Similarly, Pinecone Top K governs the number of top results
+              retrieved from a vector database, balancing the need for broader
+              search results with precision. Atlas provides further search
+              customization through parameters like relevance thresholds and
+              result limits. Features such as the &quot;Cohere Top N&quot; and
+              &quot;Pinecone Top K&quot; settings allow users to fine-tune how
+              search results are ranked and displayed. Together, these features
+              make Atlas a versatile and adaptable tool, capable of enhancing
+              retrieval precision and efficiency across various data needs.
             </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="forge" className="w-full">
+        <Tabs defaultValue="profile" className="w-full justify-center">
           <div className="flex justify-center">
             <TabsList>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="forge">The Forge</TabsTrigger>
               <TabsTrigger value="knowledgebase">The Knowledgebase</TabsTrigger>
               <TabsTrigger value="use-cases">Use Cases</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile">
+            <Accordion
+              type="single"
+              collapsible
+              className="w-full"
+              defaultValue="personal-info"
+            >
+              <AccordionItem value="personal-info">
+                <AccordionTrigger>Personal Information</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Personal information is used to provide a more
+                      personalized experience and improve the accuracy of search
+                      results. By updating your profile settings, you enable
+                      Atlas to tailor its responses and recommendations based on
+                      your preferences, background, and needs.
+                    </p>
+
+                    <p className="text-sm text-muted-foreground">
+                      Atlas uses your profile details, such as your preferences,
+                      language, and personal background, to create more relevant
+                      and meaningful interactions. This may involve customizing
+                      responses to align with your language choice, offering
+                      suggestions based on your region or profession, and
+                      ensuring that search results are more attuned to your
+                      specific interests and circumstances.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Make sure to keep your profile information up to date to
+                      ensure that Atlas continues to provide you with the most
+                      relevant and personalized responses.
+                    </p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </TabsContent>
 
           {/* Forge Tab */}
           <TabsContent value="forge">
