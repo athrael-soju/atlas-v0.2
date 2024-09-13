@@ -52,16 +52,12 @@ export function useUserForm<T extends FieldValues>({
   const { data: userSettings, isLoading } = useQuery({
     queryKey: ['userSettings', userId],
     queryFn: fetchUserSettings,
-    enabled: !!userId,
+    enabled: !!userId
   });
 
   const mutation = useMutation({
     mutationFn: updateUserSettings,
     onMutate: async (newSettings: Partial<IUser['settings']>) => {
-      await queryClient.invalidateQueries({
-        queryKey: ['userSettings', userId]
-      });
-
       const previousSettings = queryClient.getQueryData<IUser['settings']>([
         'userSettings',
         userId
