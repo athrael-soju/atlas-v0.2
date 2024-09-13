@@ -38,8 +38,8 @@ type MessageProps = {
 };
 
 const UserMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-center justify-end">
-    <div className="flex items-center rounded-lg bg-primary p-3 text-primary-foreground shadow-lg">
+  <div className="relative mb-4 flex items-start justify-end">
+    <div className="flex items-start rounded-lg bg-primary p-3 text-primary-foreground shadow-lg">
       <span className="break-words">{text}</span>
     </div>
     <UserIcon
@@ -50,25 +50,31 @@ const UserMessage = ({ text }: { text: string }) => (
 );
 
 const AssistantMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-center justify-start">
+  <div className="relative mb-4 flex items-start justify-start">
     <Bot
       className="h-6 w-6 flex-shrink-0 text-card-foreground"
       style={{ marginRight: '8px' }}
     />
-    <div className="flex rounded-lg bg-card p-3 text-card-foreground shadow-lg">
+    <div className="flex items-start rounded-lg bg-card p-3 text-card-foreground shadow-lg">
       <Markdown className="break-words">{text}</Markdown>
     </div>
   </div>
 );
 
 const CodeMessage = ({ text }: { text: string }) => (
-  <div className="mb-4 rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
-    {text.split('\n').map((line, index) => (
-      <div key={index} className="flex">
-        <span className="mr-2 text-muted-foreground">{`${index + 1}. `}</span>
-        <span>{line}</span>
-      </div>
-    ))}
+  <div className="relative mb-4 flex items-start justify-start">
+    <Bot
+      className="h-6 w-6 flex-shrink-0 text-card-foreground"
+      style={{ marginRight: '8px' }}
+    />
+    <div className="flex flex-col items-start rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
+      {text.split('\n').map((line, index) => (
+        <div key={index} className="flex">
+          <span className="mr-2 text-muted-foreground">{`${index + 1}. `}</span>
+          <span>{line}</span>
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -132,12 +138,16 @@ const Chat = () => {
   return (
     <TooltipProvider>
       <div
-        className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl bg-muted/50 p-4 lg:col-span-2"
+        className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}
       >
         <ScrollArea
-          className="mb-4 w-full max-w-[800px] flex-1 rounded-xl pr-4"
-          style={{ paddingTop: '10px', paddingBottom: '10px' }}
+          className="mb-4 w-full max-w-[800px] flex-1 rounded-xl bg-muted/50 pr-4"
+          style={{
+            paddingTop: '10px',
+            paddingBottom: '10px',
+            paddingLeft: '16px'
+          }}
         >
           {messages.map((msg, index) => (
             <div key={index} className="mx-auto max-w-full">
@@ -150,7 +160,7 @@ const Chat = () => {
 
         <form
           onSubmit={handleSubmit}
-          className="relative w-full max-w-[800px] overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
+          className="relative w-full max-w-[800px] overflow-hidden rounded-lg border bg-background bg-muted/50 focus-within:ring-1 focus-within:ring-ring"
         >
           <Label htmlFor="message" className="sr-only">
             Message
