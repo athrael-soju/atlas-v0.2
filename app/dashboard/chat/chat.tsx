@@ -43,8 +43,8 @@ const UserMessage = ({ text }: { text: string }) => (
       <span className="break-words">{text}</span>
     </div>
     <UserIcon
-      className="absolute right-[-2rem] h-6 w-6 flex-shrink-0 text-primary"
-      style={{ top: '50%', transform: 'translateY(-50%)' }}
+      className="h-6 w-6 flex-shrink-0 text-primary"
+      style={{ marginRight: '8px' }}
     />
   </div>
 );
@@ -52,8 +52,8 @@ const UserMessage = ({ text }: { text: string }) => (
 const AssistantMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
     <Bot
-      className="absolute left-[-2rem] h-6 w-6 flex-shrink-0 text-card-foreground"
-      style={{ top: '50%', transform: 'translateY(-50%)' }}
+      className="h-6 w-6 flex-shrink-0 text-card-foreground"
+      style={{ marginRight: '8px' }}
     />
     <div className="flex rounded-lg bg-card p-3 text-card-foreground shadow-lg">
       <Markdown className="break-words">{text}</Markdown>
@@ -137,7 +137,7 @@ const Chat = () => {
       >
         <ScrollArea
           className="mb-4 w-full max-w-[800px] flex-1 rounded-xl pr-4"
-          style={{ paddingTop: '10px', paddingBottom: '10px' }} // Added padding for top and bottom
+          style={{ paddingTop: '10px', paddingBottom: '10px' }}
         >
           {messages.map((msg, index) => (
             <div key={index} className="mx-auto max-w-full">
