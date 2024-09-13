@@ -52,24 +52,55 @@ export function useUserForm<T extends FieldValues>({
   const { data: userSettings, isLoading } = useQuery({
     queryKey: ['userSettings', userId],
     queryFn: fetchUserSettings,
-    enabled: !!userId
+    enabled: !!userId,
   });
 
   const mutation = useMutation({
     mutationFn: updateUserSettings,
-    onSuccess: () => {
+    onMutate: async (newSettings: Partial<IUser['settings']>) => {
+      await queryClient.invalidateQueries({
+        queryKey: ['userSettings', userId]
+      });
+
+      const previousSettings = queryClient.getQueryData<IUser['settings']>([
+        'userSettings',
+        userId
+      ]);
+
+      // Optimistically update cache with new settings
+      queryClient.setQueryData(
+        ['userSettings', userId],
+        (oldSettings: object) => ({
+          ...(oldSettings as object),
+          ...newSettings
+        })
+      );
+
+      return { previousSettings };
+    },
+    onError: (error, _newSettings, context) => {
+      // Rollback to previous settings on error
+      if (context?.previousSettings) {
+        queryClient.setQueryData(
+          ['userSettings', userId],
+          context.previousSettings
+        );
+      }
+
+      toast({
+        title: 'Error',
+        description: `Failed to update settings: ${error.message}`,
+        variant: 'destructive'
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['userSettings', userId] });
+    },
+    onSuccess: () => {
       toast({
         title: 'Settings Updated',
         description: 'Your settings have been successfully updated.',
         variant: 'default'
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: `Failed to update settings: ${error}`,
-        variant: 'destructive'
       });
     }
   });
