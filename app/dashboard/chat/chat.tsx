@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Assuming this is the correct path
+import { ScrollArea } from '@/components/ui/scroll-area';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/spinner';
@@ -15,7 +15,7 @@ import {
   Loader2,
   UserIcon,
   Bot
-} from 'lucide-react'; // Import User and Bot icons
+} from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -26,7 +26,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
-import { useUserForm } from '@/hooks/use-fetch-and-submit'; // Import the custom hook
+import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import Conversations from './conversations';
 
 const defaultValues: Partial<ChatFormValues> = {
   knowledgebaseEnabled: false
@@ -136,6 +137,7 @@ const Chat = () => {
 
   return (
     <TooltipProvider>
+      <Conversations />
       <div
         className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}
