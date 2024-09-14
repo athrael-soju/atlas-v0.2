@@ -38,21 +38,20 @@ type MessageProps = {
 };
 
 const UserMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-start justify-end">
+  <div className="relative mb-4 flex items-center justify-end">
     <div className="flex items-start rounded-lg bg-primary p-3 text-primary-foreground shadow-lg">
       <span className="break-words">{text}</span>
     </div>
-    <UserIcon
-      className="h-6 w-6 flex-shrink-0 text-primary"
-      style={{ marginRight: '8px' }}
-    />
+    <div className="ml-2">
+      <UserIcon className="h-8 w-8 flex-shrink-0 text-primary" />
+    </div>
   </div>
 );
 
 const AssistantMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-start justify-start">
+  <div className="relative mb-4 flex items-center justify-start">
     <Bot
-      className="h-6 w-6 flex-shrink-0 text-card-foreground"
+      className="h-8 w-8 flex-shrink-0 text-card-foreground"
       style={{ marginRight: '8px' }}
     />
     <div className="flex items-start rounded-lg bg-card p-3 text-card-foreground shadow-lg">
@@ -62,9 +61,9 @@ const AssistantMessage = ({ text }: { text: string }) => (
 );
 
 const CodeMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-start justify-start">
+  <div className="relative mb-4 flex items-center justify-start">
     <Bot
-      className="h-6 w-6 flex-shrink-0 text-card-foreground"
+      className="h-8 w-8 flex-shrink-0 text-card-foreground"
       style={{ marginRight: '8px' }}
     />
     <div className="flex flex-col items-start rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
