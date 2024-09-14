@@ -5,7 +5,7 @@ import { UserNav } from './user-nav';
 import { NavItem } from '@/types';
 
 type HeaderProps = {
-  navItems: NavItem[]; // add the 'navItems' prop
+  navItems: NavItem[];
 };
 
 const Header: React.FC<HeaderProps> = ({ navItems }) => {
