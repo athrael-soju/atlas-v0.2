@@ -3,7 +3,7 @@
 import React from 'react';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { cn } from '@/lib/utils';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import Link from 'next/link';
 import { NavItem } from '@/types';
@@ -63,7 +63,7 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
           />
         </Link>
       </div>
-      <ChevronLeft
+      <ChevronRight
         className={cn(
           'absolute -right-3 top-10 z-50 cursor-pointer rounded-full border bg-background text-3xl text-foreground',
           form.getValues('sidebarExpanded') && 'rotate-180'
