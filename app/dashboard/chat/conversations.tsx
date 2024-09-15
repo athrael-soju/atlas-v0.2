@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import {
   Sheet,
   SheetTrigger,
@@ -41,16 +41,31 @@ import { Trash2, MoreHorizontal } from 'lucide-react'; // Icons
 import { Icons } from '@/components/icons';
 
 // Initial mock data for saved conversations
+// TODO: Replace with actual data from API call
 const initialConversations = [
-  { id: 1, name: 'Chat with Support', dateCreated: '2024-09-12' },
-  { id: 2, name: 'Project Brainstorm', dateCreated: '2024-09-10' },
-  { id: 3, name: 'Daily Standup', dateCreated: '2024-09-09' },
-  { id: 4, name: 'Client Discussion', dateCreated: '2024-09-08' },
-  { id: 5, name: 'Team Meeting', dateCreated: '2024-09-07' }
+  {
+    id: 1,
+    name: 'Chat with Support',
+    dateCreated: '2024-09-12',
+    active: true
+  },
+  {
+    id: 2,
+    name: 'Project Brainstorm',
+    dateCreated: '2024-09-10',
+    active: false
+  },
+  {
+    id: 3,
+    name: 'Daily Standup',
+    dateCreated: '2024-09-09',
+    active: false
+  }
 ];
 
+// TODO: Stuff
 const Conversations = () => {
-  const [conversations, setConversations] = useState(initialConversations); // State for conversations
+  const [conversations, setConversations] = useState(initialConversations);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -61,7 +76,18 @@ const Conversations = () => {
     );
   };
 
-  // Define columns for the table
+  // Function to handle setting active conversation
+  // TODO: update the active conversation in the backend
+  const handleSetActiveConversation = (conversation: any) => {
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === conversation.id
+          ? { ...conv, active: true }
+          : { ...conv, active: false }
+      )
+    );
+  };
+
   const columns = [
     {
       header: 'Conversation',
@@ -69,7 +95,7 @@ const Conversations = () => {
       cell: (info: any) => info.getValue()
     },
     {
-      header: 'Date Created',
+      header: 'Created',
       accessorKey: 'dateCreated',
       cell: (info: any) => info.getValue()
     },
@@ -88,6 +114,12 @@ const Conversations = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => handleSetActiveConversation(conversation)}
+              >
+                <Icons.check className="mr-2" />
+                Set as Active
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDeleteConversation(conversation)}
               >
@@ -113,7 +145,6 @@ const Conversations = () => {
 
   return (
     <>
-      {/* The button that triggers the retractable sheet */}
       <Sheet>
         <SheetTrigger asChild>
           <motion.button
@@ -121,12 +152,13 @@ const Conversations = () => {
             style={{ transform: 'translateY(-50%)' }}
             whileHover={{ color: '#facc15' }}
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5" />
           </motion.button>
         </SheetTrigger>
-
-        {/* The sheet content that appears when the button is clicked */}
-        <SheetContent side="right" className="w-[400px]">
+        <SheetContent
+          side="right"
+          style={{ width: '400px', maxWidth: '100vw' }}
+        >
           <SheetHeader>
             <SheetTitle>Conversations</SheetTitle>
             <SheetDescription>Select your conversation</SheetDescription>
@@ -139,10 +171,9 @@ const Conversations = () => {
               onChange={(event) => setGlobalFilter(event.target.value)}
               className="mb-4"
             />
-
-            {/* Scrollable Table */}
-            <ScrollArea className="h-[300px]">
-              <Table>
+            {/* TODO: Double check the scrollarea height works well */}
+            <ScrollArea className="h-[calc(100vh-150px)] overflow-auto">
+              <Table className="w-full">
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
@@ -155,6 +186,7 @@ const Conversations = () => {
                               ? 'cursor-pointer select-none'
                               : ''
                           }
+                          style={{ width: '200px' }}
                         >
                           <div className="flex items-center">
                             {flexRender(
@@ -167,7 +199,7 @@ const Conversations = () => {
                               ) : header.column.getIsSorted() === 'desc' ? (
                                 <Icons.arrowDown className="h-3 w-3" />
                               ) : (
-                                <Icons.arrowUp className="h-3 w-3 opacity-0" /> // Invisible arrow for alignment
+                                <Icons.arrowUp className="h-3 w-3 opacity-0" />
                               )}
                             </span>
                           </div>
@@ -176,13 +208,15 @@ const Conversations = () => {
                     </TableRow>
                   ))}
                 </TableHeader>
-
                 <TableBody>
                   {table.getRowModel().rows.length ? (
                     table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id}>
+                      <TableRow
+                        key={row.id}
+                        className={row.original.active ? 'bg-primary' : ''}
+                      >
                         {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
+                          <TableCell key={cell.id} style={{ width: '200px' }}>
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()

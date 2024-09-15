@@ -8,10 +8,16 @@ import {
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants';
 import { fetchContextEnrichedMessage } from '@/lib/service/atlas';
 import { useSession } from 'next-auth/react';
+import { useUserForm } from './use-fetch-and-submit'; // Assuming this is where your hook is stored.
+import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 
 type Message = {
   role: 'user' | 'assistant' | 'code';
   text: string;
+};
+
+const defaultValues: Partial<ChatFormValues> = {
+  activeConversationId: ''
 };
 
 export const useMessaging = (
@@ -19,7 +25,6 @@ export const useMessaging = (
     Promise.resolve('')
 ) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [threadId, setThreadId] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
@@ -37,14 +42,11 @@ export const useMessaging = (
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    const createThread = async () => {
-      const res = await fetch(`/api/assistants/threads`, { method: 'POST' });
-      const data = await res.json();
-      setThreadId(data.threadId);
-    };
-    createThread();
-  }, []);
+  const { form } = useUserForm({
+    schema: chatFormSchema,
+    defaultValues,
+    formPath: 'chat'
+  });
 
   const appendToLastMessage = (text: string) => {
     setMessages((prevMessages) => {
@@ -155,7 +157,9 @@ export const useMessaging = (
       }
     }
     const response = await fetch(
-      `/api/assistants/threads/${threadId}/messages`,
+      `/api/assistants/threads/${form.getValues(
+        'activeConversationId'
+      )}/messages`,
       {
         method: 'POST',
         body: JSON.stringify({ text: text })
@@ -173,7 +177,9 @@ export const useMessaging = (
     toolCallOutputs: { output: string; tool_call_id: string }[]
   ) => {
     const response = await fetch(
-      `/api/assistants/threads/${threadId}/actions`,
+      `/api/assistants/threads/${form.getValues(
+        'activeConversationId'
+      )}/actions`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

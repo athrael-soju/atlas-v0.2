@@ -8,6 +8,8 @@ import { Adapter, AdapterUser } from 'next-auth/adapters';
 import { Collection, Document, ObjectId } from 'mongodb';
 import { IUser } from '@/models/User';
 import { defaultUserSettings } from '@/constants/user';
+import { createThread } from '@/lib/service/openai';
+import { Conversation } from './types/data';
 
 const { GITHUB_ID, GITHUB_SECRET, GOOGLE_ID, GOOGLE_SECRET, NEXTAUTH_SECRET } =
   process.env;
@@ -26,6 +28,11 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
   let guestUser = await usersCollection.findOne({ email: 'guest@example.com' });
 
   if (!guestUser) {
+    const thread = await createThread();
+    const conversation: Conversation = {
+      id: thread.id,
+      createdAt: new Date().toISOString()
+    };
     const newGuestUser: IUser = {
       _id: new ObjectId(),
       name: 'Guest User',
@@ -33,9 +40,13 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
       role: 'guest',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      settings: defaultUserSettings,
+      settings: defaultUserSettings(conversation.id),
       knowledgebase: {
         files: []
+      },
+      // TODO: create a new thread for the guest user and add a Conversation object
+      data: {
+        conversations: [conversation]
       }
     };
 
@@ -59,6 +70,12 @@ async function findOrCreateUser(
   let existingUser = await usersCollection.findOne({ email: user.email });
 
   if (!existingUser && user.name && user.email) {
+    const thread = await createThread();
+    const conversation: Conversation = {
+      id: thread.id,
+      createdAt: new Date().toISOString()
+    };
+
     const newUser: IUser = {
       _id: new ObjectId(),
       name: user.name,
@@ -66,9 +83,13 @@ async function findOrCreateUser(
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       role: 'user',
-      settings: defaultUserSettings,
+      settings: defaultUserSettings(conversation.id),
       knowledgebase: {
         files: []
+      },
+      // TODO: create a new thread for the user and add a Conversation object
+      data: {
+        conversations: [conversation]
       }
     };
     await usersCollection.insertOne(newUser);
@@ -118,7 +139,7 @@ const authConfig: NextAuthOptions = {
           // Other credential logic...
           return null;
         } catch (error) {
-          console.error('Error in authorize function:', error);
+          console.error('Error in authorization function:', error);
           return null;
         }
       }

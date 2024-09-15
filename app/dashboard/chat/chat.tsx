@@ -122,9 +122,9 @@ const Chat = () => {
   const handleKnowledgebaseToggle = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
-    e.preventDefault(); // Prevent form submission if it triggers
-    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled); // Toggle knowledgebase
-    await onSubmit(form.getValues()); // Submit the form
+    e.preventDefault();
+    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
+    await onSubmit(form.getValues());
   };
 
   const handleMicToggle = () => {

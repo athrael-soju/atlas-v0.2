@@ -28,6 +28,7 @@ export interface KnowledgebaseSettings {
 }
 export interface ChatSettings {
   knowledgebaseEnabled: boolean;
+  activeConversationId: string;
 }
 
 export interface ProfileSettings {

@@ -4,9 +4,10 @@ import {
   ForgeSettings,
   KnowledgebaseSettings,
   ProfileSettings,
-  MiscSettings,
+  MiscSettings
 } from '@/types/settings';
 import { UploadedFile } from '@/types/file-uploader';
+import { Conversation } from '@/types/data';
 
 export interface IUser {
   _id: ObjectId;
@@ -24,5 +25,8 @@ export interface IUser {
   };
   knowledgebase: {
     files: UploadedFile[];
+  };
+  data: {
+    conversations: Conversation[];
   };
 }

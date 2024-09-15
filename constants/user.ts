@@ -1,4 +1,4 @@
-export const defaultUserSettings = {
+export const defaultUserSettings = (conversationId: string) => ({
   forge: {
     parsingProvider: 'io',
     minChunkSize: 0,
@@ -14,7 +14,8 @@ export const defaultUserSettings = {
     pineconeTopK: 100
   },
   chat: {
-    knowledgebaseEnabled: false
+    knowledgebaseEnabled: false,
+    activeConversationId: conversationId
   },
   profile: {
     firstName: '',
@@ -26,4 +27,4 @@ export const defaultUserSettings = {
   misc: {
     sidebarExpanded: true
   }
-};
+});

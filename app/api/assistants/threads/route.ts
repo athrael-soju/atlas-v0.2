@@ -1,9 +1,8 @@
-import { openai } from '@/lib/client/openai';
+import { createThread } from '@/lib/service/openai';
 
 export const runtime = 'nodejs';
 
-// Create a new thread
 export async function POST() {
-  const thread = await openai.beta.threads.create();
+  const thread = await createThread();
   return Response.json({ threadId: thread.id });
 }
