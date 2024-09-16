@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   SortingState,
   useReactTable,
@@ -43,49 +43,41 @@ import { Searching } from '@/components/spinner';
 import { useUserForm } from '@/hooks/use-fetch-and-submit';
 import {
   conversationsFormSchema,
-  conversationsValues
+  ConversationsFormValues
 } from '@/lib/form-schema';
 import { Conversation } from '@/types/data';
 
-const defaultValues: Partial<conversationsValues> = [
-  {
-    id: '1',
-    name: 'first conversation',
-    createdAt: new Date().toISOString(),
-    active: true
-  }
-];
+const defaultValues: Partial<ConversationsFormValues> = {
+  conversations: [
+    {
+      id: '1',
+      name: 'first conversation',
+      createdAt: new Date().toISOString(),
+      active: true
+    }
+  ]
+};
 
 const Conversations = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   const { form, loading, onSubmit } = useUserForm({
-    schema: conversationsFormSchema, // Use the relevant schema for the conversations data
+    schema: conversationsFormSchema,
     defaultValues,
-    formPath: 'data.conversations' // Specify the correct path for fetching conversations
+    formPath: 'data.conversations'
   });
 
-  useEffect(() => {
-    const formValues = form.getValues();
+  // Use useMemo to avoid unnecessary re-renders and looping
+  const conversations = useMemo(() => {
+    const conversationsObject = Object.values(form.getValues());
 
-    const convoArray: Conversation[] = Object.values(formValues).filter(
-      (convo): convo is Conversation => convo !== undefined
-    );
-
-    setConversations(convoArray);
+    return Object.values(conversationsObject);
   }, [form]);
 
-  // Function to handle deletion
-  const handleDeleteConversation = (conversation: any) => {
-    // Assuming some delete logic
-  };
+  const handleDeleteConversation = (conversation: Conversation) => {};
 
-  // Function to handle setting active conversation
-  const handleSetActiveConversation = (conversation: any) => {
-    // Assuming some set active logic
-  };
+  const handleSetActiveConversation = (conversation: Conversation) => {};
 
   const columns = [
     {
@@ -98,7 +90,7 @@ const Conversations = () => {
       accessorKey: 'createdAt',
       cell: (info: any) => {
         const date = new Date(info.getValue());
-        return date.toLocaleDateString(); // TODO: Ensure consistency with all dates
+        return date.toLocaleDateString();
       }
     },
     {
@@ -136,7 +128,7 @@ const Conversations = () => {
   ];
 
   const table = useReactTable<Conversation>({
-    data: conversations,
+    data: conversations as unknown as Conversation[],
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -145,20 +137,20 @@ const Conversations = () => {
     state: { sorting, globalFilter }
   });
 
-  // if (loading) {
-  //   return (
-  //     <div
-  //       style={{
-  //         display: 'flex',
-  //         justifyContent: 'center',
-  //         alignItems: 'center',
-  //         height: '80vh'
-  //       }}
-  //     >
-  //       <Searching />
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '80vh'
+        }}
+      >
+        <Searching />
+      </div>
+    );
+  }
 
   return (
     <>

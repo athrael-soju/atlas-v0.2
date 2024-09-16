@@ -66,6 +66,11 @@ const conversationSchema = z.object({
   createdAt: z.string(),
   active: z.boolean()
 });
-export const conversationsFormSchema = z.array(conversationSchema);
 
-export type conversationsValues = z.infer<typeof conversationsFormSchema>;
+// Define the form schema
+export const conversationsFormSchema = z.object({
+  conversations: z.array(conversationSchema)
+});
+
+// Type inference for form data
+export type ConversationsFormValues = z.infer<typeof conversationsFormSchema>;
