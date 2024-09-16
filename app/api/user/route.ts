@@ -84,6 +84,7 @@ export async function GET(req: NextRequest) {
       .split('.')
       .reduce((obj, key) => (obj as Record<string, any>)?.[key], userData);
     // Handle case where the data at the specified path does not exist
+
     if (dataAtPath === undefined) {
       return NextResponse.json(
         { message: `Data not found at path: ${path}` },

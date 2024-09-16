@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   SortingState,
   useReactTable,
@@ -48,32 +48,31 @@ import {
 import { Conversation } from '@/types/data';
 
 const defaultValues: Partial<ConversationsFormValues> = {
-  conversations: [
-    {
-      id: '1',
-      name: 'first conversation',
-      createdAt: new Date().toISOString(),
-      active: true
-    }
-  ]
+  conversations: []
 };
 
 const Conversations = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const { form, loading, onSubmit } = useUserForm({
+  const { form, userData } = useUserForm({
     schema: conversationsFormSchema,
     defaultValues,
     formPath: 'data.conversations'
   });
 
   // Use useMemo to avoid unnecessary re-renders and looping
-  const conversations = useMemo(() => {
-    const conversationsObject = Object.values(form.getValues());
+  const setConversationsValue = useCallback(() => {
+    if (userData) {
+      form.setValue('conversations', userData);
+    } else {
+      form.reset(defaultValues);
+    }
+  }, [userData, form]);
 
-    return Object.values(conversationsObject);
-  }, [form]);
+  useEffect(() => {
+    setConversationsValue();
+  }, [setConversationsValue]);
 
   const handleDeleteConversation = (conversation: Conversation) => {};
 
@@ -128,7 +127,7 @@ const Conversations = () => {
   ];
 
   const table = useReactTable<Conversation>({
-    data: conversations as unknown as Conversation[],
+    data: form.getValues('conversations') || [],
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -137,20 +136,20 @@ const Conversations = () => {
     state: { sorting, globalFilter }
   });
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '80vh'
-        }}
-      >
-        <Searching />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div
+  //       style={{
+  //         display: 'flex',
+  //         justifyContent: 'center',
+  //         alignItems: 'center',
+  //         height: '80vh'
+  //       }}
+  //     >
+  //       <Searching />
+  //     </div>
+  //   );
+  // }
 
   return (
     <>

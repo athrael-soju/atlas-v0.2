@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { DefaultValues, FieldValues, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/components/ui/use-toast';
@@ -35,7 +35,7 @@ async function updateUserData(
 interface UseUserFormParams<T extends FieldValues> {
   schema: z.ZodSchema<T>;
   defaultValues: DefaultValues<T>;
-  formPath: string; // Can now point to any part of the user object
+  formPath: string;
 }
 
 // The updated and more generic useUserForm hook
@@ -48,9 +48,11 @@ export function useUserForm<T extends FieldValues>({
   const userId = session?.user?.id;
   const queryClient = useQueryClient();
 
+  const memoizedDefaultValues = useMemo(() => defaultValues, [defaultValues]);
+
   const form = useForm<T>({
     resolver: zodResolver(schema),
-    defaultValues
+    defaultValues: memoizedDefaultValues
   });
 
   const { data: userData, isLoading } = useQuery({
@@ -69,7 +71,6 @@ export function useUserForm<T extends FieldValues>({
         formPath
       ]);
 
-      // Optimistically update cache with new data
       queryClient.setQueryData(
         ['userData', userId, formPath],
         (oldData: object) => ({
@@ -112,14 +113,17 @@ export function useUserForm<T extends FieldValues>({
     if (userData) {
       form.reset(userData as T);
     } else {
-      form.reset(defaultValues as DefaultValues<T>);
+      form.reset(memoizedDefaultValues as DefaultValues<T>);
     }
-  }, [userData, form, formPath, defaultValues]);
+  }, [userData, form, memoizedDefaultValues]);
 
-  async function onSubmit(data: T) {
-    const partialData: Partial<Record<string, any>> = { ...data };
-    mutation.mutate(partialData);
-  }
+  const onSubmit = useCallback(
+    (data: T) => {
+      const partialData: Partial<Record<string, any>> = { ...data };
+      mutation.mutate(partialData);
+    },
+    [mutation]
+  );
 
-  return { form, loading: isLoading, onSubmit };
+  return { form, loading: isLoading, onSubmit, userData };
 }
