@@ -5,31 +5,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-
-// Generic function to fetch data from any part of the user object
-async function fetchUserData(path: string): Promise<any> {
-  const response = await fetch(`/api/user?path=${path}`, { method: 'GET' });
-  if (!response.ok) {
-    throw new Error('Failed to fetch user data');
-  }
-  const result = await response.json();
-  return result[path];
-}
-
-// Generic function to update any part of the user object
-async function updateUserData(
-  path: string,
-  data: Partial<Record<string, any>>
-): Promise<void> {
-  const response = await fetch(`/api/user`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path, data })
-  });
-  if (!response.ok) {
-    throw new Error('Failed to update user data');
-  }
-}
+import { fetchUserData, updateUserData } from '@/lib/service/user';
 
 // Parameters for useUserForm to make it generic
 interface UseUserFormParams<T extends FieldValues> {
@@ -38,7 +14,7 @@ interface UseUserFormParams<T extends FieldValues> {
   formPath: string;
 }
 
-// The updated and more generic useUserForm hook
+// Updated useUserForm hook
 export function useUserForm<T extends FieldValues>({
   schema,
   defaultValues,
@@ -109,17 +85,22 @@ export function useUserForm<T extends FieldValues>({
     }
   });
 
+  // Reset the form whenever the userData changes
   useEffect(() => {
-    if (userData) {
-      form.reset(userData as T);
-    } else {
-      form.reset(memoizedDefaultValues as DefaultValues<T>);
+    if (userData && !form.formState.isDirty) {
+      form.reset(userData);
+    } else if (!userData) {
+      form.reset(defaultValues);
     }
-  }, [userData, form, memoizedDefaultValues]);
+  }, [userData, form, defaultValues]);
 
+  // Enhanced onSubmit function
   const onSubmit = useCallback(
     (data: T) => {
-      const partialData: Partial<Record<string, any>> = { ...data };
+      const partialData: Partial<Record<string, any>> = data.conversations
+        ? data.conversations
+        : { ...data };
+
       mutation.mutate(partialData);
     },
     [mutation]
