@@ -107,7 +107,7 @@ const Chat = () => {
   const { form, onSubmit } = useUserForm<ChatFormValues>({
     schema: chatFormSchema,
     defaultValues,
-    formPath: 'chat'
+    formPath: 'settings.chat'
   });
 
   const knowledgebaseEnabled = form.watch('knowledgebaseEnabled', false);

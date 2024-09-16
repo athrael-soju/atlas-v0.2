@@ -46,7 +46,7 @@ export function ProfileForm(): React.ReactElement {
   const { form, loading, onSubmit } = useUserForm<ProfileFormValues>({
     schema: profileFormSchema,
     defaultValues,
-    formPath: 'profile'
+    formPath: 'settings.profile'
   });
 
   if (loading) {

@@ -45,7 +45,7 @@ export const useMessaging = (
   const { form } = useUserForm({
     schema: chatFormSchema,
     defaultValues,
-    formPath: 'chat'
+    formPath: 'settings.chat'
   });
 
   const appendToLastMessage = (text: string) => {

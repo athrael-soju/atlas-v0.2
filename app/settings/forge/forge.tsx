@@ -29,7 +29,7 @@ export function ForgeForm() {
   const { form, loading, onSubmit } = useUserForm<ForgeFormValues>({
     schema: forgeFormSchema,
     defaultValues,
-    formPath: 'forge'
+    formPath: 'settings.forge'
   });
 
   if (loading) {

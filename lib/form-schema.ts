@@ -59,3 +59,13 @@ export const sidebarSettingsSchema = z.object({
 });
 
 export type SidebarSettingsValues = z.infer<typeof sidebarSettingsSchema>;
+
+const conversationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  createdAt: z.string(),
+  active: z.boolean()
+});
+export const conversationsFormSchema = z.array(conversationSchema);
+
+export type conversationsValues = z.infer<typeof conversationsFormSchema>;

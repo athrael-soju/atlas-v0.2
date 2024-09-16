@@ -26,6 +26,7 @@ async function handleUpdate(
   });
 }
 
+// POST Route - Dynamic updates to user data
 export async function POST(req: NextRequest) {
   try {
     const session = await getValidSession();
@@ -34,37 +35,20 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = session.user.id;
-    const updateData = await req.json();
+    const { path, data } = await req.json();
 
-    const updateMappings = {
-      'settings.chat': updateData.chat,
-      'settings.misc': updateData.misc,
-      'settings.forge': updateData.forge,
-      'settings.knowledgebase': updateData.knowledgebase,
-      'settings.profile': updateData.profile
-    };
-
-    // Check for valid update fields and handle them dynamically
-    for (const [fieldPath, data] of Object.entries(updateMappings)) {
-      if (data) {
-        const response = await handleUpdate(userId, data, fieldPath);
-        return NextResponse.json(response, { status: 200 });
-      }
+    // Validate request payload
+    if (!path || !data) {
+      return NextResponse.json(
+        { message: 'Invalid request, path and data are required' },
+        { status: 400 }
+      );
     }
 
-    // Handle special case for uploadedFile separately
-    if (updateData.uploadedFile) {
-      const response = await updateUserField(userId, {
-        $push: { 'knowledgebase.files': updateData.uploadedFile },
-        $set: { updatedAt: new Date().toISOString() }
-      });
-      return NextResponse.json(response, { status: 200 });
-    }
+    // Perform the update based on the provided path and data
+    const response = await handleUpdate(userId, data, path);
 
-    return NextResponse.json(
-      { message: 'Invalid update operation' },
-      { status: 400 }
-    );
+    return NextResponse.json(response, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { message: 'Internal server error', error: error.message },
@@ -73,6 +57,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// GET Route - Fetching dynamic parts of user data
 export async function GET(req: NextRequest) {
   try {
     const session = await getValidSession();
@@ -81,16 +66,33 @@ export async function GET(req: NextRequest) {
     }
 
     const userId = session.user.id;
-    const userData = await getUserData(userId);
+    const { searchParams } = new URL(req.url);
+    const path = searchParams.get('path');
 
-    if (!userData || !userData.settings) {
+    // Validate the 'path' query parameter
+    if (!path) {
       return NextResponse.json(
-        { message: 'Settings not found' },
+        { message: 'Path parameter is required' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch user data from the database
+    const userData = await getUserData(userId);
+    // Use dynamic path access, e.g., userData['settings.chat']
+    const dataAtPath = path
+      .split('.')
+      .reduce((obj, key) => (obj as Record<string, any>)?.[key], userData);
+
+    // Handle case where the data at the specified path does not exist
+    if (dataAtPath === undefined) {
+      return NextResponse.json(
+        { message: `Data not found at path: ${path}` },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(userData, { status: 200 });
+    return NextResponse.json({ [path]: dataAtPath }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { message: 'Internal server error', error: error.message },

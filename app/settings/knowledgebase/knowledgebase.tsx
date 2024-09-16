@@ -17,7 +17,7 @@ export function KnowledgebaseForm() {
   const { form, loading, onSubmit } = useUserForm<KnowledgebaseValues>({
     schema: knowledgebaseSchema,
     defaultValues,
-    formPath: 'knowledgebase'
+    formPath: 'settings.knowledgebase'
   });
 
   if (loading) {

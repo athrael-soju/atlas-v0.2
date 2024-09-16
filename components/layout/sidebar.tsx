@@ -30,7 +30,7 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
   const { form, onSubmit } = useUserForm<{ sidebarExpanded: boolean }>({
     schema: sidebarSettingsSchema,
     defaultValues,
-    formPath: 'misc'
+    formPath: 'settings.misc'
   });
 
   const handleToggle = () => {

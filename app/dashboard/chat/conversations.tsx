@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SortingState,
   useReactTable,
@@ -37,55 +37,54 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
-import { Trash2, MoreHorizontal } from 'lucide-react'; // Icons
+import { Trash2, MoreHorizontal } from 'lucide-react';
 import { Icons } from '@/components/icons';
+import { Searching } from '@/components/spinner';
+import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import {
+  conversationsFormSchema,
+  conversationsValues
+} from '@/lib/form-schema';
+import { Conversation } from '@/types/data';
 
-// Initial mock data for saved conversations
-// TODO: Replace with actual data from API call
-const initialConversations = [
+const defaultValues: Partial<conversationsValues> = [
   {
-    id: 1,
-    name: 'Chat with Support',
-    dateCreated: '2024-09-12',
+    id: '1',
+    name: 'first conversation',
+    createdAt: new Date().toISOString(),
     active: true
-  },
-  {
-    id: 2,
-    name: 'Project Brainstorm',
-    dateCreated: '2024-09-10',
-    active: false
-  },
-  {
-    id: 3,
-    name: 'Daily Standup',
-    dateCreated: '2024-09-09',
-    active: false
   }
 ];
 
-// TODO: Stuff
 const Conversations = () => {
-  const [conversations, setConversations] = useState(initialConversations);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  const { form, loading, onSubmit } = useUserForm({
+    schema: conversationsFormSchema, // Use the relevant schema for the conversations data
+    defaultValues,
+    formPath: 'data.conversations' // Specify the correct path for fetching conversations
+  });
+
+  useEffect(() => {
+    const formValues = form.getValues();
+
+    const convoArray: Conversation[] = Object.values(formValues).filter(
+      (convo): convo is Conversation => convo !== undefined
+    );
+
+    setConversations(convoArray);
+  }, [form]);
 
   // Function to handle deletion
   const handleDeleteConversation = (conversation: any) => {
-    setConversations((prev) =>
-      prev.filter((conv) => conv.id !== conversation.id)
-    );
+    // Assuming some delete logic
   };
 
   // Function to handle setting active conversation
-  // TODO: update the active conversation in the backend
   const handleSetActiveConversation = (conversation: any) => {
-    setConversations((prev) =>
-      prev.map((conv) =>
-        conv.id === conversation.id
-          ? { ...conv, active: true }
-          : { ...conv, active: false }
-      )
-    );
+    // Assuming some set active logic
   };
 
   const columns = [
@@ -96,8 +95,11 @@ const Conversations = () => {
     },
     {
       header: 'Created',
-      accessorKey: 'dateCreated',
-      cell: (info: any) => info.getValue()
+      accessorKey: 'createdAt',
+      cell: (info: any) => {
+        const date = new Date(info.getValue());
+        return date.toLocaleDateString(); // TODO: Ensure consistency with all dates
+      }
     },
     {
       id: 'actions',
@@ -133,7 +135,7 @@ const Conversations = () => {
     }
   ];
 
-  const table = useReactTable({
+  const table = useReactTable<Conversation>({
     data: conversations,
     columns,
     onSortingChange: setSorting,
@@ -142,6 +144,21 @@ const Conversations = () => {
     getFilteredRowModel: getFilteredRowModel(),
     state: { sorting, globalFilter }
   });
+
+  // if (loading) {
+  //   return (
+  //     <div
+  //       style={{
+  //         display: 'flex',
+  //         justifyContent: 'center',
+  //         alignItems: 'center',
+  //         height: '80vh'
+  //       }}
+  //     >
+  //       <Searching />
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
@@ -171,7 +188,6 @@ const Conversations = () => {
               onChange={(event) => setGlobalFilter(event.target.value)}
               className="mb-4"
             />
-            {/* TODO: Double check the scrollarea height works well */}
             <ScrollArea className="h-[calc(100vh-150px)] overflow-auto">
               <Table className="w-full">
                 <TableHeader>
@@ -216,7 +232,7 @@ const Conversations = () => {
                         className={row.original.active ? 'bg-primary' : ''}
                       >
                         {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} style={{ width: '200px' }}>
+                          <TableCell key={cell.id}>
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
