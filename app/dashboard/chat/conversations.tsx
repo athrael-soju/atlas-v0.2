@@ -100,7 +100,12 @@ const Conversations = () => {
   };
 
   const handleSetActiveConversation = (conversation: Conversation) => {
-    // Implement logic for setting active conversation
+    const currentConversations = form.getValues('conversations') || [];
+    const updatedConversations = currentConversations.map((conv) => ({
+      ...conv,
+      active: conv.id === conversation.id
+    }));
+    onSubmit({ conversations: updatedConversations });
   };
 
   const columns = [
@@ -123,33 +128,44 @@ const Conversations = () => {
       cell: ({ row }: any) => {
         const conversation = row.original;
         const currentConversations = form.watch('conversations') || [];
+
+        // If conversation.active or currentConversations.length <= 1, show green circle emoji.
+        const showGreenCircle =
+          conversation.active || currentConversations.length <= 1;
+
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => handleSetActiveConversation(conversation)}
-                disabled={conversation.active}
-              >
-                <Icons.check className="mr-2 h-4 w-4" />
-                Set as Active
-              </DropdownMenuItem>
-              {currentConversations.length > 1 && (
-                <DropdownMenuItem
-                  onClick={() => handleDeleteConversation(conversation)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div>
+            {showGreenCircle ? (
+              <span role="img" aria-label="active">
+                🟢
+              </span>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={() => handleSetActiveConversation(conversation)}
+                    disabled={conversation.active}
+                  >
+                    <Icons.check className="mr-2 h-4 w-4" />
+                    Set as Active
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleDeleteConversation(conversation)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         );
       }
     }
