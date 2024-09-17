@@ -1,3 +1,5 @@
+import { Conversation } from './data';
+
 export interface ForgeSettings {
   parsingProvider: string;
   partitioningStrategy: string;
@@ -28,7 +30,6 @@ export interface KnowledgebaseSettings {
 }
 export interface ChatSettings {
   knowledgebaseEnabled: boolean;
-  activeConversationId: string;
 }
 
 export interface ProfileSettings {
@@ -47,4 +48,9 @@ export interface ProfileSettings {
 
 export interface MiscSettings {
   sidebarExpanded: boolean;
+}
+
+export interface ConversationSettings {
+  activeConversationId: string;
+  conversations: Conversation[];
 }

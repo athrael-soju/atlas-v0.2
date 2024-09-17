@@ -9,14 +9,17 @@ import { AssistantStreamEvent } from 'openai/resources/beta/assistants';
 import { fetchContextEnrichedMessage } from '@/lib/service/atlas';
 import { useSession } from 'next-auth/react';
 import { useUserForm } from './use-fetch-and-submit'; // Assuming this is where your hook is stored.
-import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
+import {
+  conversationsFormSchema,
+  ConversationsFormValues
+} from '@/lib/form-schema';
 
 type Message = {
   role: 'user' | 'assistant' | 'code';
   text: string;
 };
 
-const defaultValues: Partial<ChatFormValues> = {
+const defaultValues: Partial<ConversationsFormValues> = {
   activeConversationId: ''
 };
 
@@ -42,12 +45,13 @@ export const useMessaging = (
     scrollToBottom();
   }, [messages]);
 
-  const { form } = useUserForm({
-    schema: chatFormSchema,
+  const { form, userData } = useUserForm({
+    schema: conversationsFormSchema,
     defaultValues,
-    formPath: 'settings.chat'
+    formPath: 'data.activeConversationId'
   });
-
+  // TODO: Find out why form.getValues('activeConversationId') is undefined
+  const conversationId = userData; 
   const appendToLastMessage = (text: string) => {
     setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
@@ -157,9 +161,7 @@ export const useMessaging = (
       }
     }
     const response = await fetch(
-      `/api/assistants/threads/${form.getValues(
-        'activeConversationId'
-      )}/messages`,
+      `/api/assistants/threads/${conversationId}/messages`,
       {
         method: 'POST',
         body: JSON.stringify({ text: text })
@@ -177,9 +179,7 @@ export const useMessaging = (
     toolCallOutputs: { output: string; tool_call_id: string }[]
   ) => {
     const response = await fetch(
-      `/api/assistants/threads/${form.getValues(
-        'activeConversationId'
-      )}/actions`,
+      `/api/assistants/threads/${conversationId}/actions`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

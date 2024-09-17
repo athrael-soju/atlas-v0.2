@@ -69,7 +69,8 @@ const conversationSchema = z.object({
 
 // Define the form schema
 export const conversationsFormSchema = z.object({
-  conversations: z.array(conversationSchema)
+  conversations: z.array(conversationSchema),
+  activeConversationId: z.string().optional()
 });
 
 // Type inference for form data

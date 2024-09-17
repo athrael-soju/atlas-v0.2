@@ -29,6 +29,7 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
 
   if (!guestUser) {
     const thread = await createThread();
+
     const conversation: Conversation = {
       id: thread.id,
       name: 'Guest Conversation',
@@ -42,12 +43,13 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
       role: 'guest',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      settings: defaultUserSettings(conversation.id),
+      settings: defaultUserSettings(),
       knowledgebase: {
         files: []
       },
       // TODO: create a new thread for the guest user and add a Conversation object
       data: {
+        activeConversationId: conversation.id,
         conversations: [conversation]
       }
     };
@@ -87,12 +89,13 @@ async function findOrCreateUser(
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       role: 'user',
-      settings: defaultUserSettings(conversation.id),
+      settings: defaultUserSettings(),
       knowledgebase: {
         files: []
       },
       // TODO: create a new thread for the user and add a Conversation object
       data: {
+        activeConversationId: conversation.id,
         conversations: [conversation]
       }
     };

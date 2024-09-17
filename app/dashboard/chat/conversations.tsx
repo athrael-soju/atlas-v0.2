@@ -106,6 +106,7 @@ const Conversations = () => {
       active: conv.id === conversation.id
     }));
     onSubmit({ conversations: updatedConversations });
+    // TODO: onSubmit should also take as argument the active conversation id. Potentially use formPath: 'data.conversations'instead
   };
 
   const columns = [

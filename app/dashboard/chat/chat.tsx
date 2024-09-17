@@ -124,7 +124,7 @@ const Chat = () => {
   ) => {
     e.preventDefault();
     form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
-    await onSubmit(form.getValues());
+    onSubmit(form.getValues());
   };
 
   const handleMicToggle = () => {
