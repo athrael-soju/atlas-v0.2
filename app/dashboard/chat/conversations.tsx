@@ -129,13 +129,12 @@ const Conversations = () => {
         const conversation = row.original;
         const currentConversations = form.watch('conversations') || [];
 
-        // If conversation.active or currentConversations.length <= 1, show green circle emoji.
-        const showGreenCircle =
+        const showActive =
           conversation.active || currentConversations.length <= 1;
 
         return (
           <div>
-            {showGreenCircle ? (
+            {showActive ? (
               <Circle
                 className="h-8 w-8 p-1"
                 style={{ color: 'green', fill: 'green' }}
