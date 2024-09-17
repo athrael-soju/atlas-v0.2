@@ -20,8 +20,8 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { motion } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
+import { color, motion } from 'framer-motion';
+import { ChevronLeft, Circle } from 'lucide-react';
 import {
   Sheet,
   SheetTrigger,
@@ -136,9 +136,10 @@ const Conversations = () => {
         return (
           <div>
             {showGreenCircle ? (
-              <span role="img" aria-label="active">
-                🟢
-              </span>
+              <Circle
+                className="h-8 w-8 p-1"
+                style={{ color: 'green', fill: 'green' }}
+              />
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
