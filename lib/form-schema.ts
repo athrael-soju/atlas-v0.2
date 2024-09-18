@@ -61,7 +61,7 @@ export type SidebarSettingsValues = z.infer<typeof sidebarSettingsSchema>;
 
 const conversationSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  title: z.string(),
   createdAt: z.string(),
   active: z.boolean()
 });

@@ -32,7 +32,7 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
 
     const conversation: Conversation = {
       id: thread.id,
-      name: 'Guest Conversation',
+      title: 'Guest Chat',
       createdAt: new Date().toISOString(),
       active: true
     };
@@ -77,7 +77,7 @@ async function findOrCreateUser(
     const thread = await createThread();
     const conversation: Conversation = {
       id: thread.id,
-      name: 'User Conversation',
+      title: 'User Chat',
       createdAt: new Date().toISOString(),
       active: true
     };

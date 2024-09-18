@@ -77,7 +77,7 @@ export const Conversations = forwardRef((props, ref) => {
     const ej = emoji.random();
     const newConversation = {
       id: threadId,
-      name: `${ej.emoji} ${ej.name}`,
+      title: `${ej.emoji} ${ej.name}`,
       createdAt: new Date().toISOString(),
       active: true // Set the new conversation as active
     };
@@ -140,8 +140,8 @@ export const Conversations = forwardRef((props, ref) => {
 
   const columns = [
     {
-      header: 'Conversation',
-      accessorKey: 'name',
+      header: 'Title',
+      accessorKey: 'title',
       cell: (info: any) => info.getValue()
     },
     {
@@ -240,7 +240,7 @@ export const Conversations = forwardRef((props, ref) => {
 
             <div className="flex flex-col space-y-4">
               <Input
-                placeholder="Filter by name..."
+                placeholder="Filter by title..."
                 value={globalFilter}
                 onChange={(event) => setGlobalFilter(event.target.value)}
                 className="mb-4"

@@ -1,6 +1,6 @@
 export interface Conversation {
   id: string;
-  name: string;
+  title: string;
   createdAt: string;
   active: boolean;
 }
