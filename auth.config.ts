@@ -38,7 +38,7 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
     };
     const newGuestUser: IUser = {
       _id: new ObjectId(),
-      name: 'Guest User',
+      name: '🐔 chicken',
       email: 'guest@example.com',
       role: 'guest',
       createdAt: new Date().toISOString(),
@@ -77,7 +77,7 @@ async function findOrCreateUser(
     const thread = await createThread();
     const conversation: Conversation = {
       id: thread.id,
-      title: 'User Chat',
+      title: '🐔 chicken',
       createdAt: new Date().toISOString(),
       active: true
     };
