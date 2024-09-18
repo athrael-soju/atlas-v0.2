@@ -18,32 +18,33 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
+
 const chartData = [
-  { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
-  { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
-  { browser: 'firefox', visitors: 287, fill: 'var(--color-firefox)' },
-  { browser: 'edge', visitors: 173, fill: 'var(--color-edge)' },
-  { browser: 'other', visitors: 190, fill: 'var(--color-other)' }
+  { model: 'GPT-3', usage: 375, fill: 'var(--color-gpt3)' },
+  { model: 'GPT-4', usage: 500, fill: 'var(--color-gpt4)' },
+  { model: 'Codex', usage: 287, fill: 'var(--color-codex)' },
+  { model: 'Davinci', usage: 173, fill: 'var(--color-davinci)' },
+  { model: 'Other', usage: 90, fill: 'var(--color-other)' }
 ];
 
 const chartConfig = {
-  visitors: {
-    label: 'Visitors'
+  usage: {
+    label: 'Model Usage'
   },
-  chrome: {
-    label: 'Chrome',
+  gpt3: {
+    label: 'GPT-3',
     color: 'hsl(var(--chart-1))'
   },
-  safari: {
-    label: 'Safari',
+  gpt4: {
+    label: 'GPT-4',
     color: 'hsl(var(--chart-2))'
   },
-  firefox: {
-    label: 'Firefox',
+  codex: {
+    label: 'Codex',
     color: 'hsl(var(--chart-3))'
   },
-  edge: {
-    label: 'Edge',
+  davinci: {
+    label: 'Davinci',
     color: 'hsl(var(--chart-4))'
   },
   other: {
@@ -53,14 +54,14 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function PieGraph() {
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
+  const totalUsage = React.useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.usage, 0);
   }, []);
 
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Donut with Text</CardTitle>
+        <CardTitle>Model Usage Distribution</CardTitle>
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
@@ -75,8 +76,8 @@ export function PieGraph() {
             />
             <Pie
               data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
+              dataKey="usage"
+              nameKey="model"
               innerRadius={60}
               strokeWidth={5}
             >
@@ -95,14 +96,14 @@ export function PieGraph() {
                           y={viewBox.cy}
                           className="fill-foreground text-3xl font-bold"
                         >
-                          {totalVisitors.toLocaleString()}
+                          {totalUsage.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Visitors
+                          Model Usage
                         </tspan>
                       </text>
                     );
@@ -118,7 +119,7 @@ export function PieGraph() {
           Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Showing model usage distribution for the last 6 months
         </div>
       </CardFooter>
     </Card>

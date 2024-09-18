@@ -1,10 +1,9 @@
-// app\dashboard\page.tsx
 import { AreaGraph } from '@/components/charts/area-graph';
 import { BarGraph } from '@/components/charts/bar-graph';
 import { PieGraph } from '@/components/charts/pie-graph';
 import { CalendarDateRangePicker } from '@/components/date-range-picker';
 import PageContainer from '@/components/layout/page-container';
-import { RecentSales } from '@/components/recent-sales';
+import { RecentRequests } from '@/components/recent-sales';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -29,10 +28,16 @@ export default function Page() {
           </div>
         </div>
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex justify-center">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics" disabled>
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="metrics" disabled>
+              Metrics
+            </TabsTrigger>
+            <TabsTrigger value="tracing" disabled>
+              Tracing
             </TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
@@ -40,7 +45,7 @@ export default function Page() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Total Revenue
+                    Total Requests
                   </CardTitle>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -56,16 +61,16 @@ export default function Page() {
                   </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">$45,231.89</div>
+                  <div className="text-2xl font-bold">98,432</div>
                   <p className="text-xs text-muted-foreground">
-                    +20.1% from last month
+                    +15.2% from last month
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Subscriptions
+                    Average Active Users
                   </CardTitle>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -83,15 +88,17 @@ export default function Page() {
                   </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+2350</div>
+                  <div className="text-2xl font-bold">24</div>
                   <p className="text-xs text-muted-foreground">
-                    +180.1% from last month
+                    +5 active since last month
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Model Accuracy
+                  </CardTitle>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -107,16 +114,16 @@ export default function Page() {
                   </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+12,234</div>
+                  <div className="text-2xl font-bold">94.7%</div>
                   <p className="text-xs text-muted-foreground">
-                    +19% from last month
+                    +1.8% from last month
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Active Now
+                    Requests in Queue
                   </CardTitle>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -145,13 +152,13 @@ export default function Page() {
               </div>
               <Card className="col-span-4 md:col-span-3">
                 <CardHeader>
-                  <CardTitle>Recent Sales</CardTitle>
+                  <CardTitle>Top users by Requests</CardTitle>
                   <CardDescription>
-                    You made 265 sales this month.
+                    Showing the top users by requests made
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RecentSales />
+                  <RecentRequests />
                 </CardContent>
               </Card>
               <div className="col-span-4">
