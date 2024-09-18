@@ -47,6 +47,7 @@ import {
 } from '@/lib/form-schema';
 import { Conversation } from '@/types/data';
 import { Form } from '@/components/ui/form';
+import * as emoji from 'node-emoji';
 
 const defaultValues: Partial<ConversationsFormValues> = {
   conversations: []
@@ -73,9 +74,10 @@ export const Conversations = forwardRef((props, ref) => {
     const { threadId } = await response.json();
 
     // Create a new conversation object
+    const ej = emoji.random();
     const newConversation = {
       id: threadId,
-      name: `Conversation ${currentConversations.length + 1}`,
+      name: `${ej.emoji} ${ej.name}`,
       createdAt: new Date().toISOString(),
       active: true // Set the new conversation as active
     };
