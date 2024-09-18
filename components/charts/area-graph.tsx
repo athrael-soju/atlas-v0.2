@@ -17,22 +17,23 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 }
+
+const llmData = [
+  { month: 'January', accuracy: 85, utilization: 50 },
+  { month: 'February', accuracy: 88, utilization: 60 },
+  { month: 'March', accuracy: 83, utilization: 55 },
+  { month: 'April', accuracy: 90, utilization: 65 },
+  { month: 'May', accuracy: 87, utilization: 70 },
+  { month: 'June', accuracy: 89, utilization: 75 }
 ];
 
-const chartConfig = {
-  desktop: {
-    label: 'Desktop',
+const llmChartConfig = {
+  accuracy: {
+    label: 'Accuracy (%)',
     color: 'hsl(var(--chart-1))'
   },
-  mobile: {
-    label: 'Mobile',
+  utilization: {
+    label: 'Model Utilization (%)',
     color: 'hsl(var(--chart-2))'
   }
 } satisfies ChartConfig;
@@ -41,19 +42,19 @@ export function AreaGraph() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Area Chart - Stacked</CardTitle>
+        <CardTitle>LLM Metrics</CardTitle>
         <CardDescription>
-          Showing total visitors for the last 6 months
+          Showing LLM accuracy and model utilization for the last 6 months
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer
-          config={chartConfig}
+          config={llmChartConfig}
           className="aspect-auto h-[310px] w-full"
         >
           <AreaChart
             accessibilityLayer
-            data={chartData}
+            data={llmData}
             margin={{
               left: 12,
               right: 12
@@ -72,19 +73,19 @@ export function AreaGraph() {
               content={<ChartTooltipContent indicator="dot" />}
             />
             <Area
-              dataKey="mobile"
+              dataKey="utilization"
               type="natural"
-              fill="var(--color-mobile)"
+              fill="var(--color-utilization)"
               fillOpacity={0.4}
-              stroke="var(--color-mobile)"
+              stroke="var(--color-utilization)"
               stackId="a"
             />
             <Area
-              dataKey="desktop"
+              dataKey="accuracy"
               type="natural"
-              fill="var(--color-desktop)"
+              fill="var(--color-accuracy)"
               fillOpacity={0.4}
-              stroke="var(--color-desktop)"
+              stroke="var(--color-accuracy)"
               stackId="a"
             />
           </AreaChart>

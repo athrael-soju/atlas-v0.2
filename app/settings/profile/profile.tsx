@@ -144,8 +144,16 @@ export function ProfileForm(): React.ReactElement {
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          const localDate = new Date(date.setHours(0, 0, 0, 0));
-                          field.onChange(localDate.toISOString().split('T')[0]);
+                          // Ensure the selected date is set to noon to prevent timezone-related issues
+                          const localDate = new Date(
+                            date.getFullYear(),
+                            date.getMonth(),
+                            date.getDate(),
+                            12, // Set hour to noon to avoid timezone issues
+                            0,
+                            0
+                          );
+                          field.onChange(localDate.toISOString().split('T')[0]); // Format as YYYY-MM-DD
                         }
                       }}
                       initialFocus
