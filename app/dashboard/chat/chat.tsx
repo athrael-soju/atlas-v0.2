@@ -100,6 +100,7 @@ export const Chat = () => {
   } | null>;
   const {
     messages,
+    setMessages,
     isThinking,
     isStreaming,
     inputDisabled,
@@ -130,9 +131,7 @@ export const Chat = () => {
     if (conversationRef.current) {
       conversationRef.current.addConversation();
     }
-
-    // form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
-    // onSubmit(form.getValues());
+    setMessages([]);
   };
 
   const handleKnowledgebaseToggle = async (

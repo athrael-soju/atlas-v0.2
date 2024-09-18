@@ -204,6 +204,7 @@ export const useMessaging = (
 
   return {
     messages,
+    setMessages,
     isThinking,
     isStreaming,
     inputDisabled,
