@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import React, { useState } from 'react';
+import React, { useRef, useState, MutableRefObject } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/spinner';
 import { useMessaging } from '@/hooks/use-messaging';
@@ -95,6 +95,9 @@ const Message = ({ role, text }: MessageProps) => {
 export const Chat = () => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
+  const conversationRef = useRef() as MutableRefObject<{
+    addConversation: () => void;
+  } | null>;
   const {
     messages,
     isThinking,
@@ -124,15 +127,14 @@ export const Chat = () => {
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-
-    const response = await fetch(`/api/assistants/threads`, {
-      method: 'POST'
-    });
-    const { threadId } = await response.json();
+    if (conversationRef.current) {
+      conversationRef.current.addConversation();
+    }
 
     // form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
     // onSubmit(form.getValues());
   };
+
   const handleKnowledgebaseToggle = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -151,7 +153,7 @@ export const Chat = () => {
 
   return (
     <TooltipProvider>
-      <Conversations />
+      <Conversations ref={conversationRef} />
       <div
         className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}

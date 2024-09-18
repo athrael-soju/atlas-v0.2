@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import {
   SortingState,
   useReactTable,
@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Circle } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import {
   Sheet,
   SheetTrigger,
@@ -52,7 +52,8 @@ const defaultValues: Partial<ConversationsFormValues> = {
   conversations: []
 };
 
-export const Conversations = () => {
+export const Conversations = forwardRef((props, ref) => {
+  Conversations.displayName = 'Conversations';
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -61,6 +62,44 @@ export const Conversations = () => {
     defaultValues,
     formPath: 'data'
   });
+
+  const handleAddConversation = async () => {
+    const currentConversations = form.getValues('conversations') || [];
+
+    const response = await fetch(`/api/assistants/threads`, {
+      method: 'POST'
+    });
+
+    const { threadId } = await response.json();
+
+    // Create a new conversation object
+    const newConversation = {
+      id: threadId,
+      name: `Conversation ${currentConversations.length + 1}`,
+      createdAt: new Date().toISOString(),
+      active: true // Set the new conversation as active
+    };
+
+    // Update the current conversations to set the previous active one to false
+    const updatedConversations = currentConversations.map((conv) => ({
+      ...conv,
+      active: false // Set all existing conversations to inactive
+    }));
+
+    // Add the new active conversation
+    updatedConversations.push(newConversation);
+
+    // Update the user data
+    onSubmit({
+      conversations: updatedConversations,
+      activeConversationId: threadId
+    });
+  };
+
+  // Use `useImperativeHandle` to expose functions to the parent
+  useImperativeHandle(ref, () => ({
+    addConversation: handleAddConversation
+  }));
 
   const handleDeleteConversation = (conversation: Conversation) => {
     const currentConversations = form.getValues('conversations') || [];
@@ -112,22 +151,26 @@ export const Conversations = () => {
       }
     },
     {
+      header: 'State',
+      accessorKey: 'active',
+      cell: (info: any) => {
+        const isActive = info.getValue();
+        return isActive ? 'Active' : 'Inactive';
+      }
+    },
+    {
       id: 'actions',
       enableHiding: false,
       cell: ({ row }: any) => {
         const conversation = row.original;
-        const currentConversations = form.watch('conversations') || [];
-
-        const showActive =
-          conversation.active || currentConversations.length <= 1;
-
+        const isActive = conversation.active;
         return (
           <div>
-            {showActive ? (
-              <Circle
-                className="h-8 w-8 p-1"
-                style={{ color: 'green', fill: 'green' }}
-              />
+            {isActive ? (
+              <Button variant="ghost" className="h-8 w-8 p-0" disabled>
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -140,7 +183,6 @@ export const Conversations = () => {
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuItem
                     onClick={() => handleSetActiveConversation(conversation)}
-                    disabled={conversation.active}
                   >
                     <Icons.check className="mr-2 h-4 w-4" />
                     Set as Active
@@ -161,7 +203,9 @@ export const Conversations = () => {
   ];
 
   const table = useReactTable<Conversation>({
-    data: form.watch('conversations') || [],
+    data: (form.watch('conversations') || []).sort(
+      (a, b) => Number(b.active) - Number(a.active) // TODO: Keep?
+    ),
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -272,4 +316,4 @@ export const Conversations = () => {
       </form>
     </Form>
   );
-};
+});
