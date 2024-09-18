@@ -87,9 +87,13 @@ export function useUserForm<T extends FieldValues>({
 
   // Reset the form whenever the userData changes
   useEffect(() => {
-    if (userData && !form.formState.isDirty) {
-      form.reset(userData);
-    } else if (!userData) {
+    if (userData) {
+      // Only reset if userData is available and form is not dirty to prevent overwriting unsaved changes
+      if (!form.formState.isDirty) {
+        form.reset(userData);
+      }
+    } else if (!form.formState.isDirty) {
+      // Reset to default values only when there's no userData and the form is clean
       form.reset(defaultValues);
     }
   }, [userData, form, defaultValues]);
@@ -97,10 +101,7 @@ export function useUserForm<T extends FieldValues>({
   // Enhanced onSubmit function
   const onSubmit = useCallback(
     (data: T) => {
-      const partialData: Partial<Record<string, any>> = data.conversations
-        ? data.conversations
-        : { ...data };
-
+      const partialData: Partial<Record<string, any>> = { ...data };
       mutation.mutate(partialData);
     },
     [mutation]

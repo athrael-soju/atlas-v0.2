@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   SortingState,
   useReactTable,
@@ -20,7 +20,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { color, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronLeft, Circle } from 'lucide-react';
 import {
   Sheet,
@@ -56,29 +56,11 @@ const Conversations = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const { form, userData, onSubmit, loading } = useUserForm({
+  const { form, onSubmit } = useUserForm({
     schema: conversationsFormSchema,
     defaultValues,
-    formPath: 'data.conversations'
+    formPath: 'data'
   });
-
-  const setConversationsValue = useCallback(() => {
-    if (userData) {
-      form.setValue('conversations', userData);
-    } else {
-      form.reset(defaultValues);
-    }
-  }, [userData, form]);
-
-  useEffect(() => {
-    setConversationsValue();
-  }, [setConversationsValue]);
-
-  useEffect(() => {
-    if (form.formState.isDirty) {
-      form.handleSubmit(onSubmit)();
-    }
-  }, [form, onSubmit]);
 
   const handleDeleteConversation = (conversation: Conversation) => {
     const currentConversations = form.getValues('conversations') || [];
@@ -96,7 +78,10 @@ const Conversations = () => {
       (conv) => conv.id !== conversation.id
     );
 
-    onSubmit({ conversations: updatedConversations });
+    onSubmit({
+      conversations: updatedConversations,
+      activeConversationId: conversation.id
+    });
   };
 
   const handleSetActiveConversation = (conversation: Conversation) => {
@@ -105,8 +90,11 @@ const Conversations = () => {
       ...conv,
       active: conv.id === conversation.id
     }));
-    onSubmit({ conversations: updatedConversations });
-    // TODO: onSubmit should also take as argument the active conversation id. Potentially use formPath: 'data.conversations'instead
+
+    onSubmit({
+      conversations: updatedConversations,
+      activeConversationId: conversation.id
+    });
   };
 
   const columns = [
