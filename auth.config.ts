@@ -10,7 +10,9 @@ import { IUser } from '@/models/User';
 import { defaultUserSettings } from '@/constants/user';
 import { createThread } from '@/lib/service/openai';
 import { Conversation } from './types/data';
+import * as emoji from 'node-emoji';
 
+const ej = emoji.random();
 const { GITHUB_ID, GITHUB_SECRET, GOOGLE_ID, GOOGLE_SECRET, NEXTAUTH_SECRET } =
   process.env;
 
@@ -32,13 +34,13 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
 
     const conversation: Conversation = {
       id: thread.id,
-      title: 'Guest Chat',
+      title: `${ej.emoji} ${ej.name}`,
       createdAt: new Date().toISOString(),
       active: true
     };
     const newGuestUser: IUser = {
       _id: new ObjectId(),
-      name: '🐔 chicken',
+      name: 'Guest',
       email: 'guest@example.com',
       role: 'guest',
       createdAt: new Date().toISOString(),
@@ -47,7 +49,6 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
       knowledgebase: {
         files: []
       },
-      // TODO: create a new thread for the guest user and add a Conversation object
       data: {
         activeConversationId: conversation.id,
         conversations: [conversation]
@@ -77,7 +78,7 @@ async function findOrCreateUser(
     const thread = await createThread();
     const conversation: Conversation = {
       id: thread.id,
-      title: '🐔 chicken',
+      title: `${ej.emoji} ${ej.name}`,
       createdAt: new Date().toISOString(),
       active: true
     };
@@ -93,7 +94,6 @@ async function findOrCreateUser(
       knowledgebase: {
         files: []
       },
-      // TODO: create a new thread for the user and add a Conversation object
       data: {
         activeConversationId: conversation.id,
         conversations: [conversation]
@@ -134,7 +134,6 @@ const authConfig: NextAuthOptions = {
       credentials: { email: { type: 'email' }, password: { type: 'password' } },
       async authorize(credentials) {
         try {
-          // TODO: Add offline login
           await client.connect();
           const db = client.db('AtlasII');
           const usersCollection = db.collection('users');

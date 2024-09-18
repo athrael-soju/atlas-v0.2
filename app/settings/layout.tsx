@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Atlas II',
   description: 'Even better than the first one!'
 };
-// TODO: When logging out from the settings page, the user should be redirected to the login page
+
 export default function DashboardLayout({
   children
 }: {

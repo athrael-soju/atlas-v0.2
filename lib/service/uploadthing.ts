@@ -6,7 +6,6 @@ const utapi = new UTApi();
 import { deleteFromVectorDb } from './pinecone';
 import { UploadedFile } from '@/types/file-uploader';
 
-// TODO: Implement multiple file deletion
 export const deleteFiles = async (userId: string, files: UploadedFile[]) => {
   let deletedFileCount = 0;
   const id = userId;

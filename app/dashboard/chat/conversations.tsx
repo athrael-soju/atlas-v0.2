@@ -206,7 +206,7 @@ export const Conversations = forwardRef((props, ref) => {
 
   const table = useReactTable<Conversation>({
     data: (form.watch('conversations') || []).sort(
-      (a, b) => Number(b.active) - Number(a.active) // TODO: Keep?
+      (a, b) => Number(b.active) - Number(a.active)
     ),
     columns,
     onSortingChange: setSorting,
@@ -231,7 +231,7 @@ export const Conversations = forwardRef((props, ref) => {
           </SheetTrigger>
           <SheetContent
             side="right"
-            style={{ width: '400px', maxWidth: '100vw' }}
+            style={{ width: '450px', maxWidth: '100vw' }}
           >
             <SheetHeader>
               <SheetTitle>Conversations</SheetTitle>
