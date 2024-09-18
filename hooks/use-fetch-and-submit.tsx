@@ -5,21 +5,53 @@ import { toast } from '@/components/ui/use-toast';
 import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-import { fetchUserData, updateUserData } from '@/lib/service/user';
 
-// Parameters for useUserForm to make it generic
-interface UseUserFormParams<T extends FieldValues> {
+// Parameters for useFetchAndSubmit to make it generic
+interface UseFetchAndSubmitParams<T extends FieldValues> {
   schema: z.ZodSchema<T>;
   defaultValues: DefaultValues<T>;
   formPath: string;
 }
 
-// Updated useUserForm hook
-export function useUserForm<T extends FieldValues>({
+const fetchUserData = async (path: string): Promise<any> => {
+  try {
+    const response = await fetch(`/api/user?path=${path}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user data');
+    }
+    const result = await response.json();
+    return result[path];
+  } catch (error) {
+    console.error('Fetch error: ', error);
+    throw error;
+  }
+};
+
+const updateUserData = async (path: string, data: any): Promise<void> => {
+  try {
+    const response = await fetch(`/api/user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path, data })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Backend responded with error:', errorText);
+      throw new Error('Failed to update user data');
+    }
+  } catch (error) {
+    console.error('Update error: ', error);
+    throw error;
+  }
+};
+
+// Updated useFetchAndSubmit hook
+export function useFetchAndSubmit<T extends FieldValues>({
   schema,
   defaultValues,
   formPath
-}: UseUserFormParams<T>) {
+}: UseFetchAndSubmitParams<T>) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const queryClient = useQueryClient();

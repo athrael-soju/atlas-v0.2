@@ -40,7 +40,7 @@ import {
 import { Trash2, MoreHorizontal } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { toast } from '@/components/ui/use-toast';
-import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import {
   conversationsFormSchema,
   ConversationsFormValues
@@ -52,11 +52,11 @@ const defaultValues: Partial<ConversationsFormValues> = {
   conversations: []
 };
 
-const Conversations = () => {
+export const Conversations = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const { form, onSubmit } = useUserForm({
+  const { form, onSubmit } = useFetchAndSubmit({
     schema: conversationsFormSchema,
     defaultValues,
     formPath: 'data'
@@ -273,5 +273,3 @@ const Conversations = () => {
     </Form>
   );
 };
-
-export default Conversations;

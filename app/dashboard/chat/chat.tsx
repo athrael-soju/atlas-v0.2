@@ -13,8 +13,9 @@ import {
   Paperclip,
   Brain,
   Loader2,
-  UserIcon,
-  Bot
+  User,
+  Bot,
+  MessageCirclePlus
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -26,8 +27,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
-import { useUserForm } from '@/hooks/use-fetch-and-submit';
-import Conversations from './conversations';
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
+import { Conversations } from './conversations';
 
 const defaultValues: Partial<ChatFormValues> = {
   knowledgebaseEnabled: false
@@ -44,7 +45,7 @@ const UserMessage = ({ text }: { text: string }) => (
       <span className="break-words">{text}</span>
     </div>
     <div className="ml-2">
-      <UserIcon className="h-8 w-8 flex-shrink-0 text-primary" />
+      <User className="h-6 w-6 flex-shrink-0 text-primary" />
     </div>
   </div>
 );
@@ -52,7 +53,7 @@ const UserMessage = ({ text }: { text: string }) => (
 const AssistantMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
     <Bot
-      className="h-8 w-8 flex-shrink-0 text-card-foreground"
+      className="h-6 w-6 flex-shrink-0 text-card-foreground"
       style={{ marginRight: '8px' }}
     />
     <div className="flex items-start rounded-lg bg-card p-3 text-card-foreground shadow-lg">
@@ -91,7 +92,7 @@ const Message = ({ role, text }: MessageProps) => {
   }
 };
 
-const Chat = () => {
+export const Chat = () => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
   const {
@@ -104,7 +105,7 @@ const Chat = () => {
     abortStream
   } = useMessaging();
 
-  const { form, onSubmit } = useUserForm<ChatFormValues>({
+  const { form, onSubmit } = useFetchAndSubmit<ChatFormValues>({
     schema: chatFormSchema,
     defaultValues,
     formPath: 'settings.chat'
@@ -119,6 +120,19 @@ const Chat = () => {
     setUserInput('');
   };
 
+  const handleStartNewConversation = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault();
+
+    const response = await fetch(`/api/assistants/threads`, {
+      method: 'POST'
+    });
+    const { threadId } = await response.json();
+
+    // form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
+    // onSubmit(form.getValues());
+  };
   const handleKnowledgebaseToggle = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -222,6 +236,20 @@ const Chat = () => {
                 Enlighten your assistant
               </TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleStartNewConversation}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  type="button"
+                >
+                  <MessageCirclePlus className="h-5 w-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">New conversation</TooltipContent>
+            </Tooltip>
             <Button
               type="button"
               size="sm"
@@ -247,5 +275,3 @@ const Chat = () => {
     </TooltipProvider>
   );
 };
-
-export default Chat;

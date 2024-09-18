@@ -8,11 +8,12 @@ import {
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants';
 import { fetchContextEnrichedMessage } from '@/lib/service/atlas';
 import { useSession } from 'next-auth/react';
-import { useUserForm } from './use-fetch-and-submit'; // Assuming this is where your hook is stored.
+import { useFetchAndSubmit } from './use-fetch-and-submit';
 import {
   conversationsFormSchema,
   ConversationsFormValues
 } from '@/lib/form-schema';
+import { toast } from '@/components/ui/use-toast';
 
 type Message = {
   role: 'user' | 'assistant' | 'code';
@@ -45,7 +46,7 @@ export const useMessaging = (
     scrollToBottom();
   }, [messages]);
 
-  const { form } = useUserForm({
+  const { form } = useFetchAndSubmit({
     schema: conversationsFormSchema,
     defaultValues,
     formPath: 'data'
@@ -143,6 +144,15 @@ export const useMessaging = (
     stream.on('end', () => {
       setIsStreaming(false);
       setInputDisabled(false);
+    });
+    stream.on('error', (error) => {
+      setIsThinking(false);
+      setInputDisabled(false);
+      toast({
+        title: 'Whoops!',
+        description: `Something went wrong while sending your message. '${error}'. Please try again, or contact support if the issue persists.`,
+        variant: 'destructive'
+      });
     });
   };
 
