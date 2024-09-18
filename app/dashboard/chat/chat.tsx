@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Assuming this is the correct path
-import React, { useState } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import React, { useRef, useState, MutableRefObject } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/spinner';
 import { useMessaging } from '@/hooks/use-messaging';
@@ -13,9 +13,10 @@ import {
   Paperclip,
   Brain,
   Loader2,
-  UserIcon,
-  Bot
-} from 'lucide-react'; // Import User and Bot icons
+  User,
+  Bot,
+  MessageCirclePlus
+} from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -26,7 +27,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
-import { useUserForm } from '@/hooks/use-fetch-and-submit'; // Import the custom hook
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
+import { Conversations } from './conversations';
 
 const defaultValues: Partial<ChatFormValues> = {
   knowledgebaseEnabled: false
@@ -43,7 +45,7 @@ const UserMessage = ({ text }: { text: string }) => (
       <span className="break-words">{text}</span>
     </div>
     <div className="ml-2">
-      <UserIcon className="h-8 w-8 flex-shrink-0 text-primary" />
+      <User className="h-6 w-6 flex-shrink-0 text-primary" />
     </div>
   </div>
 );
@@ -51,7 +53,7 @@ const UserMessage = ({ text }: { text: string }) => (
 const AssistantMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
     <Bot
-      className="h-8 w-8 flex-shrink-0 text-card-foreground"
+      className="h-6 w-6 flex-shrink-0 text-card-foreground"
       style={{ marginRight: '8px' }}
     />
     <div className="flex items-start rounded-lg bg-card p-3 text-card-foreground shadow-lg">
@@ -90,11 +92,15 @@ const Message = ({ role, text }: MessageProps) => {
   }
 };
 
-const Chat = () => {
+export const Chat = () => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
+  const conversationRef = useRef() as MutableRefObject<{
+    addConversation: () => void;
+  } | null>;
   const {
     messages,
+    setMessages,
     isThinking,
     isStreaming,
     inputDisabled,
@@ -103,10 +109,10 @@ const Chat = () => {
     abortStream
   } = useMessaging();
 
-  const { form, onSubmit } = useUserForm<ChatFormValues>({
+  const { form, onSubmit } = useFetchAndSubmit<ChatFormValues>({
     schema: chatFormSchema,
     defaultValues,
-    formPath: 'chat'
+    formPath: 'settings.chat'
   });
 
   const knowledgebaseEnabled = form.watch('knowledgebaseEnabled', false);
@@ -118,12 +124,22 @@ const Chat = () => {
     setUserInput('');
   };
 
+  const handleStartNewConversation = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault();
+    if (conversationRef.current) {
+      conversationRef.current.addConversation();
+    }
+    setMessages([]);
+  };
+
   const handleKnowledgebaseToggle = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
-    e.preventDefault(); // Prevent form submission if it triggers
-    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled); // Toggle knowledgebase
-    await onSubmit(form.getValues()); // Submit the form
+    e.preventDefault();
+    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
+    onSubmit(form.getValues());
   };
 
   const handleMicToggle = () => {
@@ -136,6 +152,7 @@ const Chat = () => {
 
   return (
     <TooltipProvider>
+      <Conversations ref={conversationRef} />
       <div
         className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}
@@ -220,6 +237,20 @@ const Chat = () => {
                 Enlighten your assistant
               </TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleStartNewConversation}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  type="button"
+                >
+                  <MessageCirclePlus className="h-5 w-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">New conversation</TooltipContent>
+            </Tooltip>
             <Button
               type="button"
               size="sm"
@@ -245,5 +276,3 @@ const Chat = () => {
     </TooltipProvider>
   );
 };
-
-export default Chat;

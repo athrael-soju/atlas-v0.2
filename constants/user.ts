@@ -1,4 +1,4 @@
-export const defaultUserSettings = {
+export const defaultUserSettings = () => ({
   forge: {
     parsingProvider: 'io',
     minChunkSize: 0,
@@ -26,4 +26,4 @@ export const defaultUserSettings = {
   misc: {
     sidebarExpanded: true
   }
-};
+});

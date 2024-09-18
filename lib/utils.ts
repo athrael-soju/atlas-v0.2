@@ -48,7 +48,6 @@ export const toAscii = (str: string): string => {
   return str.replace(/[^\x00-\x7F]/g, '');
 };
 
-// TODO: Make the User type consistent
 export const validateUser = async (userId: string): Promise<any> => {
   const userServerData = await getUserData(userId);
   if (userServerData._id.toString() !== userId) {
@@ -132,7 +131,6 @@ User Profile:
   Occupation: ${occupation}
   Technical Aptitude: ${technicalAptitude}
   Military Status: ${militaryStatus}`;
-    // TODO: Simplify / make more readable
     return finalMessage;
   }
 

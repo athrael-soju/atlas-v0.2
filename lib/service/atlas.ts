@@ -4,7 +4,6 @@ const createFormData = (userId: string, selectedFiles: string[]): FormData => {
   formData.append('userId', userId);
   return formData;
 };
-// TODO: Refactor /  Find a better approach
 let contextEnrichedMessage: string | null = null;
 
 const handleSSEChunk = (data: string) => {

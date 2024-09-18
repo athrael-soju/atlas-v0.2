@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { FormSlider } from '@/components/form-slider';
 import { forgeFormSchema, ForgeFormValues } from '@/lib/form-schema';
-import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { FormSelect } from '@/components/form-select';
 import {
   parsingProviders,
@@ -26,10 +26,10 @@ const defaultValues: Partial<ForgeFormValues> = {
 };
 
 export function ForgeForm() {
-  const { form, loading, onSubmit } = useUserForm<ForgeFormValues>({
+  const { form, loading, onSubmit } = useFetchAndSubmit<ForgeFormValues>({
     schema: forgeFormSchema,
     defaultValues,
-    formPath: 'forge'
+    formPath: 'settings.forge'
   });
 
   if (loading) {

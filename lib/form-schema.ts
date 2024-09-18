@@ -58,3 +58,19 @@ export const sidebarSettingsSchema = z.object({
 });
 
 export type SidebarSettingsValues = z.infer<typeof sidebarSettingsSchema>;
+
+const conversationSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  createdAt: z.string(),
+  active: z.boolean()
+});
+
+// Define the form schema
+export const conversationsFormSchema = z.object({
+  conversations: z.array(conversationSchema),
+  activeConversationId: z.string().optional()
+});
+
+// Type inference for form data
+export type ConversationsFormValues = z.infer<typeof conversationsFormSchema>;

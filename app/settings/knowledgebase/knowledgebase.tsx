@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { FormSlider } from '@/components/form-slider';
 import { knowledgebaseSchema, KnowledgebaseValues } from '@/lib/form-schema';
-import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { Searching } from '@/components/spinner';
 
 const defaultValues: Partial<KnowledgebaseValues> = {
@@ -14,10 +14,10 @@ const defaultValues: Partial<KnowledgebaseValues> = {
 };
 
 export function KnowledgebaseForm() {
-  const { form, loading, onSubmit } = useUserForm<KnowledgebaseValues>({
+  const { form, loading, onSubmit } = useFetchAndSubmit<KnowledgebaseValues>({
     schema: knowledgebaseSchema,
     defaultValues,
-    formPath: 'knowledgebase'
+    formPath: 'settings.knowledgebase'
   });
 
   if (loading) {

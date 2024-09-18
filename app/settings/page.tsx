@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-// TODO: Add Profile
+
 export default function SettingsPage() {
   return (
     <PageContainer scrollable={true}>

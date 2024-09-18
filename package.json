@@ -80,6 +80,7 @@
     "next-auth": "^4.24.7",
     "next-themes": "^0.2.1",
     "nextjs-toploader": "^1.6.12",
+    "node-emoji": "^2.1.3",
     "openai": "^4.56.0",
     "opentelemetry": "^0.1.0",
     "postcss": "8.4.28",

@@ -3,12 +3,12 @@
 import React from 'react';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { cn } from '@/lib/utils';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import Link from 'next/link';
 import { NavItem } from '@/types';
 import Image from 'next/image';
-import { useUserForm } from '@/hooks/use-fetch-and-submit'; // Import the hook
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit'; // Import the hook
 import {
   sidebarSettingsSchema,
   SidebarSettingsValues
@@ -26,11 +26,11 @@ const defaultValues: Partial<SidebarSettingsValues> = {
 export default function Sidebar({ className, navItems }: SidebarProps) {
   const { toggle } = useSidebar();
 
-  // Initialize the useUserForm hook with the sidebar settings schema and default values
-  const { form, onSubmit } = useUserForm<{ sidebarExpanded: boolean }>({
+  // Initialize the useFetchAndSubmit hook with the sidebar settings schema and default values
+  const { form, onSubmit } = useFetchAndSubmit<{ sidebarExpanded: boolean }>({
     schema: sidebarSettingsSchema,
     defaultValues,
-    formPath: 'misc'
+    formPath: 'settings.misc'
   });
 
   const handleToggle = () => {
@@ -63,7 +63,7 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
           />
         </Link>
       </div>
-      <ChevronLeft
+      <ChevronRight
         className={cn(
           'absolute -right-3 top-10 z-50 cursor-pointer rounded-full border bg-background text-3xl text-foreground',
           form.getValues('sidebarExpanded') && 'rotate-180'

@@ -1,6 +1,6 @@
 'use client';
 
-import Chat from '@/app/dashboard/chat/chat';
+import { Chat } from '@/app/dashboard/chat/chat';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
 import { RequiredActionFunctionToolCall } from 'openai/resources/beta/threads/runs/runs.mjs';

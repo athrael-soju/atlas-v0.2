@@ -5,6 +5,7 @@ import {
   KnowledgebaseSettings,
   ProfileSettings,
   MiscSettings,
+  ConversationSettings
 } from '@/types/settings';
 import { UploadedFile } from '@/types/file-uploader';
 
@@ -25,4 +26,5 @@ export interface IUser {
   knowledgebase: {
     files: UploadedFile[];
   };
+  data: ConversationSettings;
 }

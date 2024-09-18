@@ -17,7 +17,7 @@ import { FormSelect } from '@/components/form-select';
 import { Searching } from '@/components/spinner';
 import { ButtonLoading } from '@/components/button-loading';
 import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
-import { useUserForm } from '@/hooks/use-fetch-and-submit';
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import {
   countryOptions,
   genderOptions,
@@ -43,10 +43,10 @@ const defaultValues: ProfileFormValues = {
 };
 
 export function ProfileForm(): React.ReactElement {
-  const { form, loading, onSubmit } = useUserForm<ProfileFormValues>({
+  const { form, loading, onSubmit } = useFetchAndSubmit<ProfileFormValues>({
     schema: profileFormSchema,
     defaultValues,
-    formPath: 'profile'
+    formPath: 'settings.profile'
   });
 
   if (loading) {

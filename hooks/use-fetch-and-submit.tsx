@@ -1,121 +1,143 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { DefaultValues, FieldValues, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/components/ui/use-toast';
 import { useSession } from 'next-auth/react';
-import { IUser } from '@/models/User';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
-async function fetchUserSettings(): Promise<IUser['settings']> {
-  const response = await fetch('/api/user', { method: 'GET' });
-  if (!response.ok) {
-    throw new Error('Failed to fetch user settings');
-  }
-  const result = await response.json();
-  return result.settings;
-}
-
-async function updateUserSettings(
-  settings: Partial<IUser['settings']>
-): Promise<void> {
-  const response = await fetch('/api/user', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings)
-  });
-  if (!response.ok) {
-    throw new Error('Failed to update user settings');
-  }
-}
-
-interface UseUserFormParams<T extends FieldValues> {
+// Parameters for useFetchAndSubmit to make it generic
+interface UseFetchAndSubmitParams<T extends FieldValues> {
   schema: z.ZodSchema<T>;
   defaultValues: DefaultValues<T>;
-  formPath: keyof IUser['settings'];
+  formPath: string;
 }
 
-export function useUserForm<T extends FieldValues>({
+const fetchUserData = async (path: string): Promise<any> => {
+  try {
+    const response = await fetch(`/api/user?path=${path}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user data');
+    }
+    const result = await response.json();
+    return result[path];
+  } catch (error) {
+    console.error('Fetch error: ', error);
+    throw error;
+  }
+};
+
+const updateUserData = async (path: string, data: any): Promise<void> => {
+  try {
+    const response = await fetch(`/api/user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path, data })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Backend responded with error:', errorText);
+      throw new Error('Failed to update user data');
+    }
+  } catch (error) {
+    console.error('Update error: ', error);
+    throw error;
+  }
+};
+
+// Updated useFetchAndSubmit hook
+export function useFetchAndSubmit<T extends FieldValues>({
   schema,
   defaultValues,
   formPath
-}: UseUserFormParams<T>) {
+}: UseFetchAndSubmitParams<T>) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const queryClient = useQueryClient();
 
+  const memoizedDefaultValues = useMemo(() => defaultValues, [defaultValues]);
+
   const form = useForm<T>({
     resolver: zodResolver(schema),
-    defaultValues
+    defaultValues: memoizedDefaultValues
   });
 
-  const { data: userSettings, isLoading } = useQuery({
-    queryKey: ['userSettings', userId],
-    queryFn: fetchUserSettings,
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ['userData', userId, formPath],
+    queryFn: () => fetchUserData(formPath),
     enabled: !!userId
   });
 
   const mutation = useMutation({
-    mutationFn: updateUserSettings,
-    onMutate: async (newSettings: Partial<IUser['settings']>) => {
-      const previousSettings = queryClient.getQueryData<IUser['settings']>([
-        'userSettings',
-        userId
+    mutationFn: (newData: Partial<Record<string, any>>) =>
+      updateUserData(formPath, newData),
+    onMutate: async (newData: Partial<Record<string, any>>) => {
+      const previousData = queryClient.getQueryData<Record<string, any>>([
+        'userData',
+        userId,
+        formPath
       ]);
 
-      // Optimistically update cache with new settings
       queryClient.setQueryData(
-        ['userSettings', userId],
-        (oldSettings: object) => ({
-          ...(oldSettings as object),
-          ...newSettings
+        ['userData', userId, formPath],
+        (oldData: object) => ({
+          ...(oldData as object),
+          ...newData
         })
       );
 
-      return { previousSettings };
+      return { previousData };
     },
-    onError: (error, _newSettings, context) => {
-      // Rollback to previous settings on error
-      if (context?.previousSettings) {
+    onError: (error, _newData, context) => {
+      if (context?.previousData) {
         queryClient.setQueryData(
-          ['userSettings', userId],
-          context.previousSettings
+          ['userData', userId, formPath],
+          context.previousData
         );
       }
 
       toast({
         title: 'Error',
-        description: `Failed to update settings: ${error.message}`,
+        description: `Failed to update data: ${error.message}`,
         variant: 'destructive'
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['userSettings', userId] });
+      queryClient.invalidateQueries({
+        queryKey: ['userData', userId, formPath]
+      });
     },
     onSuccess: () => {
       toast({
-        title: 'Settings Updated',
-        description: 'Your settings have been successfully updated.',
+        title: 'Data Updated',
+        description: 'Your data has been successfully updated.',
         variant: 'default'
       });
     }
   });
 
+  // Reset the form whenever the userData changes
   useEffect(() => {
-    if (userSettings) {
-      const formSettings = userSettings[formPath] as unknown as T;
-      if (formSettings) {
-        form.reset(formSettings);
-      } else {
-        form.reset(defaultValues as DefaultValues<T>);
+    if (userData) {
+      // Only reset if userData is available and form is not dirty to prevent overwriting unsaved changes
+      if (!form.formState.isDirty) {
+        form.reset(userData);
       }
+    } else if (!form.formState.isDirty) {
+      // Reset to default values only when there's no userData and the form is clean
+      form.reset(defaultValues);
     }
-  }, [userSettings, form, formPath, defaultValues]);
+  }, [userData, form, defaultValues]);
 
-  async function onSubmit(data: T) {
-    const partialData: Partial<IUser['settings']> = { [formPath]: data };
-    mutation.mutate(partialData);
-  }
+  // Enhanced onSubmit function
+  const onSubmit = useCallback(
+    (data: T) => {
+      const partialData: Partial<Record<string, any>> = { ...data };
+      mutation.mutate(partialData);
+    },
+    [mutation]
+  );
 
-  return { form, loading: isLoading, onSubmit };
+  return { form, loading: isLoading, onSubmit, userData };
 }

@@ -8,10 +8,20 @@ import {
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants';
 import { fetchContextEnrichedMessage } from '@/lib/service/atlas';
 import { useSession } from 'next-auth/react';
+import { useFetchAndSubmit } from './use-fetch-and-submit';
+import {
+  conversationsFormSchema,
+  ConversationsFormValues
+} from '@/lib/form-schema';
+import { toast } from '@/components/ui/use-toast';
 
 type Message = {
   role: 'user' | 'assistant' | 'code';
   text: string;
+};
+
+const defaultValues: Partial<ConversationsFormValues> = {
+  activeConversationId: ''
 };
 
 export const useMessaging = (
@@ -19,7 +29,6 @@ export const useMessaging = (
     Promise.resolve('')
 ) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [threadId, setThreadId] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
@@ -37,15 +46,13 @@ export const useMessaging = (
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    const createThread = async () => {
-      const res = await fetch(`/api/assistants/threads`, { method: 'POST' });
-      const data = await res.json();
-      setThreadId(data.threadId);
-    };
-    createThread();
-  }, []);
+  const { form } = useFetchAndSubmit({
+    schema: conversationsFormSchema,
+    defaultValues,
+    formPath: 'data'
+  });
 
+  const conversationId = form.getValues('activeConversationId');
   const appendToLastMessage = (text: string) => {
     setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
@@ -138,6 +145,15 @@ export const useMessaging = (
       setIsStreaming(false);
       setInputDisabled(false);
     });
+    stream.on('error', (error) => {
+      setIsThinking(false);
+      setInputDisabled(false);
+      toast({
+        title: 'Whoops!',
+        description: `Something went wrong while sending your message. '${error}'. Please try again, or contact support if the issue persists.`,
+        variant: 'destructive'
+      });
+    });
   };
 
   const sendMessage = async (text: string, knowledgebaseEnabled: boolean) => {
@@ -155,7 +171,7 @@ export const useMessaging = (
       }
     }
     const response = await fetch(
-      `/api/assistants/threads/${threadId}/messages`,
+      `/api/assistants/threads/${conversationId}/messages`,
       {
         method: 'POST',
         body: JSON.stringify({ text: text })
@@ -173,7 +189,7 @@ export const useMessaging = (
     toolCallOutputs: { output: string; tool_call_id: string }[]
   ) => {
     const response = await fetch(
-      `/api/assistants/threads/${threadId}/actions`,
+      `/api/assistants/threads/${conversationId}/actions`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -188,6 +204,7 @@ export const useMessaging = (
 
   return {
     messages,
+    setMessages,
     isThinking,
     isStreaming,
     inputDisabled,
