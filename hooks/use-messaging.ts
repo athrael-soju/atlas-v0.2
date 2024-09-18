@@ -45,13 +45,13 @@ export const useMessaging = (
     scrollToBottom();
   }, [messages]);
 
-  const { form, userData } = useUserForm({
+  const { form } = useUserForm({
     schema: conversationsFormSchema,
     defaultValues,
-    formPath: 'data.activeConversationId'
+    formPath: 'data'
   });
-  // TODO: Find out why form.getValues('activeConversationId') is undefined
-  const conversationId = userData; 
+
+  const conversationId = form.getValues('activeConversationId');
   const appendToLastMessage = (text: string) => {
     setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
