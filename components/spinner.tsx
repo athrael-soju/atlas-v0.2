@@ -14,7 +14,7 @@ export const Spinner = () => {
 
     // Extract the CSS variables for foreground and background
     const color = computedStyle.getPropertyValue('--card-foreground').trim();
-    const backgroundColor = computedStyle.getPropertyValue('--card').trim();
+    const backgroundColor = computedStyle.getPropertyValue('--muted').trim();
 
     // Set the state to these values
     setSpinnerColor(`hsl(${color})`);

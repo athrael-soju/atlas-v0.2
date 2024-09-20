@@ -54,11 +54,8 @@ const UserMessage = ({ text }: { text: string }) => (
 
 const AssistantMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
-    <Bot
-      className="h-6 w-6 flex-shrink-0 text-card-foreground"
-      style={{ marginRight: '8px' }}
-    />
-    <div className="flex items-start rounded-lg bg-card p-3 text-card-foreground shadow-lg">
+    <Bot className="mr-2 h-6 w-6 flex-shrink-0 text-card-foreground" />
+    <div className="flex items-start rounded-lg bg-card bg-muted/50 p-3 text-card-foreground shadow-lg">
       <Markdown className="break-words">{text}</Markdown>
     </div>
   </div>
@@ -66,10 +63,7 @@ const AssistantMessage = ({ text }: { text: string }) => (
 
 const CodeMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
-    <Bot
-      className="h-8 w-8 flex-shrink-0 text-card-foreground"
-      style={{ marginRight: '8px' }}
-    />
+    <Bot className="mr-2 h-8 w-8 flex-shrink-0 text-muted-foreground" />
     <div className="flex flex-col items-start rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
       {text.split('\n').map((line, index) => (
         <div key={index} className="flex">
@@ -192,7 +186,7 @@ export const Chat = ({ profileSettings }: ChatProps) => {
         style={{ height: 'calc(100vh - 185px)' }}
       >
         <ScrollArea
-          className="mb-4 w-full max-w-[800px] flex-1 rounded-xl bg-muted/50 pr-4"
+          className="mb-4 w-full max-w-[800px] flex-1 rounded-xl pr-4"
           style={{
             paddingTop: '10px',
             paddingBottom: '10px',
