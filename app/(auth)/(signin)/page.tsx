@@ -35,23 +35,26 @@ export default function AuthenticationPage() {
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
         <div className="gradient-animation absolute inset-0" />
         <div className="relative flex h-full flex-col items-center justify-center">
-          {/* Centered and Maximized Icon */}
+          {/* Centered and Maximized Icon with responsive sizes */}
           <Image
             src={'/atlas.png'}
-            alt={'Atlas II Logo'} // Improved alt text for better accessibility
-            width={350} // Size for large screens
-            height={350} // Size for large screens
+            alt={'Atlas II Logo'}
+            width={500} // Default size for large screens
+            height={500}
             loading="lazy"
-            className="aspect-square rounded-md object-cover"
-            layout="responsive" // Makes image responsive
+            className="aspect-square rounded-md object-cover md:h-[300px] md:w-[300px] lg:h-[500px] lg:w-[500px]"
+            layout="intrinsic"
           />
+          {/* Improved title display */}
           <h2
-            className={`mt-4 text-5xl font-bold ${spectral.className}`}
+            className={`mt-4 text-4xl font-bold lg:text-6xl ${spectral.className}`}
             style={{
-              fontFamily: "'Spectral', serif" // Spectral for a Greek-inspired look
+              fontFamily: "'Spectral', serif"
             }}
           >
-            Atlas II
+            <span className="block text-center text-white lg:text-left">
+              Atlas II
+            </span>
           </h2>
         </div>
         <div className="relative z-20 mt-auto">
@@ -66,26 +69,27 @@ export default function AuthenticationPage() {
       </div>
 
       {/* This section handles mobile layout */}
-      <div className="flex h-full flex-col items-center justify-start space-y-6 p-4 lg:p-8">
+      <div className="flex h-full flex-col items-center justify-center space-y-6 p-4 lg:p-8">
         {/* Enlarge Atlas logo and align to top for mobile */}
         <div className="flex flex-col items-center justify-center space-y-4 lg:hidden">
           <Image
             src={'/atlas.png'}
             alt={'Atlas II Logo'}
-            width={350} // Define only the aspect ratio
-            height={350} // Define only the aspect ratio (1:1 square)
+            width={200} // Consistent size for small and mobile screens
+            height={200}
             loading="lazy"
             className="aspect-square rounded-md object-cover"
-            layout="responsive" // Responsive layout for scaling the image
+            layout="intrinsic"
           />
 
+          {/* Improved mobile title display */}
           <h2
-            className={`text-4xl font-bold lg:text-5xl ${spectral.className}`} // Added responsive font sizing
+            className={`text-3xl font-bold lg:text-5xl ${spectral.className}`}
             style={{
-              fontFamily: "'Spectral', serif" // Spectral for a Greek-inspired look
+              fontFamily: "'Spectral', serif"
             }}
           >
-            Atlas II
+            <span className="block text-center text-gray-800">Atlas II</span>
           </h2>
         </div>
 
@@ -93,10 +97,10 @@ export default function AuthenticationPage() {
         <div className="flex w-full max-w-sm flex-col justify-center space-y-6 text-center">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Create an account
+              Welcome to Atlas II
             </h1>
             <p className="text-sm text-muted-foreground">
-              Enter your email below to create your account
+              Login as a guest or with your GitHub account
             </p>
           </div>
           <UserAuthForm />
