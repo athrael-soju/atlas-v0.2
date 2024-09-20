@@ -96,7 +96,7 @@ export function useFetchAndSubmit<T extends FieldValues>({
           context.previousData
         );
       }
-
+      // TODO: Show only on relevant errors
       toast({
         title: 'Error',
         description: `Failed to update data: ${error.message}`,
@@ -109,6 +109,7 @@ export function useFetchAndSubmit<T extends FieldValues>({
       });
     },
     onSuccess: () => {
+      // TODO: Same as above
       toast({
         title: 'Data Updated',
         description: 'Your data has been successfully updated.',
