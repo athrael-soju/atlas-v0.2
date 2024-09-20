@@ -75,9 +75,7 @@ export function formatResult(
 
 // Function to format all filtered results
 export function formatFilteredResults(
-  filteredResults: RerankResponseResultsItem[],
-  topN: number,
-  userMessage: string
+  filteredResults: RerankResponseResultsItem[]
 ): string {
   const formattedResults = filteredResults.map(formatResult).join('');
 
@@ -87,52 +85,42 @@ Context: Start
 ==============${formattedResults}==============
 Context: End
 ==============
-Instructions: Use available context to respond to the user message.
-==============
-USER MESSAGE: "${userMessage}"
-==============`;
+Instructions: Use available context to respond to the user message.`;
 }
 
 // Function to include personalized information in the response (if applicable)
-export function addPersonalizedInfo(
-  message: string,
-  profileSettings: ProfileSettings
-): string {
-  if (profileSettings.personalizedResponses) {
-    const countryOfOrigin = countryOptions.find(
-      (country) => country.value === profileSettings.countryOfOrigin
-    )?.label;
-    const preferredLanguage = languageOptions.find(
-      (language) => language.value === profileSettings.preferredLanguage
-    )?.label;
+export function addPersonalizedInfo(profileSettings: ProfileSettings): string {
+  const countryOfOrigin = countryOptions.find(
+    (country) => country.value === profileSettings.countryOfOrigin
+  )?.label;
+  const preferredLanguage = languageOptions.find(
+    (language) => language.value === profileSettings.preferredLanguage
+  )?.label;
 
-    const firstName = profileSettings?.firstName?.trim() || '';
-    const lastName = profileSettings?.lastName?.trim() || '';
-    const fullName =
-      firstName === '' && lastName === '' ? 'N/A' : `${firstName} ${lastName}`;
-    const email = profileSettings?.email?.trim() || 'N/A';
-    const country = countryOfOrigin?.trim() || 'N/A';
-    const dateOfBirth = profileSettings?.dateOfBirth || 'N/A';
-    const technicalAptitude = profileSettings?.technicalAptitude || 'N/A';
-    const gender = profileSettings.gender || 'N/A';
-    const occupation = profileSettings.occupation || 'N/A';
-    const militaryStatus = profileSettings.militaryStatus || 'N/A';
+  const firstName = profileSettings?.firstName?.trim() || '';
+  const lastName = profileSettings?.lastName?.trim() || '';
+  const fullName =
+    firstName === '' && lastName === '' ? 'N/A' : `${firstName} ${lastName}`;
+  const email = profileSettings?.email?.trim() || 'N/A';
+  const country = countryOfOrigin?.trim() || 'N/A';
+  const dateOfBirth = profileSettings?.dateOfBirth || 'N/A';
+  const technicalAptitude = profileSettings?.technicalAptitude || 'N/A';
+  const gender = profileSettings.gender || 'N/A';
+  const occupation = profileSettings.occupation || 'N/A';
+  const militaryStatus = profileSettings.militaryStatus || 'N/A';
 
-    const finalMessage = `
+  const userProfile = `
 ==============
-User Profile:
+User Profile
 ==============
   Name: ${fullName}
   Email: ${email}
   Date of Birth: ${dateOfBirth}
   Country of Origin: ${country}
   Gender: ${gender}
-  Preferred Language: ${preferredLanguage}${message}
+  Preferred Language: ${preferredLanguage}
   Occupation: ${occupation}
   Technical Aptitude: ${technicalAptitude}
   Military Status: ${militaryStatus}`;
-    return finalMessage;
-  }
-
-  return message;
+  return userProfile;
 }

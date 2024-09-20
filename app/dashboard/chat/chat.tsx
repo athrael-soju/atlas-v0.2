@@ -29,6 +29,7 @@ import { motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { Conversations } from './conversations';
+import { ProfileSettings } from '@/types/settings';
 
 const defaultValues: Partial<ChatFormValues> = {
   knowledgebaseEnabled: false
@@ -92,7 +93,11 @@ const Message = ({ role, text }: MessageProps) => {
   }
 };
 
-export const Chat = () => {
+type ChatProps = {
+  profileSettings: ProfileSettings;
+};
+
+export const Chat = ({ profileSettings }: ChatProps) => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
   const conversationRef = useRef() as MutableRefObject<{
@@ -107,7 +112,7 @@ export const Chat = () => {
     userInputRef,
     sendMessage,
     abortStream
-  } = useMessaging();
+  } = useMessaging(profileSettings);
 
   const { form, onSubmit } = useFetchAndSubmit<ChatFormValues>({
     schema: chatFormSchema,
