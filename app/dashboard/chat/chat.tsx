@@ -16,7 +16,7 @@ import {
   User,
   Bot,
   MessageCirclePlus,
-  Save // Imported Save icon
+  Save
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
