@@ -15,7 +15,8 @@ import {
   Loader2,
   User,
   Bot,
-  MessageCirclePlus
+  MessageCirclePlus,
+  Save
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -29,6 +30,7 @@ import { motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { Conversations } from './conversations';
+import { ProfileSettings } from '@/types/settings';
 
 const defaultValues: Partial<ChatFormValues> = {
   knowledgebaseEnabled: false
@@ -52,11 +54,8 @@ const UserMessage = ({ text }: { text: string }) => (
 
 const AssistantMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
-    <Bot
-      className="h-6 w-6 flex-shrink-0 text-card-foreground"
-      style={{ marginRight: '8px' }}
-    />
-    <div className="flex items-start rounded-lg bg-card p-3 text-card-foreground shadow-lg">
+    <Bot className="mr-2 h-6 w-6 flex-shrink-0 text-card-foreground" />
+    <div className="flex items-start rounded-lg bg-card bg-muted/50 p-3 text-card-foreground shadow-lg">
       <Markdown className="break-words">{text}</Markdown>
     </div>
   </div>
@@ -64,10 +63,7 @@ const AssistantMessage = ({ text }: { text: string }) => (
 
 const CodeMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
-    <Bot
-      className="h-8 w-8 flex-shrink-0 text-card-foreground"
-      style={{ marginRight: '8px' }}
-    />
+    <Bot className="mr-2 h-8 w-8 flex-shrink-0 text-muted-foreground" />
     <div className="flex flex-col items-start rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
       {text.split('\n').map((line, index) => (
         <div key={index} className="flex">
@@ -92,7 +88,11 @@ const Message = ({ role, text }: MessageProps) => {
   }
 };
 
-export const Chat = () => {
+type ChatProps = {
+  profileSettings: ProfileSettings;
+};
+
+export const Chat = ({ profileSettings }: ChatProps) => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
   const conversationRef = useRef() as MutableRefObject<{
@@ -107,7 +107,7 @@ export const Chat = () => {
     userInputRef,
     sendMessage,
     abortStream
-  } = useMessaging();
+  } = useMessaging(profileSettings);
 
   const { form, onSubmit } = useFetchAndSubmit<ChatFormValues>({
     schema: chatFormSchema,
@@ -150,6 +150,34 @@ export const Chat = () => {
     abortStream();
   };
 
+  // New function to handle saving the chat
+  const handleSaveChat = () => {
+    // Format messages into text content
+    const content = messages
+      .map((msg) => {
+        const role = msg.role.charAt(0).toUpperCase() + msg.role.slice(1);
+        return `${role}:\n${msg.text}\n`;
+      })
+      .join('\n');
+
+    // Create a Blob with the content
+    const blob = new Blob([content], { type: 'text/plain' });
+
+    // Create a URL for the Blob
+    const url = URL.createObjectURL(blob);
+
+    // Create a temporary <a> element to trigger download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chat.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Release the URL object
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <TooltipProvider>
       <Conversations ref={conversationRef} />
@@ -158,7 +186,7 @@ export const Chat = () => {
         style={{ height: 'calc(100vh - 185px)' }}
       >
         <ScrollArea
-          className="mb-4 w-full max-w-[800px] flex-1 rounded-xl bg-muted/50 pr-4"
+          className="mb-4 w-full max-w-[800px] flex-1 rounded-xl pr-4"
           style={{
             paddingTop: '10px',
             paddingBottom: '10px',
@@ -250,6 +278,21 @@ export const Chat = () => {
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent side="top">New conversation</TooltipContent>
+            </Tooltip>
+            {/* New Save Chat button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleSaveChat}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  type="button"
+                >
+                  <Save className="h-5 w-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Save Chat</TooltipContent>
             </Tooltip>
             <Button
               type="button"

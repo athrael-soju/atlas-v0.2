@@ -14,6 +14,8 @@ import {
   ConversationsFormValues
 } from '@/lib/form-schema';
 import { toast } from '@/components/ui/use-toast';
+import { ProfileSettings } from '@/types/settings';
+import { addPersonalizedInfo } from '@/lib/utils';
 
 type Message = {
   role: 'user' | 'assistant' | 'code';
@@ -25,6 +27,7 @@ const defaultValues: Partial<ConversationsFormValues> = {
 };
 
 export const useMessaging = (
+  profileSettings: ProfileSettings,
   functionCallHandler: (toolCall: any) => Promise<string> = () =>
     Promise.resolve('')
 ) => {
@@ -160,7 +163,10 @@ export const useMessaging = (
     setIsThinking(true);
     setInputDisabled(true);
     const userId = session?.user.id as string;
-    appendMessage('user', text);
+    const userMessage = text;
+    appendMessage('user', userMessage);
+
+    // If knowledgebase is enabled, fetch the context enriched message
     if (knowledgebaseEnabled) {
       const contextEnrichedMessage = await fetchContextEnrichedMessage(
         userId,
@@ -170,6 +176,16 @@ export const useMessaging = (
         text = contextEnrichedMessage;
       }
     }
+
+    // If personalized responses are enabled, add personalized info
+    if (profileSettings.personalizedResponses) {
+      text = addPersonalizedInfo(profileSettings) + text;
+    }
+    text += `
+==============
+User message: ${userMessage}
+==============`;
+    console.log('Sending message:', text);
     const response = await fetch(
       `/api/assistants/threads/${conversationId}/messages`,
       {

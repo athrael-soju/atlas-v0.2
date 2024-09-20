@@ -285,10 +285,7 @@ export const Conversations = forwardRef((props, ref) => {
                   <TableBody>
                     {table.getRowModel().rows.length ? (
                       table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.original.id}
-                          className={row.original.active ? 'bg-primary' : ''}
-                        >
+                        <TableRow key={row.original.id}>
                           {row.getVisibleCells().map((cell) => (
                             <TableCell key={cell.id}>
                               {flexRender(

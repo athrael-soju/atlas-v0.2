@@ -6,6 +6,8 @@ import PageContainer from '@/components/layout/page-container';
 import { RequiredActionFunctionToolCall } from 'openai/resources/beta/threads/runs/runs.mjs';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
+import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
+import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
 
 const breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
@@ -20,8 +22,19 @@ const functionCallHandler = async (call: RequiredActionFunctionToolCall) => {
   // return JSON.stringify(data);
   return '';
 };
+const defaultValues: Partial<ProfileFormValues> = {
+  personalizedResponses: false
+};
 
 export default function Page() {
+  const { form } = useFetchAndSubmit<ProfileFormValues>({
+    schema: profileFormSchema,
+    defaultValues,
+    formPath: 'settings.profile'
+  });
+
+  const profileSettings = form.getValues();
+
   return (
     <PageContainer scrollable={true}>
       <div className="flex h-full flex-col space-y-2">
@@ -34,7 +47,7 @@ export default function Page() {
         </div>
         <Separator />
         <div className="flex-grow">
-          <Chat />
+          <Chat profileSettings={profileSettings} />
         </div>
       </div>
     </PageContainer>

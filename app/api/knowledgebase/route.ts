@@ -76,8 +76,7 @@ async function retrieveContext(
     rerankingContext = await rerank(
       message,
       queryResults.context,
-      settings.knowledgebase,
-      settings.profile
+      settings.knowledgebase
     );
     sendUpdate('Reranking complete', `${rerankingContext}`);
   } catch (error: any) {

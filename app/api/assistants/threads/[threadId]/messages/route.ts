@@ -1,5 +1,5 @@
 import { openai } from '@/lib/client/openai';
-
+// Potentially check for knowledgebase and profile customization here, instead of making 2 additional API calls.
 const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
 
 export const runtime = 'nodejs';
