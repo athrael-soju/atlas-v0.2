@@ -141,9 +141,11 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                 className="absolute right-0 top-1/2 p-2"
                 style={{
                   transform: 'translateY(-50%)',
-                  color: 'hsl(var(--foreground))'
+                  color: 'hsl(210, 10%, 40%)' // example static hsl color value
                 }}
-                whileHover={{ color: '#facc15' }}
+                whileHover={{
+                  color: 'hsl(50, 100%, 60%)' // hover to a specific hsl color value
+                }}
               >
                 <ChevronLeft className="h-6 w-6" />
               </motion.button>
