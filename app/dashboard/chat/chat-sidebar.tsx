@@ -20,8 +20,8 @@ import { Conversation } from '@/types/data';
 import * as emoji from 'node-emoji';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ConversationList } from './conversation-list';
-import { FileList } from './file-list'; // Import the new FileList component
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'; // Import Tabs components
+import { AssistantFileUploader } from './assistant-file-uploader';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const defaultValues = {
   conversations: []
@@ -166,7 +166,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                 <TabsList className="my-4 flex justify-around">
                   <TabsTrigger value="conversations">Conversations</TabsTrigger>
                   <TabsTrigger value="files" disabled={knowledgebaseEnabled}>
-                    Analysis Files
+                    Assistant Files
                   </TabsTrigger>
                 </TabsList>
 
@@ -179,10 +179,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                 </TabsContent>
 
                 <TabsContent value="files">
-                  <FileList
-                    files={mockFiles.length > 0 ? mockFiles : []}
-                    handleDeleteFile={handleDeleteFile}
-                  />
+                  <AssistantFileUploader />
                 </TabsContent>
               </Tabs>
             </SheetContent>

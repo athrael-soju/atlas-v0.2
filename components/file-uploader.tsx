@@ -82,7 +82,7 @@ export const FileUploader = forwardRef<
     // TODO: Define the default values for the dropzoneOptions
     const {
       accept = {
-        'application/*': ['.jpg', '.jpeg', '.png', '.gif']
+        'image/*': ['.jpg', '.jpeg', '.png', '.gif']
       },
       maxFiles = 1,
       maxSize = 4 * 1024 * 1024,
@@ -266,7 +266,7 @@ export const FileUploaderContent = forwardRef<
     <div
       className={cn('w-full px-1')}
       ref={containerRef}
-      aria-describedby="content-file-holder"
+      aria-description="content file holder"
     >
       <div
         {...props}

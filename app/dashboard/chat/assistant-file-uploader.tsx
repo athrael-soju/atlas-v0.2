@@ -8,6 +8,8 @@ import {
   FileInput
 } from '@/components/file-uploader';
 import { Paperclip } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { DropzoneOptions } from 'react-dropzone';
 
 const FileSvgDraw = () => {
   return (
@@ -38,37 +40,43 @@ const FileSvgDraw = () => {
   );
 };
 
-export const DropZone = () => {
+export const AssistantFileUploader = () => {
   const [files, setFiles] = useState<File[] | null>(null);
 
   const dropZoneConfig = {
-    maxFiles: 5,
-    maxSize: 1024 * 1024 * 4,
-    multiple: true
-  };
+    multiple: true,
+    maxFiles: 20,
+    maxSize: 20 * 1024 * 1024
+  } satisfies DropzoneOptions;
 
   return (
     <FileUploader
       value={files}
       onValueChange={setFiles}
       dropzoneOptions={dropZoneConfig}
-      className="relative rounded-lg border border-dashed  border-gray-300 bg-background p-2 dark:border-gray-700"
+      className="relative rounded-lg border border-dashed border-gray-300 bg-background p-2 dark:border-gray-700"
     >
       <FileInput className="outline-dashed outline-1 outline-white">
         <div className="flex w-full flex-col items-center justify-center pb-4 pt-3 ">
           <FileSvgDraw />
         </div>
       </FileInput>
-      <FileUploaderContent>
-        {files &&
-          files.length > 0 &&
-          files.map((file, i) => (
-            <FileUploaderItem key={i} index={i}>
-              <Paperclip className="h-4 w-4 stroke-current" />
-              <span>{file.name}</span>
-            </FileUploaderItem>
-          ))}
-      </FileUploaderContent>
+
+      <ScrollArea
+        className="w-full overflow-y-auto"
+        style={{ height: 'calc(100vh - 245px)' }}
+      >
+        <FileUploaderContent>
+          {files &&
+            files.length > 0 &&
+            files.map((file, i) => (
+              <FileUploaderItem key={i} index={i}>
+                <Paperclip className="h-4 w-4 stroke-current" />
+                <span>{file.name}</span>
+              </FileUploaderItem>
+            ))}
+        </FileUploaderContent>
+      </ScrollArea>
     </FileUploader>
   );
 };
