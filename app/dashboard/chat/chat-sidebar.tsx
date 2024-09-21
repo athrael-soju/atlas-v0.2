@@ -28,12 +28,13 @@ const defaultValues = {
 };
 
 type ChatSidebarProps = {
+  knowledgebaseEnabled: boolean;
   setMessages: React.Dispatch<React.SetStateAction<any>>;
 };
 
 export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
   (props, ref) => {
-    const { setMessages } = props;
+    const { knowledgebaseEnabled, setMessages } = props;
     ChatSidebar.displayName = 'ChatSidebar';
 
     const { form, onSubmit } = useFetchAndSubmit({
@@ -164,7 +165,9 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
               <Tabs defaultValue="conversations" className="w-full">
                 <TabsList className="my-4 flex justify-around">
                   <TabsTrigger value="conversations">Conversations</TabsTrigger>
-                  <TabsTrigger value="files">Files</TabsTrigger>
+                  <TabsTrigger value="files" disabled={knowledgebaseEnabled}>
+                    Analysis Files
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="conversations">

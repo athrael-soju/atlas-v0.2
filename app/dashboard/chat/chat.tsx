@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import React, { useRef, useState, MutableRefObject } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,6 @@ import Markdown from 'react-markdown';
 import {
   CornerDownLeft,
   Mic,
-  Paperclip,
   Brain,
   Loader2,
   User,
@@ -180,7 +178,11 @@ export const Chat = ({ profileSettings }: ChatProps) => {
 
   return (
     <TooltipProvider>
-      <ChatSidebar ref={chatSideBarRef} setMessages={setMessages} />
+      <ChatSidebar
+        ref={chatSideBarRef}
+        knowledgebaseEnabled={knowledgebaseEnabled}
+        setMessages={setMessages}
+      />
       <div
         className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}
@@ -219,19 +221,6 @@ export const Chat = ({ profileSettings }: ChatProps) => {
             rows={1}
           />
           <div className="flex items-center p-3 pt-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={knowledgebaseEnabled}
-                >
-                  <Paperclip className="h-5 w-5" />
-                  <span className="sr-only">Attach file</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Attach File</TooltipContent>
-            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.button

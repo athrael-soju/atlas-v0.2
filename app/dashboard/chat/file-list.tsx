@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Trash2, MoreHorizontal } from 'lucide-react';
 import { Icons } from '@/components/icons';
+import { DropZone } from './drop-zone';
 
 type FileData = {
   id: string;
@@ -111,14 +112,14 @@ export const FileList = ({
 
   return (
     <div className="flex h-full flex-col space-y-4">
+      <DropZone />
       <Input
         placeholder="Filter by file name..."
         value={globalFilter}
         onChange={(event) => setGlobalFilter(event.target.value)}
         className="mb-4"
       />
-
-      <ScrollArea style={{ height: 'calc(100vh - 185px)' }}>
+      <ScrollArea style={{ height: 'calc(100vh - 320px)' }}>
         <Table className="w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
