@@ -29,7 +29,7 @@ import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
-import { Conversations } from './conversations';
+import { ChatSidebar } from './chat-sidebar';
 import { ProfileSettings } from '@/types/settings';
 
 const defaultValues: Partial<ChatFormValues> = {
@@ -95,7 +95,7 @@ type ChatProps = {
 export const Chat = ({ profileSettings }: ChatProps) => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
-  const conversationRef = useRef() as MutableRefObject<{
+  const chatSideBarRef = useRef() as MutableRefObject<{
     addConversation: () => void;
   } | null>;
   const {
@@ -128,8 +128,8 @@ export const Chat = ({ profileSettings }: ChatProps) => {
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    if (conversationRef.current) {
-      conversationRef.current.addConversation();
+    if (chatSideBarRef.current) {
+      chatSideBarRef.current.addConversation();
     }
     setMessages([]);
   };
@@ -180,7 +180,7 @@ export const Chat = ({ profileSettings }: ChatProps) => {
 
   return (
     <TooltipProvider>
-      <Conversations ref={conversationRef} />
+      <ChatSidebar ref={chatSideBarRef} setMessages={setMessages} />
       <div
         className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}

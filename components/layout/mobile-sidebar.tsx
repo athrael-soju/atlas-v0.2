@@ -10,7 +10,7 @@ import {
 import { NavItem } from '@/types';
 import { MenuIcon } from 'lucide-react';
 import { useState } from 'react';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden'; // import VisuallyHidden
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   navItems: NavItem[];
