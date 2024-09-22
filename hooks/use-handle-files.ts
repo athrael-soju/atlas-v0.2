@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/lib/handle-error';
 import { uploadFiles } from '@/lib/uploadthing';
-import type { UploadedFile } from '@/types/file-uploader';
+import type { KnowledgebaseFile } from '@/types/file-uploader';
 import type { UploadFilesOptions } from 'uploadthing/types';
 import { type OurFileRouter } from '@/lib/client/uploadthing';
 import { useControllableState } from '@/hooks/use-controllable-state';
@@ -14,8 +14,8 @@ export function useHandleFiles(
   endpoint: keyof OurFileRouter,
   props: useHandleFilesProps = {}
 ) {
-  const [uploadedFiles, setUploadedFiles] = useControllableState<
-    UploadedFile[] | undefined
+  const [knowledgebaseFiles, setKnowledgebaseFiles] = useControllableState<
+    KnowledgebaseFile[] | undefined
   >({
     defaultProp: [],
     onChange: (files) => {
@@ -35,7 +35,7 @@ export function useHandleFiles(
     defaultProp: false
   });
 
-  const fetchUploadedFiles = useCallback(async () => {
+  const fetchKnowledgebaseFiles = useCallback(async () => {
     try {
       setIsFetchingFiles(true);
       const response = await fetch('/api/uploadthing', {
@@ -45,18 +45,18 @@ export function useHandleFiles(
       if (!response.ok) {
         throw new Error(data.error || 'Failed to retrieve file list');
       }
-      setUploadedFiles(data.files || []);
+      setKnowledgebaseFiles(data.files || []);
     } catch (error) {
       toast({
         title: 'Uh oh! Something went wrong.',
         description: `${error}`,
         variant: 'destructive'
       });
-      setUploadedFiles([]);
+      setKnowledgebaseFiles([]);
     } finally {
       setIsFetchingFiles(false);
     }
-  }, [setUploadedFiles, setIsFetchingFiles]);
+  }, [setKnowledgebaseFiles, setIsFetchingFiles]);
 
   const onUpload = async (files: File[]) => {
     try {
@@ -67,7 +67,7 @@ export function useHandleFiles(
         onUploadProgress: ({ file, progress }) => {
           setProgress((prev) => ({ ...prev, [file]: progress }));
         }
-      }).then(() => fetchUploadedFiles());
+      }).then(() => fetchKnowledgebaseFiles());
     } catch (err) {
       toast({
         title: 'Uh oh! Something went wrong.',
@@ -81,12 +81,12 @@ export function useHandleFiles(
   };
 
   return {
-    uploadedFiles,
-    setUploadedFiles,
+    knowledgebaseFiles,
+    setKnowledgebaseFiles,
     progress,
     isUploading,
     onUpload,
-    fetchUploadedFiles,
+    fetchKnowledgebaseFiles,
     isFetchingFiles
   };
 }

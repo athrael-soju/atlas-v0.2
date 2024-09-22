@@ -7,7 +7,7 @@ import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
-import { UploadedFiles } from '@/app/dashboard/knowledgebase/uploaded-files';
+import { KnowledgebaseFiles } from '@/app/dashboard/knowledgebase/knowledgebase-files';
 import { useEffect, useState } from 'react';
 
 const FormSchema = z.object({
@@ -18,17 +18,17 @@ export function Knowledgebase() {
   const {
     onUpload,
     progress,
-    uploadedFiles,
-    setUploadedFiles,
+    knowledgebaseFiles,
+    setKnowledgebaseFiles,
     isUploading,
-    fetchUploadedFiles,
+    fetchKnowledgebaseFiles,
     isFetchingFiles
   } = useHandleFiles('attachment');
   const [working, setWorking] = useState(false);
 
   useEffect(() => {
-    fetchUploadedFiles();
-  }, [fetchUploadedFiles]);
+    fetchKnowledgebaseFiles();
+  }, [fetchKnowledgebaseFiles]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -92,9 +92,9 @@ export function Knowledgebase() {
         />
 
         {/* Uploaded Files Display Component */}
-        <UploadedFiles
-          uploadedFiles={uploadedFiles ?? []}
-          setUploadedFiles={setUploadedFiles}
+        <KnowledgebaseFiles
+          knowledgebaseFiles={knowledgebaseFiles ?? []}
+          setKnowledgebaseFiles={setKnowledgebaseFiles}
           isFetchingFiles={isFetchingFiles ?? false}
           working={working}
           setWorking={setWorking}

@@ -5,6 +5,8 @@ import authConfig from '@/auth.config';
 import client from '@/lib/client/mongodb';
 import { IUser } from '@/models/User';
 import { Db, ObjectId } from 'mongodb';
+import { FileObject } from 'openai/resources/files.mjs';
+import { Collection } from 'mongodb';
 
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
@@ -80,7 +82,7 @@ export const updateKnowledgebaseEnabled = async (
 
 export const updateUserFiles = async (
   userId: string,
-  uploadedFile: any
+  knowledgebaseFile: any
 ): Promise<{ message: string }> => {
   const db = await connectToDatabase();
   const usersCollection = db.collection('users');
@@ -89,12 +91,41 @@ export const updateUserFiles = async (
   await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
     {
-      $push: { 'knowledgebase.files': uploadedFile },
+      $push: { 'files.knowledgebase': knowledgebaseFile },
       $set: { updatedAt: new Date().toISOString() }
     }
   );
 
   return { message: 'File uploaded successfully' };
+};
+
+// Assume connectToDatabase is already defined and returns a connected MongoDB client
+export const updateAnalysisFiles = async (
+  userId: string,
+  openaiFiles: FileObject[]
+): Promise<{ message: string }> => {
+  const db = await connectToDatabase();
+
+  // Type the collection with the User interface
+  const usersCollection: Collection<IUser> = db.collection<IUser>('users');
+
+  // Define the update document with correct types
+  const update = {
+    $push: {
+      'files.analysis': { $each: openaiFiles }
+    },
+    $set: {
+      updatedAt: new Date().toISOString()
+    }
+  };
+
+  // Perform the update
+  await usersCollection.updateOne(
+    { _id: new ObjectId(userId) },
+    update as any // Use type assertion here
+  );
+
+  return { message: 'Analysis files uploaded successfully' };
 };
 
 export const updateFileDateProcessed = async (
@@ -109,7 +140,7 @@ export const updateFileDateProcessed = async (
       { _id: new ObjectId(userId) },
       {
         $set: {
-          'knowledgebase.files.$[elem].dateProcessed': date,
+          'files.knowledgebase.$[elem].dateProcessed': date,
           updatedAt: new Date().toISOString()
         }
       },

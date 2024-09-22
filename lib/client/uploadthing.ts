@@ -13,7 +13,7 @@ const handleUploadComplete = async ({
   metadata: any;
   file: any;
 }) => {
-  const uploadedFile = {
+  const knowledgebaseFile = {
     name: file.name,
     url: file.url,
     size: file.size,
@@ -21,7 +21,7 @@ const handleUploadComplete = async ({
     dateUploaded: new Date().toISOString(),
     dateProcessed: null
   };
-  await updateUserFiles(metadata.userId, uploadedFile);
+  await updateUserFiles(metadata.userId, knowledgebaseFile);
 };
 
 // Define file router rules

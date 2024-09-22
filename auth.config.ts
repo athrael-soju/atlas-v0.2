@@ -46,8 +46,9 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       settings: defaultUserSettings(),
-      knowledgebase: {
-        files: []
+      files: {
+        knowledgebase: [],
+        analysis: []
       },
       data: {
         activeConversationId: conversation.id,
@@ -91,8 +92,9 @@ async function findOrCreateUser(
       updatedAt: new Date().toISOString(),
       role: 'user',
       settings: defaultUserSettings(),
-      knowledgebase: {
-        files: []
+      files: {
+        knowledgebase: [],
+        analysis: []
       },
       data: {
         activeConversationId: conversation.id,

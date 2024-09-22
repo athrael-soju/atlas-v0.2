@@ -15,12 +15,12 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 import React, { ReactNode } from 'react';
 
-export function createColumns(
-  onDeleteFiles: (files: UploadedFile[]) => Promise<void>
-): ColumnDef<UploadedFile>[] {
+export function knowledgebaseColumns(
+  onDeleteFiles: (files: KnowledgebaseFile[]) => Promise<void>
+): ColumnDef<KnowledgebaseFile>[] {
   const renderFileNameCell = ({ row }: { row: any }) => {
     const fileName = row.getValue('name') as ReactNode;
     const fileUrl: string | undefined = row.original.url;

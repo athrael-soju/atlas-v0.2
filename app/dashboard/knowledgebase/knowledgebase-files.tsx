@@ -26,14 +26,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSession } from 'next-auth/react';
 import { processSelectedFiles } from '@/lib/service/atlas';
 import { getUserData } from '@/lib/service/mongodb';
-import { createColumns } from './uploaded-file-columns';
-import { UploadedFile } from '@/types/file-uploader';
+import { knowledgebaseColumns } from './knowledgebase-columns';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 import { Icons } from '@/components/icons';
 
-interface UploadedFilesProps {
-  uploadedFiles: UploadedFile[];
-  setUploadedFiles: React.Dispatch<
-    React.SetStateAction<UploadedFile[] | undefined>
+interface KnowledgebaseFilesProps {
+  knowledgebaseFiles: KnowledgebaseFile[];
+  setKnowledgebaseFiles: React.Dispatch<
+    React.SetStateAction<KnowledgebaseFile[] | undefined>
   >;
   isFetchingFiles: boolean;
   working: boolean;
@@ -41,19 +41,19 @@ interface UploadedFilesProps {
   isUploading: boolean;
 }
 
-export function UploadedFiles({
-  uploadedFiles,
-  setUploadedFiles,
+export function KnowledgebaseFiles({
+  knowledgebaseFiles,
+  setKnowledgebaseFiles,
   isFetchingFiles,
   working,
   setWorking,
   isUploading
-}: UploadedFilesProps) {
+}: KnowledgebaseFilesProps) {
   const { data: session } = useSession();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const onDeleteFiles = async (files: UploadedFile[]) => {
+  const onDeleteFiles = async (files: KnowledgebaseFile[]) => {
     const userId = session?.user.id as string;
     const response = await fetch('/api/uploadthing', {
       method: 'DELETE',
@@ -73,7 +73,9 @@ export function UploadedFiles({
         description: `${result.deletedFileCount} file(s) have been deleted successfully`,
         variant: 'default'
       });
-      setUploadedFiles(uploadedFiles.filter((file) => !files.includes(file)));
+      setKnowledgebaseFiles(
+        knowledgebaseFiles.filter((file) => !files.includes(file))
+      );
     } else {
       toast({
         title: 'Uh oh! Something went wrong.',
@@ -125,8 +127,8 @@ export function UploadedFiles({
         });
         await processSelectedFiles(userId, selectedFiles);
         const userData = await getUserData(userId);
-        const userFiles = userData.knowledgebase.files as UploadedFile[];
-        setUploadedFiles(userFiles);
+        const userFiles = userData.files.knowledgebase as KnowledgebaseFile[];
+        setKnowledgebaseFiles(userFiles);
       } else {
         toast({
           title: 'No files selected',
@@ -145,10 +147,10 @@ export function UploadedFiles({
     }
   };
 
-  const columns = createColumns(onDeleteFiles);
+  const columns = knowledgebaseColumns(onDeleteFiles);
 
   const table = useReactTable({
-    data: uploadedFiles,
+    data: knowledgebaseFiles,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -173,7 +175,7 @@ export function UploadedFiles({
 
   return (
     <>
-      {uploadedFiles.length > 0 ? (
+      {knowledgebaseFiles.length > 0 ? (
         <div
           className="w-full"
           style={{ height: 'calc(100vh - 350px)' }} // Adjust to fit your actual layout

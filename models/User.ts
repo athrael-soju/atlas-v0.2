@@ -7,7 +7,8 @@ import {
   MiscSettings,
   ConversationSettings
 } from '@/types/settings';
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
+import { FileObject } from 'openai/resources/files.mjs';
 
 export interface IUser {
   _id: ObjectId;
@@ -23,8 +24,9 @@ export interface IUser {
     profile?: ProfileSettings;
     misc?: MiscSettings;
   };
-  knowledgebase: {
-    files: UploadedFile[];
+  files: {
+    knowledgebase: KnowledgebaseFile[];
+    analysis: FileObject[];
   };
   data: ConversationSettings;
 }

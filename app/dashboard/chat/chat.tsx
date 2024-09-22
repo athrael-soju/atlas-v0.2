@@ -268,7 +268,6 @@ export const Chat = ({ profileSettings }: ChatProps) => {
               </TooltipTrigger>
               <TooltipContent side="top">New conversation</TooltipContent>
             </Tooltip>
-            {/* New Save Chat button */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.button

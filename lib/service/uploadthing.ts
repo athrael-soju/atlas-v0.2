@@ -4,9 +4,9 @@ import { ObjectId } from 'mongodb';
 import { getUserId } from '@/lib/service/mongodb';
 const utapi = new UTApi();
 import { deleteFromVectorDb } from './pinecone';
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 
-export const deleteFiles = async (userId: string, files: UploadedFile[]) => {
+export const deleteFiles = async (userId: string, files: KnowledgebaseFile[]) => {
   let deletedFileCount = 0;
   const id = userId;
 
@@ -30,7 +30,7 @@ export const deleteFiles = async (userId: string, files: UploadedFile[]) => {
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(userId) },
       {
-        $pull: { 'knowledgebase.files': { key: { $in: filesArray } } as any },
+        $pull: { 'files.knowledgebase': { key: { $in: filesArray } } as any },
         $set: { updatedAt: new Date().toISOString() }
       }
     );
@@ -51,11 +51,11 @@ export const listFiles = async (files: string[] = []) => {
 
   const user = await usersCollection.findOne(
     { _id: new ObjectId(userId) },
-    { projection: { 'knowledgebase.files': 1 } }
+    { projection: { 'files.knowledgebase': 1 } }
   );
 
   // Retrieve the user's files or set to an empty array if not found
-  const allFiles = user?.knowledgebase?.files ?? [];
+  const allFiles = user?.files?.knowledgebase ?? [];
 
   // Filter the files if the files[] array is provided
   const filteredFiles =

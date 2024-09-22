@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Embedding, ForgeSettings, ParsedElement } from '@/types/settings';
 import { parseAndChunk } from '@/lib/service/unstructured';
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 import { embedDocument } from '@/lib/service/openai';
 import { upsertDocument } from '@/lib/service/pinecone';
 import { validateUser } from '@/lib/utils';
@@ -34,8 +34,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     validateForgeSettings(forgeSettings);
 
     // Retrieve file data
-    const files = userServerData.knowledgebase.files.filter(
-      (file: UploadedFile) => fileIds.includes(file.key)
+    const files = userServerData.files.knowledgebase.filter(
+      (file: KnowledgebaseFile) => fileIds.includes(file.key)
     );
 
     // Setup and return SSE stream
@@ -75,7 +75,7 @@ function validateForgeSettings(forgeSettings: ForgeSettings): void {
 
 async function processFiles(
   userId: string,
-  files: UploadedFile[],
+  files: KnowledgebaseFile[],
   forgeSettings: ForgeSettings,
   sendUpdate: (status: string, message: string) => void
 ) {

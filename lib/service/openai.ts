@@ -1,4 +1,4 @@
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 import OpenAI, { ClientOptions } from 'openai';
 import { toAscii } from '@/lib/utils';
 import { ParsedElement } from '@/types/settings';
@@ -55,7 +55,7 @@ export async function embedMessage(userId: string, content: string) {
 
 export async function embedDocument(
   userId: string,
-  file: UploadedFile,
+  file: KnowledgebaseFile,
   chunks: ParsedElement[]
 ) {
   const chunkIdList: string[] = [];
