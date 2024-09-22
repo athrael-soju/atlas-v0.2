@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FileUploader,
   FileUploaderContent,
@@ -48,6 +48,35 @@ export const AssistantFileUploader = () => {
     maxFiles: 20,
     maxSize: 20 * 1024 * 1024
   } satisfies DropzoneOptions;
+
+  useEffect(() => {
+    async function processFiles() {
+      if (files && files.length > 0) {
+        const formData = new FormData();
+
+        // Append all files at once, using the same key
+        files.forEach((file) => {
+          formData.append('files', file); // Notice `files[]` here to group all files under the same key
+        });
+
+        try {
+          const response = await fetch('/api/assistants/files/analysis', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Files uploaded:', data.files);
+          }
+          setFiles([]); // Reset files after successful upload
+        } catch (error) {
+          console.error('Error uploading files:', error);
+        }
+      }
+    }
+    processFiles();
+  }, [files]); // Only runs when files change
 
   return (
     <FileUploader

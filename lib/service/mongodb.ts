@@ -100,9 +100,9 @@ export const updateUserFiles = async (
 };
 
 // Assume connectToDatabase is already defined and returns a connected MongoDB client
-export const updateAnalysisFiles = async (
+export const updateAssistantFiles = async (
   userId: string,
-  openaiFiles: FileObject[]
+  assistantFiles: FileObject[]
 ): Promise<{ message: string }> => {
   const db = await connectToDatabase();
 
@@ -112,7 +112,7 @@ export const updateAnalysisFiles = async (
   // Define the update document with correct types
   const update = {
     $push: {
-      'files.analysis': { $each: openaiFiles }
+      'files.analysis': { $each: assistantFiles }
     },
     $set: {
       updatedAt: new Date().toISOString()
@@ -120,12 +120,16 @@ export const updateAnalysisFiles = async (
   };
 
   // Perform the update
-  await usersCollection.updateOne(
+  const result = await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
-    update as any // Use type assertion here
+    update as any // Use type assertion if necessary
   );
 
-  return { message: 'Analysis files uploaded successfully' };
+  if (result.matchedCount === 0) {
+    throw new Error(`User with id '${userId}' not found`);
+  }
+
+  return { message: 'Assistant files uploaded successfully' };
 };
 
 export const updateFileDateProcessed = async (

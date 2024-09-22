@@ -3,6 +3,7 @@ import OpenAI, { ClientOptions } from 'openai';
 import { toAscii } from '@/lib/utils';
 import { ParsedElement } from '@/types/settings';
 import { Thread } from 'openai/resources/beta/threads/threads.mjs';
+import { FileObject } from 'openai/resources/index.mjs';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -103,4 +104,13 @@ export async function embedDocument(
 export const createThread = async (): Promise<Thread> => {
   const thread = await openai.beta.threads.create();
   return thread;
+};
+
+export const uploadFile = async (file: File): Promise<FileObject> => {
+  const fileObject = await openai.files.create({
+    file: file,
+    purpose: 'assistants'
+  });
+
+  return fileObject;
 };
