@@ -166,7 +166,7 @@ export function KnowledgebaseFiles({
       <EmptyCard
         title=""
         className="w-full"
-        style={{ height: 'calc(100vh - 350px)' }} // Adjust to fit your actual layout
+        style={{ height: 'calc(100vh - 350px)' }}
         isFetchingFiles={isFetchingFiles}
         isWorking={working || isUploading}
       />
@@ -176,10 +176,7 @@ export function KnowledgebaseFiles({
   return (
     <>
       {knowledgebaseFiles.length > 0 ? (
-        <div
-          className="w-full"
-          style={{ height: 'calc(100vh - 350px)' }} // Adjust to fit your actual layout
-        >
+        <div className="w-full" style={{ height: 'calc(100vh - 350px)' }}>
           <div className="flex h-full flex-col">
             <div className="flex flex-shrink-0 items-center justify-between space-x-4 py-4">
               <Input

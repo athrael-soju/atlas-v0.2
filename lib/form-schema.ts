@@ -79,7 +79,8 @@ export const assistantFileSchema = z.object({
   id: z.string(),
   created_at: z.number(),
   bytes: z.number(),
-  filename: z.string()
+  filename: z.string(),
+  isActive: z.boolean()
 });
 
 export const assistantFilesFormSchema = z.object({

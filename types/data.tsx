@@ -10,4 +10,5 @@ export interface AssistantFile {
   created_at: number;
   bytes: number;
   filename: string;
+  isActive: boolean;
 }

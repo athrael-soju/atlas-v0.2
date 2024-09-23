@@ -20,7 +20,7 @@ import { Conversation } from '@/types/data';
 import * as emoji from 'node-emoji';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ConversationList } from './conversation-list';
-import { AssistantFileUploader } from './analysis-list';
+import { AssistantFileUploader } from './assistant-file-uploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useSession } from 'next-auth/react';
 
@@ -120,15 +120,6 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
       setMessages([]);
     };
 
-    // Mock delete file handler
-    const handleDeleteFile = (file: any) => {
-      // Implement the file delete logic here
-      toast({
-        title: 'File deleted',
-        description: `File ${file.fileName} has been deleted.`
-      });
-    };
-
     return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -138,10 +129,10 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                 className="absolute right-0 top-1/2 p-2"
                 style={{
                   transform: 'translateY(-50%)',
-                  color: 'hsl(210, 10%, 40%)' // example static hsl color value
+                  color: 'hsl(210, 10%, 40%)'
                 }}
                 whileHover={{
-                  color: 'hsl(50, 100%, 60%)' // hover to a specific hsl color value
+                  color: 'hsl(50, 100%, 60%)'
                 }}
               >
                 <ChevronLeft className="h-6 w-6" />

@@ -93,7 +93,7 @@ export const ConversationList = ({
                       onClick={() => handleSetActiveConversation(conversation)}
                     >
                       <Icons.check className="mr-2 h-4 w-4" />
-                      Set as Active
+                      Set Active
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleDeleteConversation(conversation)}

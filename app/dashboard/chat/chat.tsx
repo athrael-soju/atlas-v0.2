@@ -175,7 +175,7 @@ export const Chat = ({ profileSettings }: ChatProps) => {
     // Release the URL object
     URL.revokeObjectURL(url);
   };
-
+  // TODO: Add an icon for Analysis assistant and link it to active files
   return (
     <TooltipProvider>
       <ChatSidebar
@@ -224,39 +224,6 @@ export const Chat = ({ profileSettings }: ChatProps) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.button
-                  onClick={handleMicToggle}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  style={{ color: micEnabled ? '#f97316' : 'inherit' }}
-                >
-                  <Mic className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Use Microphone</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleKnowledgebaseToggle}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  type="button"
-                  style={{
-                    color: knowledgebaseEnabled ? '#facc15' : 'inherit'
-                  }}
-                >
-                  <Brain className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                Enlighten your assistant
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
                   onClick={handleStartNewConversation}
                   whileTap={{ scale: 0.95 }}
                   whileHover={{ scale: 1.05 }}
@@ -281,6 +248,39 @@ export const Chat = ({ profileSettings }: ChatProps) => {
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent side="top">Save Chat</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleKnowledgebaseToggle}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  type="button"
+                  style={{
+                    color: knowledgebaseEnabled ? '#facc15' : 'inherit'
+                  }}
+                >
+                  <Brain className="h-5 w-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                Enlighten your assistant
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleMicToggle}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  style={{ color: micEnabled ? '#f97316' : 'inherit' }}
+                >
+                  <Mic className="h-5 w-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Use Microphone</TooltipContent>
             </Tooltip>
             <Button
               type="button"

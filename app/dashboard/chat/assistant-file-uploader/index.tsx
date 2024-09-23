@@ -1,46 +1,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import Dropzone, { FileRejection } from 'react-dropzone';
 import { toast } from '@/components/ui/use-toast';
 import {
   SortingState,
   useReactTable,
-  flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   getFilteredRowModel
 } from '@tanstack/react-table';
 
-import { cn, formatBytes } from '@/lib/utils';
+import { formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { AssistantFile } from '@/types/data';
-import { Icons } from '@/components/icons';
 import {
   assistantFilesFormSchema,
   AssistantFilesFormValues
 } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Trash2 } from 'lucide-react';
-import { Working } from '@/components/spinner';
+
+import { FileDropzone } from './file-dropzone';
+import { FileActions } from './file-actions';
+import { FileTable } from './file-table';
 
 const defaultValues: Partial<AssistantFilesFormValues> = {
   analysis: []
@@ -49,148 +32,6 @@ const defaultValues: Partial<AssistantFilesFormValues> = {
 type AssistantUploaderProps = {
   userId: string;
 };
-
-const FileDropzone = ({ onDrop, isUploading }: any) => (
-  <Dropzone onDrop={onDrop}>
-    {({ getRootProps, getInputProps, isDragActive }) => (
-      <div
-        {...getRootProps()}
-        className={cn(
-          'h-42 group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25',
-          'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          isDragActive && 'border-muted-foreground/50',
-          isUploading && 'pointer-events-none opacity-60'
-        )}
-      >
-        <input {...getInputProps()} />
-        <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-          <div className="rounded-full border border-dashed p-3">
-            <Icons.uploadIcon
-              className="size-7 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </div>
-          <div className="flex flex-col gap-px">
-            <p className="font-medium text-muted-foreground">
-              Drop or select files to upload
-            </p>
-            <p className="text-sm text-muted-foreground/70">
-              You can upload multiple files
-            </p>
-          </div>
-        </div>
-      </div>
-    )}
-  </Dropzone>
-);
-
-const FileActions = ({ file, onDeleteFiles }: any) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="ghost" className="h-8 w-8 p-0">
-        <span className="sr-only">Open menu</span>
-        <MoreHorizontal className="h-4 w-4" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end">
-      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-      <DropdownMenuItem onClick={() => onDeleteFiles([file])}>
-        <Trash2 color="#ba1212" className="mr-2" />
-        Delete
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
-
-const FileTable = ({ table, working, assistantColumns }: any) => (
-  <div className="rounded-md border">
-    <ScrollArea style={{ height: 'calc(100vh - 345px)' }}>
-      <Table>
-        <TableHeader>
-          {table
-            .getHeaderGroups()
-            .map(
-              (headerGroup: {
-                id: React.Key | null | undefined;
-                headers: any[];
-              }) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                      className={
-                        header.column.getCanSort()
-                          ? 'cursor-pointer select-none'
-                          : ''
-                      }
-                    >
-                      <div className="flex items-center">
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        <span className="ml-2 inline-block">
-                          {header.column.getIsSorted() === 'asc' ? (
-                            <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
-                          ) : header.column.getIsSorted() === 'desc' ? (
-                            <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
-                          ) : (
-                            <div className="inline-block h-3 w-3 align-middle opacity-0" />
-                          )}
-                        </span>
-                      </div>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              )
-            )}
-        </TableHeader>
-        <TableBody>
-          {working ? (
-            <TableRow>
-              <TableCell colSpan={assistantColumns.length}>
-                <div className="flex h-[calc(100vh-450px)] items-center justify-center">
-                  <Working />
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : table.getRowModel().rows.length > 0 ? (
-            table
-              .getRowModel()
-              .rows.map(
-                (row: {
-                  id: React.Key | null | undefined;
-                  getIsSelected: () => any;
-                  getVisibleCells: () => any[];
-                }) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                )
-              )
-          ) : (
-            <TableRow>
-              <TableCell colSpan={assistantColumns.length}>
-                No files found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </ScrollArea>
-  </div>
-);
 
 export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -208,8 +49,9 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
 
   const handleUpdateFiles = async (
     acceptedFiles: File[],
-    rejectedFiles: FileRejection[]
+    rejectedFiles: any[]
   ) => {
+    // TODO: Handle situation where some, or no files are accepted from openai
     if (acceptedFiles.length > 0) {
       setIsUploading(true);
       setWorking(true);
@@ -256,7 +98,7 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
         toast({
           title: 'Uh oh! Something went wrong.',
           description: `File ${file.name} was rejected: ${errors.map(
-            (e) => e.message
+            (e: any) => e.message
           )}`,
           variant: 'destructive'
         });
@@ -306,10 +148,29 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
     }
   };
 
+  const onToggleActive = async (file: AssistantFile) => {
+    try {
+      const updatedFile = { ...file, isActive: !file.isActive };
+      onSubmit({
+        analysis: assistantFiles.map((f) =>
+          f.id === file.id ? updatedFile : f
+        )
+      });
+    } catch (error) {
+      toast({
+        title: 'Uh oh! Something went wrong.',
+        description: `${error}`,
+        variant: 'destructive'
+      });
+    } finally {
+      setWorking(false);
+    }
+  };
+
   const handleDeleteSelected = async () => {
     const selectedFiles = table
       .getSelectedRowModel()
-      .rows.map((row) => row.original);
+      .rows.map((row: any) => row.original);
     if (selectedFiles.length > 0) {
       await onDeleteFiles(selectedFiles);
     } else {
@@ -359,7 +220,11 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }: { row: any }) => (
-        <FileActions file={row.original} onDeleteFiles={onDeleteFiles} />
+        <FileActions
+          file={row.original}
+          onDeleteFiles={onDeleteFiles}
+          onToggleActive={onToggleActive} // Pass the toggle action here
+        />
       )
     }
   ];
