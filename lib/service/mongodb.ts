@@ -4,9 +4,9 @@ import { getServerSession } from 'next-auth/next';
 import authConfig from '@/auth.config';
 import client from '@/lib/client/mongodb';
 import { IUser } from '@/models/User';
-import { Db, ObjectId } from 'mongodb';
-import { FileObject } from 'openai/resources/files.mjs';
+import { Db, ObjectId, UpdateResult } from 'mongodb';
 import { Collection } from 'mongodb';
+import { AssistantFile } from '@/types/data';
 
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
@@ -102,10 +102,9 @@ export const updateUserFiles = async (
 // Assume connectToDatabase is already defined and returns a connected MongoDB client
 export const updateAssistantFiles = async (
   userId: string,
-  assistantFiles: FileObject[]
-): Promise<{ message: string }> => {
+  assistantFiles: AssistantFile[]
+): Promise<UpdateResult<IUser>> => {
   const db = await connectToDatabase();
-
   // Type the collection with the User interface
   const usersCollection: Collection<IUser> = db.collection<IUser>('users');
 
@@ -120,16 +119,46 @@ export const updateAssistantFiles = async (
   };
 
   // Perform the update
-  const result = await usersCollection.updateOne(
+  const result: UpdateResult<IUser> = await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
-    update as any // Use type assertion if necessary
+    update
   );
 
-  if (result.matchedCount === 0) {
-    throw new Error(`User with id '${userId}' not found`);
+  return result;
+};
+
+export const deleteAssistantFiles = async (
+  userId: string,
+  files: AssistantFile[]
+): Promise<string[]> => {
+  const db = await connectToDatabase();
+  const usersCollection = db.collection('users');
+
+  // Assuming 'files' is an array of file objects with unique identifiers
+  const fileIds = files.map((file) => file.id); // Modify this based on your file structure
+
+  // Update the file, or have a specific field to store the openAI Id
+  const result = await usersCollection.updateOne(
+    { _id: new ObjectId(userId) },
+    {
+      $pull: {
+        'files.analysis': {
+          id: { $in: fileIds as string[] }
+        } as any
+      },
+      $set: {
+        updatedAt: new Date().toISOString()
+      }
+    }
+  );
+
+  if (result.modifiedCount === 0) {
+    throw new Error(
+      `No files matching the provided IDs were found for user '${userId}'`
+    );
   }
 
-  return { message: 'Assistant files uploaded successfully' };
+  return fileIds;
 };
 
 export const updateFileDateProcessed = async (

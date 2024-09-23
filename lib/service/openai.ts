@@ -3,7 +3,7 @@ import OpenAI, { ClientOptions } from 'openai';
 import { toAscii } from '@/lib/utils';
 import { ParsedElement } from '@/types/settings';
 import { Thread } from 'openai/resources/beta/threads/threads.mjs';
-import { FileObject } from 'openai/resources/index.mjs';
+import { FileDeleted, FileObject } from 'openai/resources/index.mjs';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -113,4 +113,22 @@ export const uploadFile = async (file: File): Promise<FileObject> => {
   });
 
   return fileObject;
+};
+
+export const deleteFile = async (fileIds: string[]): Promise<FileDeleted[]> => {
+  const deletedFiles: FileDeleted[] = [];
+
+  // Iterate over the fileIds and delete each file individually
+  for (const fileId of fileIds) {
+    const deletedFile = await openai.files.del(fileId);
+    deletedFiles.push(deletedFile);
+  }
+
+  return deletedFiles;
+};
+
+export const getFiles = async (): Promise<FileObject[]> => {
+  const files = await openai.files.list();
+
+  return files.data;
 };

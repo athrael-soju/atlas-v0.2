@@ -74,3 +74,16 @@ export const conversationsFormSchema = z.object({
 
 // Type inference for form data
 export type ConversationsFormValues = z.infer<typeof conversationsFormSchema>;
+
+export const assistantFileSchema = z.object({
+  id: z.string(),
+  created_at: z.number(),
+  bytes: z.number(),
+  filename: z.string()
+});
+
+export const assistantFilesFormSchema = z.object({
+  analysis: z.array(assistantFileSchema)
+});
+
+export type AssistantFilesFormValues = z.infer<typeof assistantFilesFormSchema>;

@@ -3,12 +3,7 @@ import Image from 'next/image';
 import { Progress } from '@/components/ui/progress';
 import { Icons } from '@/components/icons';
 import { formatBytes } from '@/lib/utils';
-
-interface FileCardProps {
-  file: File;
-  onRemove: () => void;
-  progress?: number;
-}
+import { FileCardProps } from '@/types/file-uploader';
 
 export function FileCard({ file, progress }: FileCardProps) {
   const isUploading = progress !== undefined && progress < 100;

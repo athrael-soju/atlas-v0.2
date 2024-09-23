@@ -8,7 +8,7 @@ import {
   ConversationSettings
 } from '@/types/settings';
 import { KnowledgebaseFile } from '@/types/file-uploader';
-import { FileObject } from 'openai/resources/files.mjs';
+import { AssistantFile } from '@/types/data';
 
 export interface IUser {
   _id: ObjectId;
@@ -26,7 +26,7 @@ export interface IUser {
   };
   files: {
     knowledgebase: KnowledgebaseFile[];
-    analysis: FileObject[];
+    analysis: AssistantFile[];
   };
   data: ConversationSettings;
 }

@@ -20,8 +20,9 @@ import { Conversation } from '@/types/data';
 import * as emoji from 'node-emoji';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ConversationList } from './conversation-list';
-import { AssistantFileUploader } from './assistant-file-uploader';
+import { AssistantFileUploader } from './analysis-list';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useSession } from 'next-auth/react';
 
 const defaultValues = {
   conversations: []
@@ -34,6 +35,8 @@ type ChatSidebarProps = {
 
 export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
   (props, ref) => {
+    const { data: session } = useSession();
+    const userId = session?.user.id as string;
     const { knowledgebaseEnabled, setMessages } = props;
     ChatSidebar.displayName = 'ChatSidebar';
 
@@ -126,13 +129,6 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
       });
     };
 
-    const mockFiles = Array.from({ length: 20 }, (_, i) => ({
-      id: (i + 1).toString(),
-      fileName: `file_${i + 1}.pdf`,
-      uploadDate: new Date().toLocaleDateString(),
-      size: `${(Math.random() * 10).toFixed(2)} MB`
-    }));
-
     return (
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -161,7 +157,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                   <SheetDescription>Select your conversation</SheetDescription>
                 </SheetHeader>
               </VisuallyHidden>
-              {/* Tabs for Conversation and Files */}
+
               <Tabs defaultValue="conversations" className="w-full">
                 <TabsList className="my-4 flex justify-around">
                   <TabsTrigger value="conversations">Conversations</TabsTrigger>
@@ -179,7 +175,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                 </TabsContent>
 
                 <TabsContent value="files">
-                  <AssistantFileUploader />
+                  <AssistantFileUploader userId={userId} />
                 </TabsContent>
               </Tabs>
             </SheetContent>

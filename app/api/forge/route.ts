@@ -22,6 +22,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const fileIds = JSON.parse(formData.get('fileIds') as string);
     const userId = formData.get('userId') as string;
 
+    if (!userId) {
+      throw new Error('Invalid user');
+    }
+
     // Validate user
     const userServerData = await validateUser(userId);
 
