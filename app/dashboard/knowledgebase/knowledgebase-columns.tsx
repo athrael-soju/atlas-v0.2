@@ -101,7 +101,7 @@ export function knowledgebaseColumns(
     },
     {
       accessorKey: 'name',
-      header: 'File Name',
+      header: 'Filename',
       cell: renderFileNameCell,
       enableSorting: true
     },

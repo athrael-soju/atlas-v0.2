@@ -40,6 +40,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { Working } from '@/components/spinner';
 
 const defaultValues: Partial<AssistantFilesFormValues> = {
   analysis: []
@@ -69,7 +70,7 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
   ) => {
     if (acceptedFiles.length > 0) {
       setIsUploading(true);
-
+      setWorking(true);
       const formData = new FormData();
       acceptedFiles.forEach((file) => {
         formData.append('files', file); // 'files' key to send multiple files
@@ -104,9 +105,10 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
           description: `${error}`,
           variant: 'destructive'
         });
+      } finally {
+        setWorking(false);
+        setIsUploading(false);
       }
-
-      setIsUploading(false);
     }
 
     if (rejectedFiles.length > 0) {
@@ -123,34 +125,45 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
   };
 
   const onDeleteFiles = async (files: AssistantFile[]) => {
-    const response = await fetch('/api/assistants/files/analysis', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, files })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to delete files');
-    }
-
-    const result = await response.json();
-    if (result.deletedFiles.length > 0) {
-      toast({
-        title: 'Done!',
-        description: `${result.deletedFileCount} file(s) have been deleted successfully`,
-        variant: 'default'
+    try {
+      setWorking(true);
+      const response = await fetch('/api/assistants/files/analysis', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, files })
       });
 
-      onSubmit({
-        analysis: assistantFiles.filter((file) => !files.includes(file))
-      });
-    } else {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete files');
+      }
+
+      const result = await response.json();
+      if (result.deletedFiles.length > 0) {
+        toast({
+          title: 'Done!',
+          description: `${result.deletedFileCount} file(s) have been deleted successfully`,
+          variant: 'default'
+        });
+
+        onSubmit({
+          analysis: assistantFiles.filter((file) => !files.includes(file))
+        });
+      } else {
+        toast({
+          title: 'Uh oh! Something went wrong.',
+          description: `Some files may have not been deleted`,
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
       toast({
         title: 'Uh oh! Something went wrong.',
-        description: `Some files may have not been deleted`,
+        description: `${error}`,
         variant: 'destructive'
       });
+    } finally {
+      setWorking(false);
     }
   };
 
@@ -200,7 +213,7 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
     },
     {
       accessorKey: 'filename',
-      header: 'File Name',
+      header: 'Filename',
       cell: ({ row }: any) => row.original.filename
     },
     {
@@ -286,96 +299,107 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
           </div>
         )}
       </Dropzone>
-      {/* Table to display assistantFiles */}
-      {assistantFiles.length > 0 ? (
-        <div className="file-table mt-6">
-          <div className="flex flex-shrink-0 items-center justify-between space-x-4 py-4">
-            <Input
-              placeholder="Filter by name..."
-              value={globalFilter}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="min-w-0 max-w-full flex-grow sm:max-w-sm"
-            />
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDeleteSelected}
-              disabled={table.getSelectedRowModel().rows.length === 0}
-              className="mr-2"
-            >
-              Delete Selected
-            </Button>
-          </div>
-          <div className="rounded-md border">
-            <ScrollArea style={{ height: 'calc(100vh - 270px)' }}>
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          onClick={header.column.getToggleSortingHandler()}
-                          className={
-                            header.column.getCanSort()
-                              ? 'cursor-pointer select-none'
-                              : ''
-                          }
-                        >
-                          <div className="flex items-center">
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
+
+      <div className="file-table mt-6">
+        <div className="flex flex-shrink-0 items-center justify-between space-x-4 py-4">
+          <Input
+            placeholder="Filter by name..."
+            value={globalFilter}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="min-w-0 max-w-full flex-grow sm:max-w-sm"
+          />
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleDeleteSelected}
+            disabled={table.getSelectedRowModel().rows.length === 0}
+            className="mr-2"
+          >
+            Delete Selected
+          </Button>
+        </div>
+
+        <div className="rounded-md border">
+          <ScrollArea style={{ height: 'calc(100vh - 345px)' }}>
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        onClick={header.column.getToggleSortingHandler()}
+                        className={
+                          header.column.getCanSort()
+                            ? 'cursor-pointer select-none'
+                            : ''
+                        }
+                      >
+                        <div className="flex items-center">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          <span className="ml-2 inline-block">
+                            {header.column.getIsSorted() === 'asc' ? (
+                              <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
+                            ) : header.column.getIsSorted() === 'desc' ? (
+                              <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
+                            ) : (
+                              <div className="inline-block h-3 w-3 align-middle opacity-0" />
                             )}
-                            <span className="ml-2 inline-block">
-                              {header.column.getIsSorted() === 'asc' ? (
-                                <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
-                              ) : header.column.getIsSorted() === 'desc' ? (
-                                <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
-                              ) : (
-                                <div className="inline-block h-3 w-3 align-middle opacity-0" />
-                              )}
-                            </span>
-                          </div>
-                        </TableHead>
+                          </span>
+                        </div>
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+
+              <TableBody>
+                {working ? (
+                  <TableRow>
+                    <TableCell colSpan={assistantColumns.length}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          height: 'calc(100vh - 450px)'
+                        }}
+                      >
+                        <Working />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows.length > 0 ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
                       ))}
                     </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.length > 0 ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={assistantColumns.length}>
-                        No files found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </div>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={assistantColumns.length}>
+                      No files found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </div>
-      ) : (
-        <div className="no-files mt-6">
-          <p>No files uploaded.</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
