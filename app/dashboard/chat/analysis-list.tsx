@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import Dropzone, { FileRejection } from 'react-dropzone';
 import { toast } from '@/components/ui/use-toast';
 import {
@@ -50,6 +50,148 @@ type AssistantUploaderProps = {
   userId: string;
 };
 
+const FileDropzone = ({ onDrop, isUploading }: any) => (
+  <Dropzone onDrop={onDrop}>
+    {({ getRootProps, getInputProps, isDragActive }) => (
+      <div
+        {...getRootProps()}
+        className={cn(
+          'h-42 group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25',
+          'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          isDragActive && 'border-muted-foreground/50',
+          isUploading && 'pointer-events-none opacity-60'
+        )}
+      >
+        <input {...getInputProps()} />
+        <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+          <div className="rounded-full border border-dashed p-3">
+            <Icons.uploadIcon
+              className="size-7 text-muted-foreground"
+              aria-hidden="true"
+            />
+          </div>
+          <div className="flex flex-col gap-px">
+            <p className="font-medium text-muted-foreground">
+              Drop or select files to upload
+            </p>
+            <p className="text-sm text-muted-foreground/70">
+              You can upload multiple files
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+  </Dropzone>
+);
+
+const FileActions = ({ file, onDeleteFiles }: any) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="ghost" className="h-8 w-8 p-0">
+        <span className="sr-only">Open menu</span>
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end">
+      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+      <DropdownMenuItem onClick={() => onDeleteFiles([file])}>
+        <Trash2 color="#ba1212" className="mr-2" />
+        Delete
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+const FileTable = ({ table, working, assistantColumns }: any) => (
+  <div className="rounded-md border">
+    <ScrollArea style={{ height: 'calc(100vh - 345px)' }}>
+      <Table>
+        <TableHeader>
+          {table
+            .getHeaderGroups()
+            .map(
+              (headerGroup: {
+                id: React.Key | null | undefined;
+                headers: any[];
+              }) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      onClick={header.column.getToggleSortingHandler()}
+                      className={
+                        header.column.getCanSort()
+                          ? 'cursor-pointer select-none'
+                          : ''
+                      }
+                    >
+                      <div className="flex items-center">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        <span className="ml-2 inline-block">
+                          {header.column.getIsSorted() === 'asc' ? (
+                            <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
+                          ) : header.column.getIsSorted() === 'desc' ? (
+                            <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
+                          ) : (
+                            <div className="inline-block h-3 w-3 align-middle opacity-0" />
+                          )}
+                        </span>
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              )
+            )}
+        </TableHeader>
+        <TableBody>
+          {working ? (
+            <TableRow>
+              <TableCell colSpan={assistantColumns.length}>
+                <div className="flex h-[calc(100vh-450px)] items-center justify-center">
+                  <Working />
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : table.getRowModel().rows.length > 0 ? (
+            table
+              .getRowModel()
+              .rows.map(
+                (row: {
+                  id: React.Key | null | undefined;
+                  getIsSelected: () => any;
+                  getVisibleCells: () => any[];
+                }) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )
+              )
+          ) : (
+            <TableRow>
+              <TableCell colSpan={assistantColumns.length}>
+                No files found.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </ScrollArea>
+  </div>
+);
+
 export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
@@ -72,9 +214,7 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
       setIsUploading(true);
       setWorking(true);
       const formData = new FormData();
-      acceptedFiles.forEach((file) => {
-        formData.append('files', file); // 'files' key to send multiple files
-      });
+      acceptedFiles.forEach((file) => formData.append('files', file));
       formData.append('userId', userId);
 
       try {
@@ -145,7 +285,6 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
           description: `${result.deletedFileCount} file(s) have been deleted successfully`,
           variant: 'default'
         });
-
         onSubmit({
           analysis: assistantFiles.filter((file) => !files.includes(file))
         });
@@ -168,28 +307,17 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
   };
 
   const handleDeleteSelected = async () => {
-    try {
-      setWorking(true);
-      const selectedFiles = table
-        .getSelectedRowModel()
-        .rows.map((row) => row.original);
-      if (selectedFiles.length > 0) {
-        await onDeleteFiles(selectedFiles);
-      } else {
-        toast({
-          title: 'No files selected',
-          description: 'Please select files to delete.',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
+    const selectedFiles = table
+      .getSelectedRowModel()
+      .rows.map((row) => row.original);
+    if (selectedFiles.length > 0) {
+      await onDeleteFiles(selectedFiles);
+    } else {
       toast({
-        title: 'Uh oh! Something went wrong.',
-        description: `${error}`,
+        title: 'No files selected',
+        description: 'Please select files to delete.',
         variant: 'destructive'
       });
-    } finally {
-      setWorking(false);
     }
   };
 
@@ -230,26 +358,9 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }: { row: any }) => {
-        const file = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onDeleteFiles([file])}>
-                <Trash2 color="#ba1212" className="mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      }
+      cell: ({ row }: { row: any }) => (
+        <FileActions file={row.original} onDeleteFiles={onDeleteFiles} />
+      )
     }
   ];
 
@@ -267,38 +378,7 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
 
   return (
     <div>
-      {/* Dropzone for file uploads */}
-      <Dropzone onDrop={handleUpdateFiles}>
-        {({ getRootProps, getInputProps, isDragActive }) => (
-          <div
-            {...getRootProps()}
-            className={cn(
-              'h-42 group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25',
-              'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-              isDragActive && 'border-muted-foreground/50',
-              isUploading && 'pointer-events-none opacity-60'
-            )}
-          >
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-              <div className="rounded-full border border-dashed p-3">
-                <Icons.uploadIcon
-                  className="size-7 text-muted-foreground"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="flex flex-col gap-px">
-                <p className="font-medium text-muted-foreground">
-                  Drop or select files to upload
-                </p>
-                <p className="text-sm text-muted-foreground/70">
-                  You can upload multiple files
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </Dropzone>
+      <FileDropzone onDrop={handleUpdateFiles} isUploading={isUploading} />
 
       <div className="file-table mt-6">
         <div className="flex flex-shrink-0 items-center justify-between space-x-4 py-4">
@@ -319,86 +399,11 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
           </Button>
         </div>
 
-        <div className="rounded-md border">
-          <ScrollArea style={{ height: 'calc(100vh - 345px)' }}>
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        onClick={header.column.getToggleSortingHandler()}
-                        className={
-                          header.column.getCanSort()
-                            ? 'cursor-pointer select-none'
-                            : ''
-                        }
-                      >
-                        <div className="flex items-center">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          <span className="ml-2 inline-block">
-                            {header.column.getIsSorted() === 'asc' ? (
-                              <Icons.arrowUp className="inline-block h-3 w-3 align-middle" />
-                            ) : header.column.getIsSorted() === 'desc' ? (
-                              <Icons.arrowDown className="inline-block h-3 w-3 align-middle" />
-                            ) : (
-                              <div className="inline-block h-3 w-3 align-middle opacity-0" />
-                            )}
-                          </span>
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-
-              <TableBody>
-                {working ? (
-                  <TableRow>
-                    <TableCell colSpan={assistantColumns.length}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          height: 'calc(100vh - 450px)'
-                        }}
-                      >
-                        <Working />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : table.getRowModel().rows.length > 0 ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={assistantColumns.length}>
-                      No files found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        </div>
+        <FileTable
+          table={table}
+          working={working}
+          assistantColumns={assistantColumns}
+        />
       </div>
     </div>
   );
