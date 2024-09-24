@@ -24,6 +24,7 @@ import { AssistantFileUploader } from './assistant-file-uploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 import { AssistantMode } from '@/types/settings';
+import { getLocalDateTime } from '@/lib/utils';
 
 const defaultValues = {
   conversations: []
@@ -61,7 +62,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
       const newConversation = {
         id: threadId,
         title: `${ej.emoji} ${ej.name}`,
-        createdAt: new Date().toISOString(),
+        createdAt: getLocalDateTime(),
         active: true // Set the new conversation as active
       };
 

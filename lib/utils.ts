@@ -124,3 +124,7 @@ User Profile
   Military Status: ${militaryStatus}`;
   return userProfile;
 }
+
+export function getLocalDateTime(date = new Date()): string {
+  return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+}

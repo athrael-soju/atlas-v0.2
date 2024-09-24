@@ -242,8 +242,7 @@ export const AssistantFileUploader = ({
     {
       accessorKey: 'created_at',
       header: 'Uploaded',
-      cell: ({ row }: any) =>
-        new Date(row.original.created_at).toLocaleDateString()
+      cell: ({ row }: any) => row.original.created_at
     },
     {
       id: 'actions',

@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/tooltip';
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import React, { ReactNode } from 'react';
+import { getLocalDateTime } from '@/lib/utils';
 
 export function knowledgebaseColumns(
   onDeleteFiles: (files: KnowledgebaseFile[]) => Promise<void>
@@ -47,12 +48,6 @@ export function knowledgebaseColumns(
       <span>{fileName}</span>
     );
   };
-
-  const renderDateCell = (date: Date) => (
-    <div>
-      {date.toLocaleDateString()} {date.toLocaleTimeString()}
-    </div>
-  );
 
   const renderSizeCell = ({ row }: { row: any }) => {
     const sizeInBytes = parseFloat(row.getValue('size'));
@@ -108,19 +103,14 @@ export function knowledgebaseColumns(
     {
       accessorKey: 'dateUploaded',
       header: 'Uploaded',
-      cell: ({ row }) => renderDateCell(new Date(row.getValue('dateUploaded'))),
+      cell: (info: any) => info.getValue(),
       enableSorting: true
     },
     {
       accessorKey: 'dateProcessed',
       header: 'Processed',
       cell: ({ row }) => {
-        const dateProcessed = row.getValue('dateProcessed') as Date;
-        return dateProcessed ? (
-          renderDateCell(new Date(dateProcessed))
-        ) : (
-          <div>N/A</div>
-        );
+        return row.getValue('dateProcessed') || <div>N/A</div>;
       },
       enableSorting: true
     },

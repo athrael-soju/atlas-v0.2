@@ -5,8 +5,12 @@ import { getUserId } from '@/lib/service/mongodb';
 const utapi = new UTApi();
 import { deleteFromVectorDb } from './pinecone';
 import { KnowledgebaseFile } from '@/types/file-uploader';
+import { getLocalDateTime } from '@/lib/utils';
 
-export const deleteFiles = async (userId: string, files: KnowledgebaseFile[]) => {
+export const deleteFiles = async (
+  userId: string,
+  files: KnowledgebaseFile[]
+) => {
   let deletedFileCount = 0;
   const id = userId;
 
@@ -26,12 +30,13 @@ export const deleteFiles = async (userId: string, files: KnowledgebaseFile[]) =>
 
     const db = client.db('AtlasII');
     const usersCollection = db.collection('users');
-
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(userId) },
       {
         $pull: { 'files.knowledgebase': { key: { $in: filesArray } } as any },
-        $set: { updatedAt: new Date().toISOString() }
+        $set: {
+          updatedAt: getLocalDateTime()
+        }
       }
     );
 

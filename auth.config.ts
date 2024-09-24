@@ -11,6 +11,7 @@ import { defaultUserSettings } from '@/constants/user';
 import { createThread } from '@/lib/service/openai';
 import { Conversation } from './types/data';
 import * as emoji from 'node-emoji';
+import { getLocalDateTime } from './lib/utils';
 
 const ej = emoji.random();
 const { GITHUB_ID, GITHUB_SECRET, GOOGLE_ID, GOOGLE_SECRET, NEXTAUTH_SECRET } =
@@ -31,20 +32,20 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
 
   if (!guestUser) {
     const thread = await createThread();
-
     const conversation: Conversation = {
       id: thread.id,
       title: `${ej.emoji} ${ej.name}`,
-      createdAt: new Date().toISOString(),
+      createdAt: getLocalDateTime(),
       active: true
     };
+
     const newGuestUser: IUser = {
       _id: new ObjectId(),
       name: 'Guest',
       email: 'guest@example.com',
       role: 'guest',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: getLocalDateTime(),
+      updatedAt: getLocalDateTime(),
       settings: defaultUserSettings(),
       files: {
         knowledgebase: [],
@@ -80,7 +81,7 @@ async function findOrCreateUser(
     const conversation: Conversation = {
       id: thread.id,
       title: `${ej.emoji} ${ej.name}`,
-      createdAt: new Date().toISOString(),
+      createdAt: getLocalDateTime(),
       active: true
     };
 
@@ -88,8 +89,8 @@ async function findOrCreateUser(
       _id: new ObjectId(),
       name: user.name,
       email: user.email,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: getLocalDateTime(),
+      updatedAt: getLocalDateTime(),
       role: 'user',
       settings: defaultUserSettings(),
       files: {
@@ -106,7 +107,11 @@ async function findOrCreateUser(
   } else if (existingUser) {
     await usersCollection.updateOne(
       { _id: new ObjectId(existingUser._id) },
-      { $set: { updatedAt: new Date().toISOString() } }
+      {
+        $set: {
+          updatedAt: getLocalDateTime()
+        }
+      }
     );
     user.id = existingUser._id.toString();
   }

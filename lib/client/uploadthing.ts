@@ -2,6 +2,7 @@ import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { getUserId } from '@/lib/service/mongodb';
 
 import { updateUserFiles } from '@/lib/service/mongodb';
+import { getLocalDateTime } from '../utils';
 
 const f = createUploadthing();
 
@@ -18,7 +19,7 @@ const handleUploadComplete = async ({
     url: file.url,
     size: file.size,
     key: file.key,
-    dateUploaded: new Date().toISOString(),
+    dateUploaded: getLocalDateTime(),
     dateProcessed: null
   };
   await updateUserFiles(metadata.userId, knowledgebaseFile);

@@ -7,6 +7,7 @@ import { uploadFile, deleteFile, getFiles } from '@/lib/service/openai';
 import { AssistantFile } from '@/types/data';
 import { openai } from '@/lib/client/openai';
 import { Assistant } from 'openai/resources/beta/assistants.mjs';
+import { getLocalDateTime } from '@/lib/utils';
 
 export const runtime = 'nodejs';
 
@@ -43,10 +44,10 @@ export async function POST(request: Request) {
           if (!fileObject) {
             throw new Error('Failed to upload document to OpenAI');
           }
-
+          const date = new Date(fileObject.created_at * 1000);
           const assistantFile: AssistantFile = {
             id: fileObject.id,
-            created_at: fileObject.created_at,
+            created_at: getLocalDateTime(date),
             bytes: fileObject.bytes,
             filename: fileObject.filename,
             isActive: false

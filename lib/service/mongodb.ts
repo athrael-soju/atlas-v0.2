@@ -8,6 +8,7 @@ import { Db, ObjectId, UpdateResult } from 'mongodb';
 import { Collection } from 'mongodb';
 import { AssistantFile } from '@/types/data';
 import { AssistantMode } from '@/types/settings';
+import { getLocalDateTime } from '@/lib/utils';
 
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
@@ -76,7 +77,7 @@ export const updateAssistantMode = async (
   return updateUserField(userId, {
     $set: {
       'settings.chat.assistantMode': assistantMode,
-      updatedAt: new Date().toISOString()
+      updatedAt: getLocalDateTime()
     }
   });
 };
@@ -87,13 +88,14 @@ export const updateUserFiles = async (
 ): Promise<{ message: string }> => {
   const db = await connectToDatabase();
   const usersCollection = db.collection('users');
-
   // Perform the update, ensuring only the file data is pushed into the array
   await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
     {
       $push: { 'files.knowledgebase': knowledgebaseFile },
-      $set: { updatedAt: new Date().toISOString() }
+      $set: {
+        updatedAt: getLocalDateTime()
+      }
     }
   );
 
@@ -108,14 +110,13 @@ export const updateAssistantFiles = async (
   const db = await connectToDatabase();
   // Type the collection with the User interface
   const usersCollection: Collection<IUser> = db.collection<IUser>('users');
-
   // Define the update document with correct types
   const update = {
     $push: {
       'files.analysis': { $each: assistantFiles }
     },
     $set: {
-      updatedAt: new Date().toISOString()
+      updatedAt: getLocalDateTime()
     }
   };
 
@@ -148,7 +149,7 @@ export const deleteAssistantFiles = async (
         } as any
       },
       $set: {
-        updatedAt: new Date().toISOString()
+        updatedAt: getLocalDateTime()
       }
     }
   );
@@ -168,14 +169,13 @@ export const updateFileDateProcessed = async (
 ): Promise<{ message: string }> => {
   const db = await connectToDatabase();
   const usersCollection = db.collection('users');
-  const date = new Date().toISOString();
   const updateOperations = filesToUpdate.map((file) =>
     usersCollection.updateOne(
       { _id: new ObjectId(userId) },
       {
         $set: {
-          'files.knowledgebase.$[elem].dateProcessed': date,
-          updatedAt: new Date().toISOString()
+          'files.knowledgebase.$[elem].dateProcessed': getLocalDateTime(),
+          updatedAt: getLocalDateTime()
         }
       },
       {

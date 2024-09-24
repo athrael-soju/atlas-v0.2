@@ -53,10 +53,7 @@ export const ConversationList = ({
       {
         header: 'Created',
         accessorKey: 'createdAt',
-        cell: (info: any) => {
-          const date = new Date(info.getValue());
-          return date.toLocaleDateString();
-        }
+        cell: (info: any) => info.getValue()
       },
       {
         header: 'State',

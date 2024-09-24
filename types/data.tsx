@@ -7,7 +7,7 @@ export interface Conversation {
 
 export interface AssistantFile {
   id: string;
-  created_at: number;
+  created_at: string;
   bytes: number;
   filename: string;
   isActive: boolean;

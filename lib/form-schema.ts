@@ -77,7 +77,7 @@ export type ConversationsFormValues = z.infer<typeof conversationsFormSchema>;
 
 export const assistantFileSchema = z.object({
   id: z.string(),
-  created_at: z.number(),
+  created_at: z.string(),
   bytes: z.number(),
   filename: z.string(),
   isActive: z.boolean()
