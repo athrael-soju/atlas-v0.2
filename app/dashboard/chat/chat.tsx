@@ -147,10 +147,10 @@ export const Chat = ({ profileSettings, userId }: ChatProps) => {
       e.preventDefault();
       if (assistantMode === AssistantMode.Analysis) {
         form.setValue('assistantMode', AssistantMode.Knowledgebase);
-        await updateAnalysisAssistant(userId, assistantFileIds);
+        await updateKnowledgebaseAssistant(userId);
       } else if (assistantMode === AssistantMode.Knowledgebase) {
         form.setValue('assistantMode', AssistantMode.Analysis);
-        await updateKnowledgebaseAssistant(userId);
+        await updateAnalysisAssistant(userId, assistantFileIds);
       }
     } catch (error) {
       toast({
