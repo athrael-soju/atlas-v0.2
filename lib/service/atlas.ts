@@ -1,3 +1,5 @@
+import { Assistant } from 'openai/resources/beta/assistants.mjs';
+
 const createFormData = (userId: string, selectedFiles: string[]): FormData => {
   const formData = new FormData();
   formData.append('fileIds', JSON.stringify(selectedFiles));
@@ -71,4 +73,16 @@ export const fetchContextEnrichedMessage = async (
     }
   });
   return contextEnrichedMessage;
+};
+
+export const assignDocumentsToAssistant = async (
+  userId: string,
+  fileIds: string[]
+): Promise<Assistant> => {
+  const formData = createFormData(userId, fileIds);
+  const response = await fetch('/api/assistants/files/analysis', {
+    method: 'PUT',
+    body: formData
+  });
+  return response.json();
 };

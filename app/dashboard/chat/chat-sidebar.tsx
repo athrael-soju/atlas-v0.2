@@ -23,13 +23,14 @@ import { ConversationList } from './conversation-list';
 import { AssistantFileUploader } from './assistant-file-uploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useSession } from 'next-auth/react';
+import { AssistantMode } from '@/types/settings';
 
 const defaultValues = {
   conversations: []
 };
 
 type ChatSidebarProps = {
-  knowledgebaseEnabled: boolean;
+  assistantMode: AssistantMode;
   setMessages: React.Dispatch<React.SetStateAction<any>>;
 };
 
@@ -37,7 +38,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
   (props, ref) => {
     const { data: session } = useSession();
     const userId = session?.user.id as string;
-    const { knowledgebaseEnabled, setMessages } = props;
+    const { assistantMode, setMessages } = props;
     ChatSidebar.displayName = 'ChatSidebar';
 
     const { form, onSubmit } = useFetchAndSubmit({
@@ -152,7 +153,10 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
               <Tabs defaultValue="conversations" className="w-full">
                 <TabsList className="my-4 flex justify-around">
                   <TabsTrigger value="conversations">Conversations</TabsTrigger>
-                  <TabsTrigger value="files" disabled={knowledgebaseEnabled}>
+                  <TabsTrigger
+                    value="files"
+                    disabled={assistantMode === AssistantMode.Knowledgebase}
+                  >
                     Assistant Files
                   </TabsTrigger>
                 </TabsList>

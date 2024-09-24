@@ -7,6 +7,7 @@ import { IUser } from '@/models/User';
 import { Db, ObjectId, UpdateResult } from 'mongodb';
 import { Collection } from 'mongodb';
 import { AssistantFile } from '@/types/data';
+import { AssistantMode } from '@/types/settings';
 
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
@@ -68,13 +69,13 @@ export const getUserId = async (): Promise<string | undefined> => {
 };
 
 // Example usage of the generic update function
-export const updateKnowledgebaseEnabled = async (
+export const updateAssistantMode = async (
   userId: string,
-  enabled: boolean
+  assistantMode: AssistantMode
 ): Promise<{ message: string }> => {
   return updateUserField(userId, {
     $set: {
-      'settings.chat.knowledgebaseEnabled': enabled,
+      'settings.chat.assistantMode': assistantMode,
       updatedAt: new Date().toISOString()
     }
   });

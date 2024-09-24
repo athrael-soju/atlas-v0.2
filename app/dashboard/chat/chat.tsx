@@ -9,12 +9,13 @@ import Markdown from 'react-markdown';
 import {
   CornerDownLeft,
   Mic,
-  Brain,
   Loader2,
   User,
   Bot,
   MessageCirclePlus,
-  Save
+  Save,
+  BookMarked,
+  ChartNoAxesCombined
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -24,14 +25,14 @@ import {
   TooltipProvider
 } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { ChatSidebar } from './chat-sidebar';
-import { ProfileSettings } from '@/types/settings';
+import { AssistantMode, ProfileSettings } from '@/types/settings';
 
 const defaultValues: Partial<ChatFormValues> = {
-  knowledgebaseEnabled: false
+  assistantMode: AssistantMode.Analysis
 };
 
 type MessageProps = {
@@ -113,12 +114,12 @@ export const Chat = ({ profileSettings }: ChatProps) => {
     formPath: 'settings.chat'
   });
 
-  const knowledgebaseEnabled = form.watch('knowledgebaseEnabled', false);
+  const assistantMode = form.watch('assistantMode') as AssistantMode;
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!userInput.trim()) return;
-    sendMessage(userInput, knowledgebaseEnabled);
+    sendMessage(userInput, assistantMode);
     setUserInput('');
   };
 
@@ -132,11 +133,15 @@ export const Chat = ({ profileSettings }: ChatProps) => {
     setMessages([]);
   };
 
-  const handleKnowledgebaseToggle = async (
+  const handleAssistantModeToggle = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
+    if (assistantMode === AssistantMode.Analysis) {
+      form.setValue('assistantMode', AssistantMode.Knowledgebase);
+    } else if (assistantMode === AssistantMode.Knowledgebase) {
+      form.setValue('assistantMode', AssistantMode.Analysis);
+    }
     onSubmit(form.getValues());
   };
 
@@ -150,7 +155,6 @@ export const Chat = ({ profileSettings }: ChatProps) => {
 
   // New function to handle saving the chat
   const handleSaveChat = () => {
-    // Format messages into text content
     const content = messages
       .map((msg) => {
         const role = msg.role.charAt(0).toUpperCase() + msg.role.slice(1);
@@ -158,29 +162,22 @@ export const Chat = ({ profileSettings }: ChatProps) => {
       })
       .join('\n');
 
-    // Create a Blob with the content
     const blob = new Blob([content], { type: 'text/plain' });
-
-    // Create a URL for the Blob
     const url = URL.createObjectURL(blob);
-
-    // Create a temporary <a> element to trigger download
     const a = document.createElement('a');
     a.href = url;
     a.download = 'chat.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
-    // Release the URL object
     URL.revokeObjectURL(url);
   };
-  // TODO: Add an icon for Analysis assistant and link it to active files
+
   return (
     <TooltipProvider>
       <ChatSidebar
         ref={chatSideBarRef}
-        knowledgebaseEnabled={knowledgebaseEnabled}
+        assistantMode={assistantMode}
         setMessages={setMessages}
       />
       <div
@@ -252,20 +249,43 @@ export const Chat = ({ profileSettings }: ChatProps) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.button
-                  onClick={handleKnowledgebaseToggle}
+                  onClick={handleAssistantModeToggle}
                   whileTap={{ scale: 0.95 }}
                   whileHover={{ scale: 1.05 }}
                   className="rounded-full p-2 focus:outline-none"
                   type="button"
-                  style={{
-                    color: knowledgebaseEnabled ? '#facc15' : 'inherit'
-                  }}
                 >
-                  <Brain className="h-5 w-5" />
+                  <AnimatePresence mode="wait" initial={false}>
+                    {assistantMode === AssistantMode.Knowledgebase ? (
+                      <motion.div
+                        key="knowledgebase"
+                        initial={{ rotateY: 90, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        exit={{ rotateY: -90, opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <BookMarked className="h-5 w-5" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="analysis"
+                        initial={{ rotateY: -90, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        exit={{ rotateY: 90, opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <ChartNoAxesCombined className="h-5 w-5" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent side="top">
-                Enlighten your assistant
+                Switch to{' '}
+                {assistantMode === AssistantMode.Knowledgebase
+                  ? 'Analysis'
+                  : 'Knowledgebase'}{' '}
+                assistant
               </TooltipContent>
             </Tooltip>
             <Tooltip>

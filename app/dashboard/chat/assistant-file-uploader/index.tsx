@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { FileDropzone } from './file-dropzone';
 import { FileActions } from './file-actions';
 import { FileTable } from './file-table';
+import { assignDocumentsToAssistant } from '@/lib/service/atlas';
 
 const defaultValues: Partial<AssistantFilesFormValues> = {
   analysis: []
@@ -151,11 +152,30 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
   const onToggleActive = async (file: AssistantFile) => {
     try {
       const updatedFile = { ...file, isActive: !file.isActive };
-      onSubmit({
-        analysis: assistantFiles.map((f) =>
-          f.id === file.id ? updatedFile : f
-        )
-      });
+
+      // Create a new assistantFiles array with the updatedFile
+      const updatedAssistantFiles = assistantFiles.map((f) =>
+        f.id === file.id ? updatedFile : f
+      );
+
+      // Pass the updated assistantFiles to onSubmit or any other handler
+      onSubmit({ analysis: updatedAssistantFiles });
+
+      // Now use the updatedAssistantFiles for filtering
+      const fileIds: string[] = updatedAssistantFiles
+        .filter((f) => f.isActive)
+        .map((f) => f.id);
+
+      const response = await assignDocumentsToAssistant(userId, fileIds);
+      if (!response.id) {
+        toast({
+          title: 'Done!',
+          description: `${file.filename} has been ${
+            updatedFile.isActive ? 'added to' : 'removed from'
+          } the analysis data set`,
+          variant: 'default'
+        });
+      }
     } catch (error) {
       toast({
         title: 'Uh oh! Something went wrong.',

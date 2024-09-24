@@ -5,6 +5,8 @@ import {
 } from '@/lib/service/mongodb';
 import { uploadFile, deleteFile, getFiles } from '@/lib/service/openai';
 import { AssistantFile } from '@/types/data';
+import { openai } from '@/lib/client/openai';
+import { Assistant } from 'openai/resources/beta/assistants.mjs';
 
 export const runtime = 'nodejs';
 
@@ -131,4 +133,41 @@ export async function GET(request: Request) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
+}
+
+export async function PUT(request: Request) {
+  const formData = await request.formData();
+  const fileIds = JSON.parse(formData.get('fileIds') as string) as string[];
+  const userId = formData.get('userId') as string;
+
+  if (!userId || !fileIds) {
+    throw new Error('Invalid user or filIds');
+  }
+
+  // Fetch the current assistant
+  const assistant: Assistant =
+    await openai.beta.assistants.retrieve(assistantId);
+
+  if (!assistant) {
+    throw new Error('Failed to retrieve the assistant');
+  }
+  // Update the assistant with the new fileIds list
+  const updatedAssistant: Assistant = await openai.beta.assistants.update(
+    assistantId,
+    {
+      instructions:
+        'You are an Analyst with access to powerful code interpreter and debugger tools. You may have access to files to assist you in your work.',
+      name: 'Analyst',
+      tools: [{ type: 'code_interpreter' }],
+      tool_resources: { code_interpreter: { file_ids: fileIds } }
+    }
+  );
+  if (!updatedAssistant) {
+    throw new Error('Failed to update assistant with new fileIds');
+  }
+
+  return new Response(JSON.stringify({ assistant: updatedAssistant }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
 }

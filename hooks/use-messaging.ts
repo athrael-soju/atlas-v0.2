@@ -14,7 +14,7 @@ import {
   ConversationsFormValues
 } from '@/lib/form-schema';
 import { toast } from '@/components/ui/use-toast';
-import { ProfileSettings } from '@/types/settings';
+import { AssistantMode, ProfileSettings } from '@/types/settings';
 import { addPersonalizedInfo } from '@/lib/utils';
 
 type Message = {
@@ -159,7 +159,7 @@ export const useMessaging = (
     });
   };
 
-  const sendMessage = async (text: string, knowledgebaseEnabled: boolean) => {
+  const sendMessage = async (text: string, assistantMode: AssistantMode) => {
     setIsThinking(true);
     setInputDisabled(true);
     const userId = session?.user.id as string;
@@ -167,7 +167,7 @@ export const useMessaging = (
     appendMessage('user', userMessage);
 
     // If knowledgebase is enabled, fetch the context enriched message
-    if (knowledgebaseEnabled) {
+    if (assistantMode === AssistantMode.Knowledgebase) {
       const contextEnrichedMessage = await fetchContextEnrichedMessage(
         userId,
         text
@@ -175,11 +175,13 @@ export const useMessaging = (
       if (contextEnrichedMessage) {
         text = contextEnrichedMessage;
       }
+    } else if (assistantMode === AssistantMode.Analysis) {
+      // Assign files to the assistant
     }
 
     // If personalized responses are enabled, add personalized info
     if (profileSettings.personalizedResponses) {
-      text = addPersonalizedInfo(profileSettings) + text;
+      text = addPersonalizedInfo(profileSettings);
     }
     text += `
 ==============

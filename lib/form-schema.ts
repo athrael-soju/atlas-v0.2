@@ -48,7 +48,7 @@ export const knowledgebaseSchema = z.object({
 export type KnowledgebaseValues = z.infer<typeof knowledgebaseSchema>;
 
 export const chatFormSchema = z.object({
-  knowledgebaseEnabled: z.boolean()
+  assistantMode: z.enum(['Knowledgebase', 'Analysis'])
 });
 
 export type ChatFormValues = z.infer<typeof chatFormSchema>;
