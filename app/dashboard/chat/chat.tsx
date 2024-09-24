@@ -34,6 +34,7 @@ import {
   updateAnalysisAssistant,
   updateKnowledgebaseAssistant
 } from '@/lib/service/atlas';
+import { toast } from '@/components/ui/use-toast';
 
 const defaultValues: Partial<ChatFormValues> = {
   assistantMode: AssistantMode.Analysis
@@ -142,17 +143,23 @@ export const Chat = ({ profileSettings, userId }: ChatProps) => {
   const handleAssistantModeToggle = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
-    e.preventDefault();
-    if (assistantMode === AssistantMode.Analysis) {
-      form.setValue('assistantMode', AssistantMode.Knowledgebase);
-      updateAnalysisAssistant(userId, assistantFileIds).then(() => {
-        onSubmit(form.getValues());
+    try {
+      e.preventDefault();
+      if (assistantMode === AssistantMode.Analysis) {
+        form.setValue('assistantMode', AssistantMode.Knowledgebase);
+        await updateAnalysisAssistant(userId, assistantFileIds);
+      } else if (assistantMode === AssistantMode.Knowledgebase) {
+        form.setValue('assistantMode', AssistantMode.Analysis);
+        await updateKnowledgebaseAssistant(userId);
+      }
+    } catch (error) {
+      toast({
+        title: 'Uh oh! Something went wrong.',
+        description: `${error}`,
+        variant: 'destructive'
       });
-    } else if (assistantMode === AssistantMode.Knowledgebase) {
-      form.setValue('assistantMode', AssistantMode.Analysis);
-      updateKnowledgebaseAssistant(userId).then(() => {
-        onSubmit(form.getValues());
-      });
+    } finally {
+      onSubmit(form.getValues());
     }
   };
 

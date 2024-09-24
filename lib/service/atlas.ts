@@ -78,22 +78,28 @@ export const fetchContextEnrichedMessage = async (
 export const updateAnalysisAssistant = async (
   userId: string,
   fileIds: string[]
-): Promise<Assistant> => {
+): Promise<Response> => {
   const formData = createFormData(userId, fileIds);
   const response = await fetch('/api/assistants/files/analysis', {
     method: 'PUT',
     body: formData
   });
+  if (!response.ok) {
+    throw new Error('Failed to update analysis assistant');
+  }
   return response.json();
 };
 
 export const updateKnowledgebaseAssistant = async (
   userId: string
-): Promise<Assistant> => {
+): Promise<Response> => {
   const formData = createFormData(userId, []);
   const response = await fetch('/api/assistants/files/knowledgebase', {
     method: 'PUT',
     body: formData
   });
+  if (!response.ok) {
+    throw new Error('Failed to update knowledgebase assistant');
+  }
   return response.json();
 };

@@ -112,6 +112,7 @@ export const AssistantFileUploader = ({
   };
 
   const onDeleteFiles = async (files: AssistantFile[]) => {
+    let filteredFileIds = [];
     try {
       setWorking(true);
       const response = await fetch('/api/assistants/files/analysis', {
@@ -149,6 +150,10 @@ export const AssistantFileUploader = ({
         variant: 'destructive'
       });
     } finally {
+      filteredFileIds = assistantFiles
+        .filter((file) => !files.includes(file))
+        .map((f) => f.id);
+      await updateAnalysisAssistant(userId, filteredFileIds);
       setWorking(false);
     }
   };
@@ -171,7 +176,7 @@ export const AssistantFileUploader = ({
         .map((f) => f.id);
       setAssistantFileIds(fileIds);
       const response = await updateAnalysisAssistant(userId, fileIds);
-      if (!response.id) {
+      if (!response?.ok) {
         toast({
           title: 'Done!',
           description: `${file.filename} has been ${
