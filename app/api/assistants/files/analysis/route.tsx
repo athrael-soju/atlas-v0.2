@@ -46,7 +46,8 @@ export async function POST(request: Request) {
             id: fileObject.id,
             created_at: fileObject.created_at,
             bytes: fileObject.bytes,
-            filename: fileObject.filename
+            filename: fileObject.filename,
+            isActive: false
           };
 
           // Push the fileObject to the assistantFiles array
