@@ -22,7 +22,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ConversationList } from './conversation-list';
 import { AssistantFileUploader } from './assistant-file-uploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useSession } from 'next-auth/react';
+
 import { AssistantMode } from '@/types/settings';
 
 const defaultValues = {
@@ -32,13 +32,13 @@ const defaultValues = {
 type ChatSidebarProps = {
   assistantMode: AssistantMode;
   setMessages: React.Dispatch<React.SetStateAction<any>>;
+  setAssistantFileIds: React.Dispatch<React.SetStateAction<string[]>>;
+  userId: string;
 };
 
 export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
   (props, ref) => {
-    const { data: session } = useSession();
-    const userId = session?.user.id as string;
-    const { assistantMode, setMessages } = props;
+    const { assistantMode, setMessages, userId, setAssistantFileIds } = props;
     ChatSidebar.displayName = 'ChatSidebar';
 
     const { form, onSubmit } = useFetchAndSubmit({
@@ -170,7 +170,10 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                 </TabsContent>
 
                 <TabsContent value="files">
-                  <AssistantFileUploader userId={userId} />
+                  <AssistantFileUploader
+                    userId={userId}
+                    setAssistantFileIds={setAssistantFileIds}
+                  />
                 </TabsContent>
               </Tabs>
             </SheetContent>

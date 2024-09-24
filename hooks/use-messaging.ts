@@ -187,7 +187,7 @@ export const useMessaging = (
 ==============
 User message: ${userMessage}
 ==============`;
-    console.log('Sending message:', text);
+    //console.info('Sending message:', text);
     const response = await fetch(
       `/api/assistants/threads/${conversationId}/messages`,
       {

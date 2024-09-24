@@ -137,7 +137,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   const formData = await request.formData();
-  const fileIds = JSON.parse(formData.get('fileIds') as string) as string[];
+  const fileIds = JSON.parse(formData.get('fileIds') as string);
   const userId = formData.get('userId') as string;
 
   if (!userId || !fileIds) {
@@ -151,6 +151,7 @@ export async function PUT(request: Request) {
   if (!assistant) {
     throw new Error('Failed to retrieve the assistant');
   }
+
   // Update the assistant with the new fileIds list
   const updatedAssistant: Assistant = await openai.beta.assistants.update(
     assistantId,
@@ -162,6 +163,7 @@ export async function PUT(request: Request) {
       tool_resources: { code_interpreter: { file_ids: fileIds } }
     }
   );
+
   if (!updatedAssistant) {
     throw new Error('Failed to update assistant with new fileIds');
   }

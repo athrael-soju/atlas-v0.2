@@ -8,7 +8,7 @@ import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
-
+import { useSession } from 'next-auth/react';
 const breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
   { title: 'Chat', link: '/dashboard/chat' }
@@ -27,6 +27,8 @@ const defaultValues: Partial<ProfileFormValues> = {
 };
 
 export default function Page() {
+  const { data: session } = useSession();
+  const userId = session?.user.id as string;
   const { form } = useFetchAndSubmit<ProfileFormValues>({
     schema: profileFormSchema,
     defaultValues,
@@ -47,7 +49,7 @@ export default function Page() {
         </div>
         <Separator />
         <div className="flex-grow">
-          <Chat profileSettings={profileSettings} />
+          <Chat profileSettings={profileSettings} userId={userId} />
         </div>
       </div>
     </PageContainer>

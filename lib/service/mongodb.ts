@@ -187,3 +187,11 @@ export const updateFileDateProcessed = async (
   await Promise.all(updateOperations);
   return { message: 'File dateProcessed updated successfully' };
 };
+
+export const getActiveAnalysisFiles = async (
+  userId: string
+): Promise<string[]> => {
+  const user = await getUserData(userId);
+  const activeFiles = user.files.analysis.filter((file) => file.isActive);
+  return activeFiles.map((file) => file.id);
+};

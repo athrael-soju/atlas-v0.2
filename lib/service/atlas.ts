@@ -75,12 +75,23 @@ export const fetchContextEnrichedMessage = async (
   return contextEnrichedMessage;
 };
 
-export const assignDocumentsToAssistant = async (
+export const updateAnalysisAssistant = async (
   userId: string,
   fileIds: string[]
 ): Promise<Assistant> => {
   const formData = createFormData(userId, fileIds);
   const response = await fetch('/api/assistants/files/analysis', {
+    method: 'PUT',
+    body: formData
+  });
+  return response.json();
+};
+
+export const updateKnowledgebaseAssistant = async (
+  userId: string
+): Promise<Assistant> => {
+  const formData = createFormData(userId, []);
+  const response = await fetch('/api/assistants/files/knowledgebase', {
     method: 'PUT',
     body: formData
   });

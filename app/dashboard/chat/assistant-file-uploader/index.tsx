@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { FileDropzone } from './file-dropzone';
 import { FileActions } from './file-actions';
 import { FileTable } from './file-table';
-import { assignDocumentsToAssistant } from '@/lib/service/atlas';
+import { updateAnalysisAssistant } from '@/lib/service/atlas';
 
 const defaultValues: Partial<AssistantFilesFormValues> = {
   analysis: []
@@ -32,9 +32,13 @@ const defaultValues: Partial<AssistantFilesFormValues> = {
 
 type AssistantUploaderProps = {
   userId: string;
+  setAssistantFileIds: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
-export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
+export const AssistantFileUploader = ({
+  userId,
+  setAssistantFileIds
+}: AssistantUploaderProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [working, setWorking] = useState(false);
@@ -165,8 +169,8 @@ export const AssistantFileUploader = ({ userId }: AssistantUploaderProps) => {
       const fileIds: string[] = updatedAssistantFiles
         .filter((f) => f.isActive)
         .map((f) => f.id);
-
-      const response = await assignDocumentsToAssistant(userId, fileIds);
+      setAssistantFileIds(fileIds);
+      const response = await updateAnalysisAssistant(userId, fileIds);
       if (!response.id) {
         toast({
           title: 'Done!',

@@ -30,6 +30,10 @@ import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { ChatSidebar } from './chat-sidebar';
 import { AssistantMode, ProfileSettings } from '@/types/settings';
+import {
+  updateAnalysisAssistant,
+  updateKnowledgebaseAssistant
+} from '@/lib/service/atlas';
 
 const defaultValues: Partial<ChatFormValues> = {
   assistantMode: AssistantMode.Analysis
@@ -62,7 +66,7 @@ const AssistantMessage = ({ text }: { text: string }) => (
 
 const CodeMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
-    <Bot className="mr-2 h-8 w-8 flex-shrink-0 text-muted-foreground" />
+    <Bot className="mr-2 h-6 w-6 flex-shrink-0 text-card-foreground" />
     <div className="flex flex-col items-start rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
       {text.split('\n').map((line, index) => (
         <div key={index} className="flex">
@@ -89,11 +93,13 @@ const Message = ({ role, text }: MessageProps) => {
 
 type ChatProps = {
   profileSettings: ProfileSettings;
+  userId: string;
 };
 
-export const Chat = ({ profileSettings }: ChatProps) => {
+export const Chat = ({ profileSettings, userId }: ChatProps) => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
+  const [assistantFileIds, setAssistantFileIds] = useState<string[]>([]);
   const chatSideBarRef = useRef() as MutableRefObject<{
     addConversation: () => void;
   } | null>;
@@ -139,10 +145,15 @@ export const Chat = ({ profileSettings }: ChatProps) => {
     e.preventDefault();
     if (assistantMode === AssistantMode.Analysis) {
       form.setValue('assistantMode', AssistantMode.Knowledgebase);
+      updateAnalysisAssistant(userId, assistantFileIds).then(() => {
+        onSubmit(form.getValues());
+      });
     } else if (assistantMode === AssistantMode.Knowledgebase) {
       form.setValue('assistantMode', AssistantMode.Analysis);
+      updateKnowledgebaseAssistant(userId).then(() => {
+        onSubmit(form.getValues());
+      });
     }
-    onSubmit(form.getValues());
   };
 
   const handleMicToggle = () => {
@@ -179,6 +190,8 @@ export const Chat = ({ profileSettings }: ChatProps) => {
         ref={chatSideBarRef}
         assistantMode={assistantMode}
         setMessages={setMessages}
+        userId={userId}
+        setAssistantFileIds={setAssistantFileIds}
       />
       <div
         className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
