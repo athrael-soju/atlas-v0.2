@@ -1,5 +1,5 @@
 import { getIndex } from '@/lib/client/pinecone';
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 import { Embedding } from '@/types/settings';
 import { Index } from '@pinecone-database/pinecone';
 import { toAscii } from '@/lib/utils';
@@ -70,7 +70,7 @@ export const upsertDocument = async (
 
 export async function deleteFromVectorDb(
   userId: string,
-  file: UploadedFile
+  file: KnowledgebaseFile
 ): Promise<number> {
   const pageSize = 100;
   let paginationToken: string | undefined;
@@ -98,7 +98,7 @@ export async function deleteFromVectorDb(
 }
 
 async function listArchiveChunks(
-  file: UploadedFile,
+  file: KnowledgebaseFile,
   namespace: Index,
   limit: number,
   paginationToken?: string

@@ -153,7 +153,7 @@ export function ProfileForm(): React.ReactElement {
                             0,
                             0
                           );
-                          field.onChange(localDate.toISOString().split('T')[0]); // Format as YYYY-MM-DD
+                          field.onChange(localDate.toISOString().split('T')[0]);
                         }
                       }}
                       initialFocus

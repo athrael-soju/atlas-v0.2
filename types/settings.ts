@@ -28,8 +28,13 @@ export interface KnowledgebaseSettings {
   cohereRelevanceThreshold: number;
   pineconeTopK: number;
 }
+export enum AssistantMode {
+  Knowledgebase = 'Knowledgebase',
+  Analysis = 'Analysis'
+}
+
 export interface ChatSettings {
-  knowledgebaseEnabled: boolean;
+  assistantMode: AssistantMode;
 }
 
 export interface ProfileSettings {

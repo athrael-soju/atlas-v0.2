@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import React, { useRef, useState, MutableRefObject } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,13 +9,13 @@ import Markdown from 'react-markdown';
 import {
   CornerDownLeft,
   Mic,
-  Paperclip,
-  Brain,
   Loader2,
   User,
   Bot,
   MessageCirclePlus,
-  Save
+  Save,
+  BookMarked,
+  ChartNoAxesCombined
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -26,14 +25,19 @@ import {
   TooltipProvider
 } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
-import { Conversations } from './conversations';
-import { ProfileSettings } from '@/types/settings';
+import { ChatSidebar } from './chat-sidebar';
+import { AssistantMode, ProfileSettings } from '@/types/settings';
+import {
+  updateAnalysisAssistant,
+  updateKnowledgebaseAssistant
+} from '@/lib/service/atlas';
+import { toast } from '@/components/ui/use-toast';
 
 const defaultValues: Partial<ChatFormValues> = {
-  knowledgebaseEnabled: false
+  assistantMode: AssistantMode.Analysis
 };
 
 type MessageProps = {
@@ -63,7 +67,7 @@ const AssistantMessage = ({ text }: { text: string }) => (
 
 const CodeMessage = ({ text }: { text: string }) => (
   <div className="relative mb-4 flex items-center justify-start">
-    <Bot className="mr-2 h-8 w-8 flex-shrink-0 text-muted-foreground" />
+    <Bot className="mr-2 h-6 w-6 flex-shrink-0 text-card-foreground" />
     <div className="flex flex-col items-start rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
       {text.split('\n').map((line, index) => (
         <div key={index} className="flex">
@@ -90,12 +94,14 @@ const Message = ({ role, text }: MessageProps) => {
 
 type ChatProps = {
   profileSettings: ProfileSettings;
+  userId: string;
 };
 
-export const Chat = ({ profileSettings }: ChatProps) => {
+export const Chat = ({ profileSettings, userId }: ChatProps) => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
-  const conversationRef = useRef() as MutableRefObject<{
+  const [assistantFileIds, setAssistantFileIds] = useState<string[]>([]);
+  const chatSideBarRef = useRef() as MutableRefObject<{
     addConversation: () => void;
   } | null>;
   const {
@@ -115,12 +121,12 @@ export const Chat = ({ profileSettings }: ChatProps) => {
     formPath: 'settings.chat'
   });
 
-  const knowledgebaseEnabled = form.watch('knowledgebaseEnabled', false);
+  const assistantMode = form.watch('assistantMode') as AssistantMode;
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!userInput.trim()) return;
-    sendMessage(userInput, knowledgebaseEnabled);
+    sendMessage(userInput, assistantMode);
     setUserInput('');
   };
 
@@ -128,18 +134,33 @@ export const Chat = ({ profileSettings }: ChatProps) => {
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    if (conversationRef.current) {
-      conversationRef.current.addConversation();
+    if (chatSideBarRef.current) {
+      chatSideBarRef.current.addConversation();
     }
     setMessages([]);
   };
 
-  const handleKnowledgebaseToggle = async (
+  const handleAssistantModeToggle = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
-    e.preventDefault();
-    form.setValue('knowledgebaseEnabled', !knowledgebaseEnabled);
-    onSubmit(form.getValues());
+    try {
+      e.preventDefault();
+      if (assistantMode === AssistantMode.Analysis) {
+        form.setValue('assistantMode', AssistantMode.Knowledgebase);
+        await updateKnowledgebaseAssistant(userId);
+      } else if (assistantMode === AssistantMode.Knowledgebase) {
+        form.setValue('assistantMode', AssistantMode.Analysis);
+        await updateAnalysisAssistant(userId, assistantFileIds);
+      }
+    } catch (error) {
+      toast({
+        title: 'Uh oh! Something went wrong.',
+        description: `${error}`,
+        variant: 'destructive'
+      });
+    } finally {
+      onSubmit(form.getValues());
+    }
   };
 
   const handleMicToggle = () => {
@@ -152,7 +173,6 @@ export const Chat = ({ profileSettings }: ChatProps) => {
 
   // New function to handle saving the chat
   const handleSaveChat = () => {
-    // Format messages into text content
     const content = messages
       .map((msg) => {
         const role = msg.role.charAt(0).toUpperCase() + msg.role.slice(1);
@@ -160,27 +180,26 @@ export const Chat = ({ profileSettings }: ChatProps) => {
       })
       .join('\n');
 
-    // Create a Blob with the content
     const blob = new Blob([content], { type: 'text/plain' });
-
-    // Create a URL for the Blob
     const url = URL.createObjectURL(blob);
-
-    // Create a temporary <a> element to trigger download
     const a = document.createElement('a');
     a.href = url;
     a.download = 'chat.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
-    // Release the URL object
     URL.revokeObjectURL(url);
   };
 
   return (
     <TooltipProvider>
-      <Conversations ref={conversationRef} />
+      <ChatSidebar
+        ref={chatSideBarRef}
+        assistantMode={assistantMode}
+        setMessages={setMessages}
+        userId={userId}
+        setAssistantFileIds={setAssistantFileIds}
+      />
       <div
         className="relative flex h-full min-h-[50vh] flex-col items-center rounded-xl p-4 lg:col-span-2"
         style={{ height: 'calc(100vh - 185px)' }}
@@ -221,16 +240,73 @@ export const Chat = ({ profileSettings }: ChatProps) => {
           <div className="flex items-center p-3 pt-0">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={knowledgebaseEnabled}
+                <motion.button
+                  onClick={handleStartNewConversation}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  type="button"
                 >
-                  <Paperclip className="h-5 w-5" />
-                  <span className="sr-only">Attach file</span>
-                </Button>
+                  <MessageCirclePlus className="h-5 w-5" />
+                </motion.button>
               </TooltipTrigger>
-              <TooltipContent side="top">Attach File</TooltipContent>
+              <TooltipContent side="top">New conversation</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleSaveChat}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  type="button"
+                >
+                  <Save className="h-5 w-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Save Chat</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={handleAssistantModeToggle}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="rounded-full p-2 focus:outline-none"
+                  type="button"
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {assistantMode === AssistantMode.Knowledgebase ? (
+                      <motion.div
+                        key="knowledgebase"
+                        initial={{ rotateY: 90, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        exit={{ rotateY: -90, opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <BookMarked className="h-5 w-5" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="analysis"
+                        initial={{ rotateY: -90, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        exit={{ rotateY: 90, opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <ChartNoAxesCombined className="h-5 w-5" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                Switch to{' '}
+                {assistantMode === AssistantMode.Knowledgebase
+                  ? 'Analysis'
+                  : 'Knowledgebase'}{' '}
+                assistant
+              </TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -245,54 +321,6 @@ export const Chat = ({ profileSettings }: ChatProps) => {
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent side="top">Use Microphone</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleKnowledgebaseToggle}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  type="button"
-                  style={{
-                    color: knowledgebaseEnabled ? '#facc15' : 'inherit'
-                  }}
-                >
-                  <Brain className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                Enlighten your assistant
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleStartNewConversation}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  type="button"
-                >
-                  <MessageCirclePlus className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">New conversation</TooltipContent>
-            </Tooltip>
-            {/* New Save Chat button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleSaveChat}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  type="button"
-                >
-                  <Save className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Save Chat</TooltipContent>
             </Tooltip>
             <Button
               type="button"

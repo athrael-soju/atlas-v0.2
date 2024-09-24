@@ -4,3 +4,11 @@ export interface Conversation {
   createdAt: string;
   active: boolean;
 }
+
+export interface AssistantFile {
+  id: string;
+  created_at: string;
+  bytes: number;
+  filename: string;
+  isActive: boolean;
+}

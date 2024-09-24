@@ -88,7 +88,7 @@ export interface FileCardProps {
   progress?: number;
 }
 
-export interface UploadedFile {
+export interface KnowledgebaseFile {
   name: string;
   url: string;
   size: number;

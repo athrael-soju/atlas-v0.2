@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserData, updateUserField } from '@/lib/service/mongodb'; // Adjust the import path accordingly
 import { getServerSession } from 'next-auth/next';
 import authConfig from '@/auth.config';
+import { getLocalDateTime } from '@/lib/utils';
 
 // Utility function to fetch and validate session
 async function getValidSession() {
@@ -21,7 +22,7 @@ async function handleUpdate(
   return await updateUserField(userId, {
     $set: {
       [fieldPath]: updateData,
-      updatedAt: new Date().toISOString()
+      updatedAt: getLocalDateTime()
     }
   });
 }

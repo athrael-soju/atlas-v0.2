@@ -15,12 +15,13 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 import React, { ReactNode } from 'react';
+import { getLocalDateTime } from '@/lib/utils';
 
-export function createColumns(
-  onDeleteFiles: (files: UploadedFile[]) => Promise<void>
-): ColumnDef<UploadedFile>[] {
+export function knowledgebaseColumns(
+  onDeleteFiles: (files: KnowledgebaseFile[]) => Promise<void>
+): ColumnDef<KnowledgebaseFile>[] {
   const renderFileNameCell = ({ row }: { row: any }) => {
     const fileName = row.getValue('name') as ReactNode;
     const fileUrl: string | undefined = row.original.url;
@@ -47,12 +48,6 @@ export function createColumns(
       <span>{fileName}</span>
     );
   };
-
-  const renderDateCell = (date: Date) => (
-    <div>
-      {date.toLocaleDateString()} {date.toLocaleTimeString()}
-    </div>
-  );
 
   const renderSizeCell = ({ row }: { row: any }) => {
     const sizeInBytes = parseFloat(row.getValue('size'));
@@ -101,26 +96,21 @@ export function createColumns(
     },
     {
       accessorKey: 'name',
-      header: 'File Name',
+      header: 'Filename',
       cell: renderFileNameCell,
       enableSorting: true
     },
     {
       accessorKey: 'dateUploaded',
       header: 'Uploaded',
-      cell: ({ row }) => renderDateCell(new Date(row.getValue('dateUploaded'))),
+      cell: (info: any) => info.getValue(),
       enableSorting: true
     },
     {
       accessorKey: 'dateProcessed',
       header: 'Processed',
       cell: ({ row }) => {
-        const dateProcessed = row.getValue('dateProcessed') as Date;
-        return dateProcessed ? (
-          renderDateCell(new Date(dateProcessed))
-        ) : (
-          <div>N/A</div>
-        );
+        return row.getValue('dateProcessed') || <div>N/A</div>;
       },
       enableSorting: true
     },

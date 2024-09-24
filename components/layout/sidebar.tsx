@@ -60,6 +60,7 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
             height={84}
             loading="lazy"
             style={{ marginTop: '-30px' }}
+            priority={false}
           />
         </Link>
       </div>

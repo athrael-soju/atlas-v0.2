@@ -1,3 +1,5 @@
+import { AssistantMode } from '@/types/settings';
+
 export const defaultUserSettings = () => ({
   forge: {
     parsingProvider: 'io',
@@ -14,7 +16,7 @@ export const defaultUserSettings = () => ({
     pineconeTopK: 100
   },
   chat: {
-    knowledgebaseEnabled: false
+    assistantMode: AssistantMode.Analysis
   },
   profile: {
     firstName: '',

@@ -1,3 +1,5 @@
+import { Assistant } from 'openai/resources/beta/assistants.mjs';
+
 const createFormData = (userId: string, selectedFiles: string[]): FormData => {
   const formData = new FormData();
   formData.append('fileIds', JSON.stringify(selectedFiles));
@@ -71,4 +73,33 @@ export const fetchContextEnrichedMessage = async (
     }
   });
   return contextEnrichedMessage;
+};
+
+export const updateAnalysisAssistant = async (
+  userId: string,
+  fileIds: string[]
+): Promise<Response> => {
+  const formData = createFormData(userId, fileIds);
+  const response = await fetch('/api/assistants/files/analysis', {
+    method: 'PUT',
+    body: formData
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update analysis assistant');
+  }
+  return response.json();
+};
+
+export const updateKnowledgebaseAssistant = async (
+  userId: string
+): Promise<Response> => {
+  const formData = createFormData(userId, []);
+  const response = await fetch('/api/assistants/files/knowledgebase', {
+    method: 'PUT',
+    body: formData
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update knowledgebase assistant');
+  }
+  return response.json();
 };

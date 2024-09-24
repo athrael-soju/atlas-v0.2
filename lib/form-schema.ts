@@ -48,7 +48,7 @@ export const knowledgebaseSchema = z.object({
 export type KnowledgebaseValues = z.infer<typeof knowledgebaseSchema>;
 
 export const chatFormSchema = z.object({
-  knowledgebaseEnabled: z.boolean()
+  assistantMode: z.enum(['Knowledgebase', 'Analysis'])
 });
 
 export type ChatFormValues = z.infer<typeof chatFormSchema>;
@@ -74,3 +74,17 @@ export const conversationsFormSchema = z.object({
 
 // Type inference for form data
 export type ConversationsFormValues = z.infer<typeof conversationsFormSchema>;
+
+export const assistantFileSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+  bytes: z.number(),
+  filename: z.string(),
+  isActive: z.boolean()
+});
+
+export const assistantFilesFormSchema = z.object({
+  analysis: z.array(assistantFileSchema)
+});
+
+export type AssistantFilesFormValues = z.infer<typeof assistantFilesFormSchema>;

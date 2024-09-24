@@ -1,10 +1,10 @@
-import { UploadedFile } from '@/types/file-uploader';
+import { KnowledgebaseFile } from '@/types/file-uploader';
 import { ForgeSettings } from '@/types/settings';
 import { unstructuredClient } from '@/lib/client/unstructured';
 
 export async function parseAndChunk(
   forgeSettings: ForgeSettings,
-  file: UploadedFile
+  file: KnowledgebaseFile
 ): Promise<any> {
   const fileResponse = await fetch(file.url);
 
