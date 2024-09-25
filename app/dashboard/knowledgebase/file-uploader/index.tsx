@@ -7,7 +7,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { useControllableState } from '@/hooks/use-controllable-state';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
-import { FileCard } from '@/app/dashboard/knowledgebase/file-card';
+import { FileCard } from './file-card';
 import { FileUploaderProps } from '@/types/file-uploader';
 import {
   DialogOrDrawer,
@@ -15,7 +15,7 @@ import {
   DialogOrDrawerContent,
   DialogOrDrawerHeader,
   DialogOrDrawerTitle
-} from '@/app/dashboard/knowledgebase/dialog-or-drawer';
+} from './dialog-or-drawer';
 import { Icons } from '@/components/icons';
 import { DialogDescription } from '@/components/ui/dialog';
 

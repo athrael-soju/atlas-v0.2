@@ -5,27 +5,18 @@ import React, { useRef, useState, MutableRefObject } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/spinner';
 import { useMessaging } from '@/hooks/use-messaging';
-import Markdown from 'react-markdown';
 import {
   CornerDownLeft,
   Mic,
   Loader2,
-  User,
-  Bot,
   MessageCirclePlus,
   Save,
   BookMarked,
   ChartNoAxesCombined
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider
-} from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { chatFormSchema, ChatFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { ChatSidebar } from './chat-sidebar';
@@ -35,75 +26,28 @@ import {
   updateKnowledgebaseAssistant
 } from '@/lib/service/atlas';
 import { toast } from '@/components/ui/use-toast';
+import { TooltipButton } from './tooltip-button';
+import { Message } from './message';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const defaultValues: Partial<ChatFormValues> = {
   assistantMode: AssistantMode.Analysis
 };
 
-type MessageProps = {
-  role: 'user' | 'assistant' | 'code';
-  text: string;
-};
-
-const UserMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-center justify-end">
-    <div className="flex items-start rounded-lg bg-primary p-3 text-primary-foreground shadow-lg">
-      <span className="break-words">{text}</span>
-    </div>
-    <div className="ml-2">
-      <User className="h-6 w-6 flex-shrink-0 text-primary" />
-    </div>
-  </div>
-);
-
-const AssistantMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-center justify-start">
-    <Bot className="mr-2 h-6 w-6 flex-shrink-0 text-card-foreground" />
-    <div className="flex items-start rounded-lg bg-card bg-muted/50 p-3 text-card-foreground shadow-lg">
-      <Markdown className="break-words">{text}</Markdown>
-    </div>
-  </div>
-);
-
-const CodeMessage = ({ text }: { text: string }) => (
-  <div className="relative mb-4 flex items-center justify-start">
-    <Bot className="mr-2 h-6 w-6 flex-shrink-0 text-card-foreground" />
-    <div className="flex flex-col items-start rounded-lg bg-muted p-3 font-mono text-sm text-muted-foreground shadow-lg">
-      {text.split('\n').map((line, index) => (
-        <div key={index} className="flex">
-          <span className="mr-2 text-muted-foreground">{`${index + 1}. `}</span>
-          <span>{line}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const Message = ({ role, text }: MessageProps) => {
-  switch (role) {
-    case 'user':
-      return <UserMessage text={text} />;
-    case 'assistant':
-      return <AssistantMessage text={text} />;
-    case 'code':
-      return <CodeMessage text={text} />;
-    default:
-      return null;
-  }
-};
-
-type ChatProps = {
+export const Chat = ({
+  profileSettings,
+  userId
+}: {
   profileSettings: ProfileSettings;
   userId: string;
-};
-
-export const Chat = ({ profileSettings, userId }: ChatProps) => {
+}) => {
   const [userInput, setUserInput] = useState('');
   const [micEnabled, setMicEnabled] = useState(false);
   const [assistantFileIds, setAssistantFileIds] = useState<string[]>([]);
   const chatSideBarRef = useRef() as MutableRefObject<{
     addConversation: () => void;
   } | null>;
+
   const {
     messages,
     setMessages,
@@ -123,63 +67,45 @@ export const Chat = ({ profileSettings, userId }: ChatProps) => {
 
   const assistantMode = form.watch('assistantMode') as AssistantMode;
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userInput.trim()) return;
-    sendMessage(userInput, assistantMode);
-    setUserInput('');
+    if (userInput.trim()) {
+      sendMessage(userInput, assistantMode);
+      setUserInput('');
+    }
   };
 
-  const handleStartNewConversation = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault();
-    if (chatSideBarRef.current) {
-      chatSideBarRef.current.addConversation();
-    }
+  const handleNewConversation = async () => {
+    chatSideBarRef.current?.addConversation();
     setMessages([]);
   };
 
-  const handleAssistantModeToggle = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleAssistantModeToggle = async () => {
     try {
-      e.preventDefault();
-      if (assistantMode === AssistantMode.Analysis) {
-        form.setValue('assistantMode', AssistantMode.Knowledgebase);
-        await updateKnowledgebaseAssistant(userId);
-      } else if (assistantMode === AssistantMode.Knowledgebase) {
-        form.setValue('assistantMode', AssistantMode.Analysis);
+      const nextMode =
+        assistantMode === AssistantMode.Analysis
+          ? AssistantMode.Knowledgebase
+          : AssistantMode.Analysis;
+      form.setValue('assistantMode', nextMode);
+      if (nextMode === AssistantMode.Analysis) {
         await updateAnalysisAssistant(userId, assistantFileIds);
+      } else {
+        await updateKnowledgebaseAssistant(userId);
       }
+      onSubmit(form.getValues());
     } catch (error) {
       toast({
-        title: 'Uh oh! Something went wrong.',
-        description: `${error}`,
+        title: 'Error',
+        description: String(error),
         variant: 'destructive'
       });
-    } finally {
-      onSubmit(form.getValues());
     }
   };
 
-  const handleMicToggle = () => {
-    setMicEnabled(!micEnabled);
-  };
-
-  const handleStop = () => {
-    abortStream();
-  };
-
-  // New function to handle saving the chat
   const handleSaveChat = () => {
     const content = messages
-      .map((msg) => {
-        const role = msg.role.charAt(0).toUpperCase() + msg.role.slice(1);
-        return `${role}:\n${msg.text}\n`;
-      })
+      .map((msg) => `${msg.role}:\n${msg.text}\n`)
       .join('\n');
-
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -190,6 +116,10 @@ export const Chat = ({ profileSettings, userId }: ChatProps) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const handleMicToggle = () => setMicEnabled((prev) => !prev);
+
+  const handleStop = () => abortStream();
 
   return (
     <TooltipProvider>
@@ -238,90 +168,37 @@ export const Chat = ({ profileSettings, userId }: ChatProps) => {
             rows={1}
           />
           <div className="flex items-center p-3 pt-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleStartNewConversation}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  type="button"
-                >
-                  <MessageCirclePlus className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">New conversation</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleSaveChat}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  type="button"
-                >
-                  <Save className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Save Chat</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleAssistantModeToggle}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  type="button"
-                >
-                  <AnimatePresence mode="wait" initial={false}>
-                    {assistantMode === AssistantMode.Knowledgebase ? (
-                      <motion.div
-                        key="knowledgebase"
-                        initial={{ rotateY: 90, opacity: 0 }}
-                        animate={{ rotateY: 0, opacity: 1 }}
-                        exit={{ rotateY: -90, opacity: 0 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <BookMarked className="h-5 w-5" />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="analysis"
-                        initial={{ rotateY: -90, opacity: 0 }}
-                        animate={{ rotateY: 0, opacity: 1 }}
-                        exit={{ rotateY: 90, opacity: 0 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <ChartNoAxesCombined className="h-5 w-5" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                Switch to{' '}
-                {assistantMode === AssistantMode.Knowledgebase
+            <TooltipButton
+              onClick={handleNewConversation}
+              icon={<MessageCirclePlus className="h-5 w-5" />}
+              tooltipText="New conversation"
+            />
+            <TooltipButton
+              onClick={handleSaveChat}
+              icon={<Save className="h-5 w-5" />}
+              tooltipText="Save Chat"
+            />
+            <TooltipButton
+              onClick={handleAssistantModeToggle}
+              icon={
+                assistantMode === AssistantMode.Knowledgebase ? (
+                  <BookMarked className="h-5 w-5" />
+                ) : (
+                  <ChartNoAxesCombined className="h-5 w-5" />
+                )
+              }
+              tooltipText={`Switch to ${
+                assistantMode === AssistantMode.Knowledgebase
                   ? 'Analysis'
-                  : 'Knowledgebase'}{' '}
-                assistant
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={handleMicToggle}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="rounded-full p-2 focus:outline-none"
-                  style={{ color: micEnabled ? '#f97316' : 'inherit' }}
-                >
-                  <Mic className="h-5 w-5" />
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Use Microphone</TooltipContent>
-            </Tooltip>
+                  : 'Knowledgebase'
+              } assistant`}
+            />
+            <TooltipButton
+              onClick={handleMicToggle}
+              icon={<Mic className="h-5 w-5" />}
+              tooltipText="Use Microphone"
+              active={micEnabled}
+            />
             <Button
               type="button"
               size="sm"
