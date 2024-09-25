@@ -21,7 +21,6 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ConversationList } from './conversation-list';
 import { AssistantFileUploader } from './assistant-file-uploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-
 import { AssistantMode } from '@/types/settings';
 import { getLocalDateTime } from '@/lib/utils';
 
@@ -37,8 +36,7 @@ type ChatSidebarProps = {
 };
 
 export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
-  (props, ref) => {
-    const { assistantMode, setMessages, userId, setAssistantFileIds } = props;
+  ({ assistantMode, setMessages, userId, setAssistantFileIds }, ref) => {
     ChatSidebar.displayName = 'ChatSidebar';
 
     const { form, onSubmit } = useFetchAndSubmit({
@@ -47,38 +45,37 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
       formPath: 'data'
     });
 
+    const updateConversations = (
+      newConversations: Conversation[],
+      activeId: string
+    ) => {
+      onSubmit({
+        conversations: newConversations,
+        activeConversationId: activeId
+      });
+    };
+
     const handleAddConversation = async () => {
       const currentConversations = form.getValues('conversations') || [];
+      const { threadId } = await (
+        await fetch(`/api/assistants/threads`, { method: 'POST' })
+      ).json();
+      const newEmoji = emoji.random();
 
-      const response = await fetch(`/api/assistants/threads`, {
-        method: 'POST'
-      });
-
-      const { threadId } = await response.json();
-
-      // Create a new conversation object
-      const ej = emoji.random();
       const newConversation = {
         id: threadId,
-        title: `${ej.emoji} ${ej.name}`,
+        title: `${newEmoji.emoji} ${newEmoji.name}`,
         createdAt: getLocalDateTime(),
-        active: true // Set the new conversation as active
+        active: true
       };
 
-      // Update the current conversations to set the previous active one to false
       const updatedConversations = currentConversations.map((conv) => ({
         ...conv,
-        active: false // Set all existing conversations to inactive
+        active: false
       }));
 
-      // Add the new active conversation
       updatedConversations.push(newConversation);
-
-      // Update the user data
-      onSubmit({
-        conversations: updatedConversations,
-        activeConversationId: threadId
-      });
+      updateConversations(updatedConversations, threadId);
     };
 
     useImperativeHandle(ref, () => ({
@@ -87,7 +84,6 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
 
     const handleDeleteConversation = (conversation: Conversation) => {
       const currentConversations = form.getValues('conversations') || [];
-
       if (currentConversations.length <= 1 || conversation.active) {
         toast({
           title: 'Uh oh!',
@@ -100,11 +96,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
       const updatedConversations = currentConversations.filter(
         (conv) => conv.id !== conversation.id
       );
-
-      onSubmit({
-        conversations: updatedConversations,
-        activeConversationId: conversation.id
-      });
+      updateConversations(updatedConversations, conversation.id);
     };
 
     const handleSetActiveConversation = (conversation: Conversation) => {
@@ -114,10 +106,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
         active: conv.id === conversation.id
       }));
 
-      onSubmit({
-        conversations: updatedConversations,
-        activeConversationId: conversation.id
-      });
+      updateConversations(updatedConversations, conversation.id);
       setMessages([]);
     };
 
@@ -132,9 +121,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
                   transform: 'translateY(-50%)',
                   color: 'hsl(210, 10%, 40%)'
                 }}
-                whileHover={{
-                  color: 'hsl(50, 100%, 60%)'
-                }}
+                whileHover={{ color: 'hsl(50, 100%, 60%)' }}
               >
                 <ChevronLeft className="h-6 w-6" />
               </motion.button>
@@ -145,7 +132,7 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
             >
               <VisuallyHidden>
                 <SheetHeader>
-                  <SheetTitle>Manage your </SheetTitle>
+                  <SheetTitle>Manage your conversations</SheetTitle>
                   <SheetDescription>Select your conversation</SheetDescription>
                 </SheetHeader>
               </VisuallyHidden>

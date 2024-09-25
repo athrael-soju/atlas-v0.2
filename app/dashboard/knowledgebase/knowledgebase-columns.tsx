@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/tooltip';
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import React, { ReactNode } from 'react';
-import { getLocalDateTime } from '@/lib/utils';
 
 export function knowledgebaseColumns(
   onDeleteFiles: (files: KnowledgebaseFile[]) => Promise<void>
