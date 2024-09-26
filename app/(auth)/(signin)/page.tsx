@@ -42,12 +42,12 @@ export default function AuthenticationPage() {
             // Default size for large screens
             width={500}
             height={500}
-            loading="lazy"
             className="aspect-square rounded-md object-cover md:h-[300px] md:w-[300px] lg:h-[500px] lg:w-[500px]"
             style={{
               maxWidth: '100%',
               height: 'auto'
             }}
+            priority={true}
           />
           {/* Improved title display */}
           <h2
@@ -82,12 +82,12 @@ export default function AuthenticationPage() {
             // Consistent size for small and mobile screens
             width={200}
             height={200}
-            loading="lazy"
             className="aspect-square rounded-md object-cover"
             style={{
               maxWidth: '100%',
               height: 'auto'
             }}
+            priority={true}
           />
 
           {/* Improved mobile title display */}

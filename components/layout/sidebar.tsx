@@ -59,7 +59,6 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
             width={84}
             height={84}
             loading="lazy"
-            priority={false}
             style={{
               marginTop: '-30px',
               maxWidth: '100%',
