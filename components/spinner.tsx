@@ -1,4 +1,4 @@
-import { Comment, Hourglass, MagnifyingGlass } from 'react-loader-spinner';
+import { Comment, DNA, Hourglass, MagnifyingGlass } from 'react-loader-spinner';
 import { useEffect, useState } from 'react';
 
 export const Spinner = () => {
@@ -60,6 +60,19 @@ export const Working = () => {
       wrapperStyle={{}}
       wrapperClass=""
       colors={['#306cce', '#72a1ed']}
+    />
+  );
+};
+
+export const Loading = () => {
+  return (
+    <DNA
+      visible={true}
+      height="320"
+      width="320"
+      ariaLabel="dna-loading"
+      wrapperStyle={{}}
+      wrapperClass="dna-wrapper"
     />
   );
 };

@@ -1,4 +1,3 @@
-// components\layout\ThemeToggle\theme-provider.tsx
 'use client';
 
 import { ThemeProvider as NextThemesProvider } from 'next-themes';

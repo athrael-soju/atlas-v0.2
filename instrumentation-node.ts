@@ -1,8 +1,6 @@
-// instrumentation-node.ts
 import { config as dotenvConfig } from 'dotenv';
 import { resolve } from 'path';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { HostMetrics } from '@opentelemetry/host-metrics';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node';
@@ -14,39 +12,55 @@ import {
   processDetector
 } from '@opentelemetry/resources';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 
 // Load .env.local
 dotenvConfig({ path: resolve(process.cwd(), '.env.local') });
 
-const exporter = new PrometheusExporter({
+// Setup Prometheus Exporter for Application Metrics
+const metricsExporter = new PrometheusExporter({
   port: 9464,
   endpoint: '/metrics',
   host: '0.0.0.0' // Listen on all network interfaces
 });
 
+// Detect Resources (e.g., environment details)
 const detectedResources = detectResourcesSync({
   detectors: [envDetector, processDetector, hostDetector]
 });
-
 const customResources = new Resource({});
 
 const resources = detectedResources.merge(customResources);
 
+// Setup MeterProvider for Application Metrics
 const meterProvider = new MeterProvider({
-  readers: [exporter],
+  readers: [metricsExporter],
   resource: resources
 });
-const hostMetrics = new HostMetrics({
-  name: `atlas-ii-metrics`,
-  meterProvider
+
+// Setup TracerProvider for Tracing
+const tracerProvider = new NodeTracerProvider({
+  resource: resources
 });
 
+// Configure OTLP Trace Exporter using gRPC
+const traceExporter = new OTLPTraceExporter({
+  url: 'http://localhost:4317' // Send traces to Tempo via gRPC
+});
+
+tracerProvider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
+tracerProvider.register();
+
+// Register Instrumentations for HTTP and Runtime metrics
 registerInstrumentations({
+  tracerProvider,
   meterProvider,
   instrumentations: [
-    new HttpInstrumentation(),
-    new RuntimeNodeInstrumentation()
+    new HttpInstrumentation(), // Automatically trace HTTP requests (including Next.js)
+    new RuntimeNodeInstrumentation() // Capture runtime metrics for the application (e.g., memory usage)
   ]
 });
 
-hostMetrics.start();
+// No host metrics collected here; Node Exporter handles system-level metrics

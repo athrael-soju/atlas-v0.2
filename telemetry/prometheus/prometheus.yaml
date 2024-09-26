@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  # Scrape config for the Next.js app
+  - job_name: 'nextjs-app'
+    static_configs:
+      - targets: ['host.docker.internal:9464'] # Next.js application metrics
+
+  # Scrape config for Windows WMI Exporter
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node_exporter:9100'] # Node Exporter metrics
