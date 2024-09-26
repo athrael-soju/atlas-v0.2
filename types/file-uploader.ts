@@ -96,3 +96,14 @@ export interface KnowledgebaseFile {
   dateUploaded: string;
   dateProcessed: string;
 }
+
+export interface KnowledgebaseFilesProps {
+  knowledgebaseFiles: KnowledgebaseFile[];
+  setKnowledgebaseFiles: React.Dispatch<
+    React.SetStateAction<KnowledgebaseFile[] | undefined>
+  >;
+  isFetchingFiles: boolean;
+  working: boolean;
+  setWorking: React.Dispatch<React.SetStateAction<boolean>>;
+  isUploading: boolean;
+}

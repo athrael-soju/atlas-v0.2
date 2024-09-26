@@ -29,7 +29,7 @@ export function FileUploader(props: FileUploaderProps) {
       'application/pdf': [],
       'image/*': []
     },
-    maxSize = 1024 * 1024 * 2,
+    maxSize = 1024 * 1024 * 50,
     maxFileCount = 5,
     multiple = true,
     disabled = false,

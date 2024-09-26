@@ -4,6 +4,7 @@ import { toAscii } from '@/lib/utils';
 import { ParsedElement } from '@/types/settings';
 import { Thread } from 'openai/resources/beta/threads/threads.mjs';
 import { FileDeleted, FileObject } from 'openai/resources/index.mjs';
+import Bottleneck from 'bottleneck';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -14,10 +15,6 @@ if (!process.env.OPENAI_API_KEY) {
 
 const options: ClientOptions = { apiKey: process.env.OPENAI_API_KEY };
 const openai = new OpenAI(options);
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 const transformObjectValues = (
   obj: Record<string, any>
@@ -61,41 +58,55 @@ export async function embedDocument(
 ) {
   const chunkIdList: string[] = [];
 
-  let chunkNumber = 0;
+  // Initialize Bottleneck limiter
+  const limiter = new Bottleneck({
+    reservoir: 3000, // Maximum number of requests per minute
+    reservoirRefreshAmount: 3000,
+    reservoirRefreshInterval: 60 * 1000, // 60 seconds
+    minTime: 1, // Minimum time between requests (in ms)
+    maxConcurrent: 60 // Increased to the highest possible number without breaching RPM limit
+  });
+
+  // Define a function to process each chunk
+  async function processChunk(chunk: any, index: number) {
+    const response = await openai.embeddings.create({
+      model: embeddingApiModel,
+      input: chunk.text,
+      encoding_format: 'float'
+    });
+
+    const transformedMetadata = transformObjectValues(chunk.metadata);
+
+    const newId = `${toAscii(file.name)}#${file.key}#${index + 1}`;
+    chunkIdList.push(newId);
+    const embeddingValues = response.data[0].embedding;
+
+    // Add citation field to the metadata
+    const pageInfo = chunk.metadata.page_number
+      ? `, Page ${chunk.metadata.page_number}`
+      : '';
+    const citation = `[${file.url}](${file.name}${pageInfo})`;
+
+    const metadata = {
+      ...transformedMetadata,
+      text: chunk.text,
+      userId: userId,
+      url: file.url,
+      citation: citation
+    };
+
+    return {
+      id: newId,
+      values: embeddingValues,
+      metadata: metadata
+    };
+  }
+
+  // Map over chunks using limiter.schedule
   const embeddings = await Promise.all(
-    chunks.map(async (chunk: any) => {
-      await delay(13); // Temporary fix for rate limiting 5000 RPM
-      const response = await openai.embeddings.create({
-        model: embeddingApiModel,
-        input: chunk.text,
-        encoding_format: 'float'
-      });
-      const transformedMetadata = transformObjectValues(chunk.metadata);
-
-      const newId = `${toAscii(file.name)}#${file.key}#${++chunkNumber}`;
-      chunkIdList.push(newId);
-      const embeddingValues = response.data[0].embedding;
-
-      // Add citation field to the metadata
-      const pageInfo = chunk.metadata.page_number
-        ? `, Page ${chunk.metadata.page_number}`
-        : '';
-      const citation = `[${file.url}](${file.name}${pageInfo})`;
-
-      const metadata = {
-        ...transformedMetadata,
-        text: chunk.text,
-        userId: userId,
-        url: file.url,
-        citation: citation
-      };
-
-      return {
-        id: newId,
-        values: embeddingValues,
-        metadata: metadata
-      };
-    })
+    chunks.map((chunk: any, index: number) =>
+      limiter.schedule(() => processChunk(chunk, index))
+    )
   );
 
   return embeddings || [];

@@ -34,11 +34,11 @@ const defineFileRouter = (config: any) =>
 // FileRouter implementation
 export const ourFileRouter = {
   attachment: defineFileRouter({
-    text: { maxFileCount: 5, maxFileSize: '5MB' },
-    image: { maxFileCount: 5, maxFileSize: '10MB' },
+    text: { maxFileCount: 5, maxFileSize: '50MB' },
+    image: { maxFileCount: 5, maxFileSize: '50MB' },
     video: { maxFileCount: 1, maxFileSize: '100MB' },
-    audio: { maxFileCount: 5, maxFileSize: '10MB' },
-    pdf: { maxFileCount: 5, maxFileSize: '10MB' }
+    audio: { maxFileCount: 5, maxFileSize: '50MB' },
+    pdf: { maxFileCount: 5, maxFileSize: '50MB' }
   })
 } satisfies FileRouter;
 

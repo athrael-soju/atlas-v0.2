@@ -86,13 +86,14 @@ async function processFiles(
   for (const file of files) {
     try {
       sendUpdate('Processing', `${file.name}`);
-
       const chunks: ParsedElement[] = await parseAndChunk(forgeSettings, file);
-      sendUpdate('Parsed', `${chunks.length} chunks`);
+      sendUpdate('Processed', `${chunks.length} chunks`);
 
+      sendUpdate('Embedding', `${file.name}`);
       const embeddings: Embedding[] = await embedDocument(userId, file, chunks);
       sendUpdate('Embedded', `${embeddings.length} chunks`);
 
+      sendUpdate('Upserting', `${file.name}`);
       const upsertedChunkCount = await upsertDocument(
         userId,
         embeddings,
