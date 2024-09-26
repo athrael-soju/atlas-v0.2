@@ -4,11 +4,13 @@ services:
     image: prom/prometheus:latest
     restart: always
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./telemetry/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./telemetry/prometheus/data:/prometheus
     ports:
       - '9090:9090'
     networks:
       - atlas-network
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
@@ -17,8 +19,51 @@ services:
       - '4000:3000'
     depends_on:
       - prometheus
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_COOKIE_SAMESITE=none
+    volumes:
+      - ./telemetry/grafana/storage:/var/lib/grafana
+      - ./telemetry/grafana/provisioning:/etc/grafana/provisioning
+      - ./telemetry/grafana/dashboards:/var/lib/grafana/dashboards
+    env_file:
+      - ./telemetry/grafana/config.monitoring
     networks:
       - atlas-network
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    restart: always
+    ports:
+      - '3200:3200' # Tempo's query frontend
+      - '4317:4317' # OTLP gRPC receiver
+      - '4318:4318' # OTLP HTTP receiver
+    volumes:
+      - ./telemetry/tempo/tempo.yaml:/etc/tempo.yaml # Mount your config file
+      - ./telemetry/tempo/traces:/var/tempo/traces # Mount local storage for traces
+    command: -config.file=/etc/tempo.yaml
+    networks:
+      - atlas-network
+
+  node_exporter:
+    container_name: node_exporter
+    image: prom/node-exporter
+    restart: unless-stopped
+    ports:
+      - 9100:9100
+    networks:
+      - atlas-network
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+
 networks:
   atlas-network:
+    name: atlas-network
     driver: bridge

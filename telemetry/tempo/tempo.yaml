@@ -1,0 +1,24 @@
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/traces
+
+server:
+  http_listen_port: 3200 # Tempo query frontend port
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc: # OTLP gRPC receiver on port 4317
+        http: # OTLP HTTP receiver on port 4318
+
+ingester:
+  trace_idle_period: 5m # Time to wait before closing trace block
+  max_block_bytes: 1048576 # Max size of a block (in bytes) before compacting
+  max_block_duration: 5m # Max time to keep a block open before compacting
+
+compactor:
+  compaction:
+    block_retention: 48h # Trace retention period of 48 hours

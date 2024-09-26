@@ -30,6 +30,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# telemetry
+/telemetry/grafana/storage
+/telemetry/prometheus/data
+/telemetry/tempo/traces
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

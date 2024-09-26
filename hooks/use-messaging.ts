@@ -160,46 +160,67 @@ export const useMessaging = (
   };
 
   const sendMessage = async (text: string, assistantMode: AssistantMode) => {
-    setIsThinking(true);
-    setInputDisabled(true);
-    const userId = session?.user.id as string;
-    const userMessage = text;
-    appendMessage('user', userMessage);
+    try {
+      setIsThinking(true);
+      setInputDisabled(true);
+      const userId = session?.user.id as string;
+      const userMessage = text;
+      appendMessage('user', userMessage);
 
-    // If knowledgebase is enabled, fetch the context enriched message
-    if (assistantMode === AssistantMode.Knowledgebase) {
-      const contextEnrichedMessage = await fetchContextEnrichedMessage(
-        userId,
-        text
-      );
-      if (contextEnrichedMessage) {
-        text = contextEnrichedMessage;
+      // Step 1: Fetch context-enriched message if knowledgebase mode is enabled
+      let contextMessage = text;
+      if (assistantMode === AssistantMode.Knowledgebase) {
+        const contextEnrichedMessage = await fetchContextEnrichedMessage(
+          userId,
+          text
+        );
+        if (contextEnrichedMessage) {
+          contextMessage = contextEnrichedMessage; // Replace the original text with the context-enriched message
+        }
       }
-    } else if (assistantMode === AssistantMode.Analysis) {
-      // Assign files to the assistant
-    }
 
-    // If personalized responses are enabled, add personalized info
-    if (profileSettings.personalizedResponses) {
-      text = addPersonalizedInfo(profileSettings);
-    }
-    text += `
+      // Step 2: Add personalized info if enabled
+      let finalMessage = contextMessage;
+      if (profileSettings.personalizedResponses) {
+        const personalizedInfo = addPersonalizedInfo(profileSettings);
+        finalMessage = `${personalizedInfo}\n==============\n${contextMessage}`; // Append personalized info before context
+      }
+
+      // Step 3: Append user message at the end
+      finalMessage += `
 ==============
 User message: ${userMessage}
 ==============`;
-    //console.info('Sending message:', text);
-    const response = await fetch(
-      `/api/assistants/threads/${conversationId}/messages`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ text: text })
-      }
-    );
-    const stream = AssistantStream.fromReadableStream(
-      response.body as ReadableStream
-    );
-    handleReadableStream(stream);
-    scrollToBottom();
+
+      // Step 4: Send the message after context and personalization are added
+      const response = await fetch(
+        `/api/assistants/threads/${conversationId}/messages`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ text: finalMessage })
+        }
+      );
+
+      // Handle the response stream
+      const stream = AssistantStream.fromReadableStream(
+        response.body as ReadableStream
+      );
+      handleReadableStream(stream);
+
+      // Scroll to bottom after message is handled
+      scrollToBottom();
+    } catch (error) {
+      toast({
+        title: 'Whoops!',
+        description: `Something went wrong while sending your message. '${error}'. Please try again, or contact support if the issue persists.`,
+        variant: 'destructive'
+      });
+      // Handle error cases, maybe display an error message to the user
+    } finally {
+      // Re-enable the input and stop thinking indicator
+      setIsThinking(false);
+      setInputDisabled(false);
+    }
   };
 
   const submitActionResult = async (
