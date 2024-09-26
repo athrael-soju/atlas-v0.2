@@ -63,6 +63,10 @@ function FilePreview({ file }: FilePreviewProps) {
         height={48}
         loading="lazy"
         className="aspect-square shrink-0 rounded-md object-cover"
+        style={{
+          maxWidth: '100%',
+          height: 'auto'
+        }}
       />
     );
   }
