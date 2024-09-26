@@ -6,18 +6,8 @@ import { toast } from 'sonner';
 import { cn, formatBytes } from '@/lib/utils';
 import { useControllableState } from '@/hooks/use-controllable-state';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { Button } from '@/components/ui/button';
-import { FileCard } from './file-card';
 import { FileUploaderProps } from '@/types/file-uploader';
-import {
-  DialogOrDrawer,
-  DialogOrDrawerTrigger,
-  DialogOrDrawerContent,
-  DialogOrDrawerHeader,
-  DialogOrDrawerTitle
-} from './dialog-or-drawer';
 import { Icons } from '@/components/icons';
-import { DialogDescription } from '@/components/ui/dialog';
 
 export function FileUploader(props: FileUploaderProps) {
   const {
@@ -188,32 +178,6 @@ export function FileUploader(props: FileUploaderProps) {
           </div>
         )}
       </Dropzone>
-      {/* TODO: Potentially find an alternative to the progress bar overlay */}
-      <DialogOrDrawer open={open} onOpenChange={handleOpenChange}>
-        <DialogOrDrawerTrigger asChild>
-          <Button variant="outline" className="hidden">
-            View Files
-          </Button>
-        </DialogOrDrawerTrigger>
-        <DialogOrDrawerContent aria-describedby="file-upload-description">
-          <DialogOrDrawerHeader>
-            <DialogOrDrawerTitle>
-              {emoticon} {title}
-            </DialogOrDrawerTitle>
-            <DialogDescription />
-          </DialogOrDrawerHeader>
-          <div className="flex flex-col gap-4">
-            {files?.map((file, index) => (
-              <FileCard
-                key={index}
-                file={file}
-                onRemove={() => onRemove(index)}
-                progress={progress?.[file.name]}
-              />
-            ))}
-          </div>
-        </DialogOrDrawerContent>
-      </DialogOrDrawer>
     </div>
   );
 }
