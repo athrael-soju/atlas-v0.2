@@ -2,10 +2,14 @@ services:
   prometheus:
     container_name: prometheus
     image: prom/prometheus:latest
-    restart: always
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --enable-feature=native-histograms
     volumes:
-      - ./telemetry/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
-      - ./telemetry/prometheus/data:/prometheus
+      - ./telemetry/prometheus/prometheus.yaml:/etc/prometheus.yaml
     ports:
       - '9090:9090'
     networks:
@@ -14,7 +18,7 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
-    restart: always
+    restart: unless-stopped
     ports:
       - '4000:3000'
     depends_on:
@@ -23,7 +27,6 @@ services:
       - GF_SECURITY_ALLOW_EMBEDDING=true
       - GF_AUTH_COOKIE_SAMESITE=none
     volumes:
-      - ./telemetry/grafana/storage:/var/lib/grafana
       - ./telemetry/grafana/provisioning:/etc/grafana/provisioning
       - ./telemetry/grafana/dashboards:/var/lib/grafana/dashboards
     env_file:
@@ -34,7 +37,7 @@ services:
   tempo:
     image: grafana/tempo:latest
     container_name: tempo
-    restart: always
+    restart: unless-stopped
     ports:
       - '3200:3200' # Tempo's query frontend
       - '4317:4317' # OTLP gRPC receiver
@@ -42,7 +45,7 @@ services:
     volumes:
       - ./telemetry/tempo/tempo.yaml:/etc/tempo.yaml # Mount your config file
       - ./telemetry/tempo/traces:/var/tempo/traces # Mount local storage for traces
-    command: -config.file=/etc/tempo.yaml
+    command: ['-config.file=/etc/tempo.yaml']
     networks:
       - atlas-network
 
