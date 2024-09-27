@@ -5,19 +5,8 @@ import Dropzone, { FileRejection } from 'react-dropzone';
 import { toast } from 'sonner';
 import { cn, formatBytes } from '@/lib/utils';
 import { useControllableState } from '@/hooks/use-controllable-state';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { Button } from '@/components/ui/button';
-import { FileCard } from '@/app/dashboard/knowledgebase/file-card';
 import { FileUploaderProps } from '@/types/file-uploader';
-import {
-  DialogOrDrawer,
-  DialogOrDrawerTrigger,
-  DialogOrDrawerContent,
-  DialogOrDrawerHeader,
-  DialogOrDrawerTitle
-} from '@/app/dashboard/knowledgebase/dialog-or-drawer';
 import { Icons } from '@/components/icons';
-import { DialogDescription } from '@/components/ui/dialog';
 
 export function FileUploader(props: FileUploaderProps) {
   const {
@@ -29,7 +18,7 @@ export function FileUploader(props: FileUploaderProps) {
       'application/pdf': [],
       'image/*': []
     },
-    maxSize = 1024 * 1024 * 2,
+    maxSize = 1024 * 1024 * 50,
     maxFileCount = 5,
     multiple = true,
     disabled = false,
@@ -41,9 +30,6 @@ export function FileUploader(props: FileUploaderProps) {
     prop: valueProp,
     onChange: onValueChange
   });
-
-  const [open, setOpen] = React.useState(false);
-  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -74,32 +60,21 @@ export function FileUploader(props: FileUploaderProps) {
 
       if (
         onUpload &&
-        updatedFiles.length > 0 &&
-        updatedFiles.length <= maxFileCount
+        newFiles.length > 0 &&
+        (files?.length ?? 0) + newFiles.length <= maxFileCount
       ) {
         const target =
-          updatedFiles.length > 0 ? `${updatedFiles.length} files` : `file`;
+          newFiles.length > 1 ? `${newFiles.length} files` : `file`;
 
-        toast.promise(onUpload(updatedFiles), {
+        toast.promise(onUpload(newFiles), {
           loading: `Uploading ${target}...`,
-          success: () => {
-            return `${target} uploaded successfully`;
-          },
+          success: () => `${target} uploaded successfully`,
           error: `Failed to upload ${target}`
         });
       }
-
-      setOpen(true);
     },
     [files, maxFileCount, multiple, onUpload, setFiles]
   );
-
-  const onRemove = (index: number) => {
-    if (!files) return;
-    const newFiles = files.filter((_, i) => i !== index);
-    setFiles(newFiles);
-    onValueChange?.(newFiles);
-  };
 
   React.useEffect(() => {
     return () => {
@@ -113,20 +88,6 @@ export function FileUploader(props: FileUploaderProps) {
   }, [files]);
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
-
-  const allUploaded =
-    (files?.length ?? 0) > 0 &&
-    files?.every((file) => progress?.[file.name] === 100);
-  const title = allUploaded ? 'Files Uploaded!' : 'Uploading Files';
-  const emoticon = allUploaded ? '😊' : '🚚';
-
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-
-    if (!isOpen) {
-      setFiles([]);
-    }
-  };
 
   return (
     <div className="relative flex flex-col gap-6 overflow-hidden">
@@ -188,32 +149,6 @@ export function FileUploader(props: FileUploaderProps) {
           </div>
         )}
       </Dropzone>
-      {/* TODO: Potentially find an alternative to the progress bar overlay */}
-      <DialogOrDrawer open={open} onOpenChange={handleOpenChange}>
-        <DialogOrDrawerTrigger asChild>
-          <Button variant="outline" className="hidden">
-            View Files
-          </Button>
-        </DialogOrDrawerTrigger>
-        <DialogOrDrawerContent aria-describedby="file-upload-description">
-          <DialogOrDrawerHeader>
-            <DialogOrDrawerTitle>
-              {emoticon} {title}
-            </DialogOrDrawerTitle>
-            <DialogDescription />
-          </DialogOrDrawerHeader>
-          <div className="flex flex-col gap-4">
-            {files?.map((file, index) => (
-              <FileCard
-                key={index}
-                file={file}
-                onRemove={() => onRemove(index)}
-                progress={progress?.[file.name]}
-              />
-            ))}
-          </div>
-        </DialogOrDrawerContent>
-      </DialogOrDrawer>
     </div>
   );
 }

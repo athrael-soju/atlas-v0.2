@@ -1,8 +1,9 @@
 import { getIndex } from '@/lib/client/pinecone';
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import { Embedding } from '@/types/settings';
-import { Index } from '@pinecone-database/pinecone';
 import { toAscii } from '@/lib/utils';
+import Bottleneck from 'bottleneck';
+import { Index } from '@pinecone-database/pinecone';
 
 function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   const result: T[][] = [];
@@ -60,11 +61,61 @@ export const upsertDocument = async (
 ) => {
   let upsertedChunkCount = 0;
   const index = await getIndex();
-  const chunkedData = chunkArray(embeddings, chunkBatch);
-  for (const chunk of chunkedData) {
-    index.namespace(userId).upsert(chunk);
-    upsertedChunkCount += chunk.length;
-  }
+
+  // Create a limiter for upsert operations
+  const upsertLimiter = new Bottleneck({
+    reservoir: 100, // Maximum number of records per second per namespace
+    reservoirRefreshAmount: 100,
+    reservoirRefreshInterval: 1000, // 1 second
+    maxConcurrent: 100, // Max concurrent upsert requests
+    minTime: 1 // Minimum time between requests
+  });
+
+  // Function to upsert a chunk with retry and exponential backoff
+  const upsertChunkWithRetry = async (chunk: Embedding[]) => {
+    const namespace = index.namespace(userId);
+    const maxRetries = 5;
+    let attempt = 0;
+    let delay = 500; // Initial delay in ms
+
+    while (attempt < maxRetries) {
+      try {
+        await namespace.upsert(chunk);
+        upsertedChunkCount += chunk.length;
+        break; // Success
+      } catch (error: any) {
+        if (error.statusCode === 429) {
+          // Too many requests, wait and retry
+          attempt++;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2; // Exponential backoff
+        } else {
+          // Other error, rethrow
+          throw error;
+        }
+      }
+    }
+    if (attempt === maxRetries) {
+      throw new Error(
+        `Failed to upsert after ${maxRetries} attempts due to rate limiting`
+      );
+    }
+  };
+
+  // Ensure each chunk does not exceed 1000 records
+  const maxRecordsPerUpsert = 1000;
+  const chunkedData = chunkArray(
+    embeddings,
+    Math.min(chunkBatch, maxRecordsPerUpsert)
+  );
+
+  // Schedule upserts with rate limiting
+  const upsertPromises = chunkedData.map((chunk) =>
+    upsertLimiter.schedule(() => upsertChunkWithRetry(chunk))
+  );
+
+  await Promise.all(upsertPromises);
+
   return upsertedChunkCount;
 };
 
@@ -78,6 +129,16 @@ export async function deleteFromVectorDb(
 
   const index = await getIndex();
   const namespace = index.namespace(userId);
+
+  // Create a limiter for delete operations
+  const deleteLimiter = new Bottleneck({
+    reservoir: 100, // Maximum number of updates per second per namespace
+    reservoirRefreshAmount: 100,
+    reservoirRefreshInterval: 1000, // 1 second
+    maxConcurrent: 100, // Max concurrent delete requests
+    minTime: 1 // Minimum time between requests
+  });
+
   do {
     const result = await listArchiveChunks(
       file,
@@ -90,8 +151,36 @@ export async function deleteFromVectorDb(
     }
 
     const chunkIds = result.chunks.map((chunk) => chunk.id);
-    await namespace.deleteMany(chunkIds);
-    deletedCount += chunkIds.length;
+
+    // Function to delete chunks with retry and exponential backoff
+    const deleteChunksWithRetry = async (ids: string[]) => {
+      const maxRetries = 5;
+      let attempt = 0;
+      let delay = 500;
+
+      while (attempt < maxRetries) {
+        try {
+          await namespace.deleteMany(ids);
+          deletedCount += ids.length;
+          break;
+        } catch (error: any) {
+          if (error.statusCode === 429) {
+            attempt++;
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            delay *= 2;
+          } else {
+            throw error;
+          }
+        }
+      }
+      if (attempt === maxRetries) {
+        throw new Error(
+          `Failed to delete after ${maxRetries} attempts due to rate limiting`
+        );
+      }
+    };
+
+    await deleteLimiter.schedule(() => deleteChunksWithRetry(chunkIds));
     paginationToken = result.paginationToken;
   } while (paginationToken !== undefined);
   return deletedCount;

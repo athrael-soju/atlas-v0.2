@@ -7,7 +7,7 @@ import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
-import { KnowledgebaseFiles } from '@/app/dashboard/knowledgebase/knowledgebase-files';
+import { KnowledgebaseFiles } from '@/app/dashboard/knowledgebase/file-list';
 import { useEffect, useState } from 'react';
 
 const FormSchema = z.object({
@@ -85,7 +85,7 @@ export function Knowledgebase() {
         {/* File Uploader Component */}
         <FileUploader
           maxFileCount={5}
-          maxSize={4 * 1024 * 1024} // 4 MB
+          maxSize={50 * 1024 * 1024}
           progress={progress}
           onUpload={onUpload}
           disabled={isUploading}

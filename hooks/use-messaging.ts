@@ -215,8 +215,7 @@ User message: ${userMessage}
         description: `Something went wrong while sending your message. '${error}'. Please try again, or contact support if the issue persists.`,
         variant: 'destructive'
       });
-      // Handle error cases, maybe display an error message to the user
-    } finally {
+      // TODO: Handle error cases, maybe display an error message to the user
       // Re-enable the input and stop thinking indicator
       setIsThinking(false);
       setInputDisabled(false);

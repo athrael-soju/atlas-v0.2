@@ -1,5 +1,3 @@
-import { Assistant } from 'openai/resources/beta/assistants.mjs';
-
 const createFormData = (userId: string, selectedFiles: string[]): FormData => {
   const formData = new FormData();
   formData.append('fileIds', JSON.stringify(selectedFiles));

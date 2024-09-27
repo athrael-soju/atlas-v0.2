@@ -1,7 +1,7 @@
 // app\dashboard\knowledgebase\page.tsx
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
-import { Knowledgebase } from '@/app/dashboard/knowledgebase/knowledgebase';
+import { Knowledgebase } from '@/app/dashboard/knowledgebase';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 

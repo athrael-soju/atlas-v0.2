@@ -39,11 +39,15 @@ export default function AuthenticationPage() {
           <Image
             src={'/atlas.png'}
             alt={'Atlas II Logo'}
-            width={500} // Default size for large screens
+            // Default size for large screens
+            width={500}
             height={500}
-            loading="lazy"
             className="aspect-square rounded-md object-cover md:h-[300px] md:w-[300px] lg:h-[500px] lg:w-[500px]"
-            layout="intrinsic"
+            style={{
+              maxWidth: '100%',
+              height: 'auto'
+            }}
+            priority={true}
           />
           {/* Improved title display */}
           <h2
@@ -75,11 +79,15 @@ export default function AuthenticationPage() {
           <Image
             src={'/atlas.png'}
             alt={'Atlas II Logo'}
-            width={200} // Consistent size for small and mobile screens
+            // Consistent size for small and mobile screens
+            width={200}
             height={200}
-            loading="lazy"
             className="aspect-square rounded-md object-cover"
-            layout="intrinsic"
+            style={{
+              maxWidth: '100%',
+              height: 'auto'
+            }}
+            priority={true}
           />
 
           {/* Improved mobile title display */}

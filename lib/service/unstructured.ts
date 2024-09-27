@@ -31,6 +31,7 @@ export async function parseAndChunk(
     partitionParameters.maxCharacters = forgeSettings.maxChunkSize;
     partitionParameters.overlap = forgeSettings.chunkOverlap;
     partitionParameters.splitPdfPage = true;
+    partitionParameters.splitPdfAllowFailed = true;
     partitionParameters.splitPdfConcurrencyLevel = 10;
   }
 
