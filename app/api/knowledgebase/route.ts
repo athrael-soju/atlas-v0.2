@@ -3,6 +3,7 @@ import { embedMessage } from '@/lib/service/openai';
 import { query } from '@/lib/service/pinecone';
 import { validateUser } from '@/lib/utils';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/service/winston'; // Import Winston logger
 
 function sendUpdate(
   status: string,
@@ -15,29 +16,37 @@ function sendUpdate(
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
+    logger.info('GET request received for retrieving context.');
+
     const { searchParams } = req.nextUrl;
     const userId = searchParams.get('userId');
     const message = searchParams.get('message');
 
     if (!userId || !message) {
+      logger.warn('Missing userId or message in request.');
       return NextResponse.json(
-        { error: 'No message provided' },
+        { error: 'No userId or message provided' },
         { status: 400 }
       );
     }
 
     // Validate user
     const userServerData = await validateUser(userId);
+    logger.info(`User validated successfully: ${userId}`);
+
     const settings = userServerData.settings;
 
-    // Retrieve context
+    // Setup and return SSE stream
     const stream = new ReadableStream({
       start(controller) {
         const send = (state: string, message: string) =>
           sendUpdate(state, message, controller);
-        retrieveContext(userId, message, settings, send).then(() => {
-          controller.close();
-        });
+        retrieveContext(userId, message, settings, send)
+          .then(() => controller.close())
+          .catch((err) => {
+            logger.error(`Error retrieving context: ${err.message}`);
+            controller.error(err);
+          });
       }
     });
 
@@ -48,7 +57,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         Connection: 'keep-alive'
       }
     });
-  } catch (error) {
+  } catch (error: any) {
+    logger.error(`Error in GET request: ${error.message}`);
     return handleErrorResponse(error);
   }
 }
@@ -62,35 +72,53 @@ async function retrieveContext(
   let rerankingContext = '';
   try {
     sendUpdate('Retrieving context', `${message}`);
+    logger.info(`Embedding message for user: ${userId}`);
 
+    // Embed the message
     const embeddingResults = await embedMessage(userId, message);
-    sendUpdate('Embedding complete', `${message}`);
+    sendUpdate(
+      'Embedding complete',
+      `Message embedding complete for: ${message}`
+    );
+    logger.info('Message embedding complete.');
 
+    // Query Pinecone with the embedding
+    logger.info('Querying Pinecone for context.');
     const queryResults = await query(
       userId,
       embeddingResults,
       settings.knowledgebase.pineconeTopK
     );
-    sendUpdate('Query complete', `${message}`);
+    sendUpdate('Query complete', 'Query results retrieved from Pinecone.');
+    logger.info('Query complete.');
 
+    // Rerank the results
+    logger.info('Reranking query results.');
     rerankingContext = await rerank(
       message,
       queryResults.context,
       settings.knowledgebase
     );
     sendUpdate('Reranking complete', `${rerankingContext}`);
+    logger.info('Reranking complete.');
   } catch (error: any) {
-    sendUpdate('error', `Error retrieving context: ${error.message}`);
+    sendUpdate('Error', `Error retrieving context: ${error.message}`);
+    logger.error(
+      `Error in retrieving context for user: ${userId}, message: ${error.message}`
+    );
   } finally {
-    sendUpdate('done', `${message}`);
+    sendUpdate('Done', `Processing complete for: ${message}`);
+    logger.info(`Processing done for message: ${message}`);
   }
 }
 
 function handleErrorResponse(error: any): NextResponse {
-  const status =
-    error.message === 'Invalid user' || error.message === 'Invalid file IDs'
-      ? 400
-      : 500;
+  const status = ['Invalid user', 'Invalid file IDs'].includes(error.message)
+    ? 400
+    : 500;
+
+  logger.error(`Returning error response: ${error.message}`);
+
   return new NextResponse(
     JSON.stringify({ message: error.message || 'Internal server error' }),
     { status }
