@@ -13,7 +13,8 @@ export const Metrics = () => {
     setLoading(false);
   };
 
-  const grafanaUrl = `http://localhost:4000/d/DCZivo5mk/docker-host?&theme=${grafanaTheme}`;
+  //const grafanaUrl = `http://localhost:4000/d/DCZivo5mk/docker-host?&theme=${grafanaTheme}`;
+  const grafanaUrl = `http://localhost:4000/?&theme=${grafanaTheme}`;
 
   return (
     <div className="relative h-[calc(100vh-85px)]">

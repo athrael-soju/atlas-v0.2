@@ -26,6 +26,8 @@ const metricsExporter = new PrometheusExporter({
   host: '0.0.0.0' // Listen on all network interfaces
 });
 
+console.info('Prometheus metrics exposed at http://localhost:9464/metrics');
+
 // Detect Resources (e.g., environment details)
 const detectedResources = detectResourcesSync({
   detectors: [envDetector, processDetector, hostDetector]
@@ -47,11 +49,15 @@ const tracerProvider = new NodeTracerProvider({
 
 // Configure OTLP Trace Exporter using gRPC
 const traceExporter = new OTLPTraceExporter({
-  url: 'http://localhost:4317' // Send traces to Tempo via gRPC
+  url: 'http://host.docker.internal:4317' // Send traces to Tempo via gRPC
 });
 
 tracerProvider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
 tracerProvider.register();
+
+console.info(
+  'TracerProvider registered and sending traces to Tempo at http://host.docker.internal:4317'
+);
 
 // Register Instrumentations for HTTP and Runtime metrics
 registerInstrumentations({
