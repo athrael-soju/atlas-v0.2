@@ -15,18 +15,23 @@ import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
-
 // Load .env.local
 dotenvConfig({ path: resolve(process.cwd(), '.env.local') });
 
+const promPort = parseInt(process.env.PORT as string) || 9464;
+const promEndpoint = process.env.PROM_METRICS_ENDPOINT || '/metrics';
+const promHost = process.env.PROM_METRICS_HOST || '0.0.0.0';
+
 // Setup Prometheus Exporter for Application Metrics
 const metricsExporter = new PrometheusExporter({
-  port: 9464,
-  endpoint: '/metrics',
-  host: '0.0.0.0' // Listen on all network interfaces
+  port: promPort,
+  endpoint: promEndpoint,
+  host: promHost
 });
 
-console.info('Prometheus metrics exposed at http://localhost:9464/metrics');
+console.info(
+  `Prometheus Exporter running at http://${promHost}:${promPort}${promEndpoint}`
+);
 
 // Detect Resources (e.g., environment details)
 const detectedResources = detectResourcesSync({
@@ -47,17 +52,17 @@ const tracerProvider = new NodeTracerProvider({
   resource: resources
 });
 
+const otlpExporterUrl =
+  process.env.OTLP_TRACE_EXPORTER_URL || 'http://host.docker.internal:4317';
 // Configure OTLP Trace Exporter using gRPC
 const traceExporter = new OTLPTraceExporter({
-  url: 'http://host.docker.internal:4317' // Send traces to Tempo via gRPC
+  url: otlpExporterUrl // Send traces to Tempo via gRPC
 });
 
 tracerProvider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
 tracerProvider.register();
 
-console.info(
-  'TracerProvider registered and sending traces to Tempo at http://host.docker.internal:4317'
-);
+console.info(`OTLP Trace Exporter running at ${otlpExporterUrl}`);
 
 // Register Instrumentations for HTTP and Runtime metrics
 registerInstrumentations({
