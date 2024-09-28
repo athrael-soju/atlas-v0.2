@@ -15,6 +15,8 @@ import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { logger } from '@/lib/service/winston';
+
 // Load .env.local
 dotenvConfig({ path: resolve(process.cwd(), '.env.local') });
 
@@ -29,7 +31,7 @@ const metricsExporter = new PrometheusExporter({
   host: promHost
 });
 
-console.info(
+logger.info(
   `Prometheus Exporter running at http://${promHost}:${promPort}${promEndpoint}`
 );
 
@@ -62,7 +64,7 @@ const traceExporter = new OTLPTraceExporter({
 tracerProvider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
 tracerProvider.register();
 
-console.info(`OTLP Trace Exporter running at ${otlpExporterUrl}`);
+logger.info(`OTLP Trace Exporter running at ${otlpExporterUrl}`);
 
 // Register Instrumentations for HTTP and Runtime metrics
 registerInstrumentations({

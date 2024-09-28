@@ -200,7 +200,6 @@ User message: ${userMessage}
           body: JSON.stringify({ text: finalMessage })
         }
       );
-      console.info('Message To send:', finalMessage);
       // Handle the response stream
       const stream = AssistantStream.fromReadableStream(
         response.body as ReadableStream

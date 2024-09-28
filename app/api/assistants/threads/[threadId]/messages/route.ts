@@ -25,7 +25,7 @@ export async function POST(
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
-
+    logger.info(`Received text: ${text}`);
     // Create a message in the thread
     logger.info(`Creating message for thread ID: ${threadId}`);
     await openai.beta.threads.messages.create(threadId, {
