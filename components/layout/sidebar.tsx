@@ -58,7 +58,7 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
             alt={'Atlas'}
             width={84}
             height={84}
-            loading="lazy"
+            priority={true}
             style={{
               marginTop: '-30px',
               maxWidth: '100%',
