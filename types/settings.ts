@@ -7,7 +7,6 @@ export interface ForgeSettings {
   minChunkSize: number;
   maxChunkSize: number;
   chunkOverlap: number;
-  chunkBatch: number;
 }
 
 export interface Embedding {

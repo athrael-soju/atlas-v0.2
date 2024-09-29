@@ -273,13 +273,6 @@ export default function SettingsPage() {
                       chunks, which helps preserve context across chunks. The
                       value can range from 0 to 256.
                     </li>
-                    <li>
-                      <strong>Chunk Batch:</strong> Define the number of chunks
-                      to process in a single batch. This value ranges from 50 to
-                      150, adjustable in steps of 50. Increasing batch size can
-                      improve processing speed but may require more
-                      computational resources.
-                    </li>
                   </ul>
                   <p className="text-sm text-muted-foreground">
                     Ensure that the maximum chunk size is always larger than or

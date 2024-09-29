@@ -2,11 +2,10 @@ import { AssistantMode } from '@/types/settings';
 
 export const defaultUserSettings = () => ({
   forge: {
-    parsingProvider: 'io',
+    parsingProvider: 'iol',
     minChunkSize: 0,
     maxChunkSize: 512,
     chunkOverlap: 0,
-    chunkBatch: 50,
     partitioningStrategy: 'fast',
     chunkingStrategy: 'basic'
   },

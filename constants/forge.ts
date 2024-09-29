@@ -1,17 +1,20 @@
 export const parsingProviders = [
-  { label: 'Unstructured.io', value: 'io' }
+  { label: 'Unstructured.io (Serverless)', value: 'ioc' },
+  { label: 'Unstructured.io (Local)', value: 'iol' }
 ] as const;
+
 export const partitioningStrategies = [
   { label: 'Fast', value: 'fast' },
   { label: 'Hi Res', value: 'hi_res' },
   { label: 'Auto', value: 'auto' },
   { label: 'OCR Only', value: 'ocr_only' }
 ] as const;
+
 export const chunkingStrategies = [
-  { label: 'Basic', value: 'basic' },
-  { label: 'By Title', value: 'by_title' },
-  { label: 'By Page', value: 'by_page' },
-  { label: 'By Similarity', value: 'by_similarity' }
+  { label: 'Basic', value: 'basic', serverlessOnly: false },
+  { label: 'By Title', value: 'by_title', serverlessOnly: false },
+  { label: 'By Page', value: 'by_page', serverlessOnly: true },
+  { label: 'By Similarity', value: 'by_similarity', serverlessOnly: true }
 ] as const;
 
 export const partitioningStrategyDescriptions = {

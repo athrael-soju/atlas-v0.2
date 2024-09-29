@@ -24,7 +24,6 @@ export const forgeFormSchema = z
     minChunkSize: z.number().min(0).max(1024).step(256),
     maxChunkSize: z.number().min(0).max(1024).step(256),
     chunkOverlap: z.number().min(0).max(256).step(1),
-    chunkBatch: z.number().min(50).max(150).step(50),
     partitioningStrategy: z.string({
       required_error: 'Please select a partitioning strategy.'
     }),

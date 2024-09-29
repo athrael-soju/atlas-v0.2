@@ -9,47 +9,48 @@ import { openai } from '@/lib/client/openai';
 import { Assistant } from 'openai/resources/beta/assistants.mjs';
 import { getLocalDateTime } from '@/lib/utils';
 import { logger } from '@/lib/service/winston'; // Winston logger
+import chalk from 'chalk'; // For colorized logging
 
 const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
 
 if (!assistantId) {
-  logger.error('Missing OPENAI_ASSISTANT_ID environment variable');
+  logger.error(chalk.red('Missing OPENAI_ASSISTANT_ID environment variable'));
   throw new Error('Missing OPENAI_ASSISTANT_ID');
 }
 
 // Upload file to OpenAI and associate it with assistants
 export async function POST(request: Request) {
-  logger.info('POST request received for file upload');
+  logger.info(chalk.blue('POST request received for file upload'));
   try {
     const data = await request.formData();
     const userId = data.get('userId') as string;
 
     if (!userId || !data.has('files')) {
-      logger.error('Invalid user or files data in the request');
+      logger.error(chalk.red('Invalid user or files data in the request'));
       throw new Error('Invalid user or files');
     }
 
     const files = data.getAll('files') as File[];
     const assistantFiles: AssistantFile[] = [];
 
-    logger.info(`Uploading ${files.length} files for userId: ${userId}`);
+    logger.info(
+      chalk.blue(`Uploading ${files.length} files for userId: ${userId}`)
+    );
 
     // Upload all files to OpenAI using Promise.all and await the result
     await Promise.all(
       files.map(async (file) => {
         try {
-          // Check if the file is valid and log before uploading
           if (!file) {
-            logger.error('Invalid file object received');
+            logger.error(chalk.red('Invalid file object received'));
             throw new Error('Invalid file object');
           }
-          logger.info(`Uploading file: ${file.name}`);
+          logger.info(chalk.blue(`Uploading file: ${file.name}`));
 
-          // Upload the file to OpenAI
           const fileObject: FileObject = await uploadFile(file);
 
           if (!fileObject) {
-            logger.error('Failed to upload document to OpenAI');
+            logger.error(chalk.red('Failed to upload document to OpenAI'));
             throw new Error('Failed to upload document to OpenAI');
           }
           const date = new Date(fileObject.created_at * 1000);
@@ -61,36 +62,36 @@ export async function POST(request: Request) {
             isActive: false
           };
 
-          // Push the fileObject to the assistantFiles array
           assistantFiles.push(assistantFile);
-          logger.info(`File uploaded successfully: ${fileObject.filename}`);
+          logger.info(
+            chalk.green(`File uploaded successfully: ${fileObject.filename}`)
+          );
         } catch (uploadError) {
-          logger.error(`Error uploading file: ${uploadError}`);
-          throw uploadError; // Re-throw to be caught in the outer try-catch block
+          logger.error(chalk.red(`Error uploading file: ${uploadError}`));
+          throw uploadError;
         }
       })
     );
 
-    // Update assistant files in MongoDB
     const response = await updateAssistantFiles(userId, assistantFiles);
 
     if (response.modifiedCount === 0) {
-      logger.error('Failed to update assistant files in MongoDB');
+      logger.error(chalk.red('Failed to update assistant files in MongoDB'));
       throw new Error('Failed to update assistant files in MongoDB');
     }
 
     logger.info(
-      `Successfully updated MongoDB with uploaded files for userId: ${userId}`
+      chalk.green(
+        `Successfully updated MongoDB with uploaded files for userId: ${userId}`
+      )
     );
 
-    // Return the response after all uploads are complete
     return new Response(JSON.stringify({ response, assistantFiles }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
-    logger.error(`POST request failed: ${error.message}`);
-    // Return error response if any upload fails
+    logger.error(chalk.red(`POST request failed: ${error.message}`));
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -99,35 +100,32 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  logger.info('DELETE request received for file deletion');
+  logger.info(chalk.blue('DELETE request received for file deletion'));
   try {
     const data = await request.json();
     const userId = data.userId as string;
     const files = data.files as AssistantFile[];
 
     if (!userId || !files) {
-      logger.error('Invalid user or file data in DELETE request');
+      logger.error(chalk.red('Invalid user or file data in DELETE request'));
       throw new Error('Invalid user or file ID');
     }
 
-    logger.info(`Deleting files for userId: ${userId}`);
+    logger.info(chalk.blue(`Deleting files for userId: ${userId}`));
 
-    // Delete file from MongoDB
     const fileIds = await deleteAssistantFiles(userId, files);
-
-    // Delete files from OpenAI
     const deletedFiles = await deleteFile(fileIds);
 
-    logger.info(`Successfully deleted files for userId: ${userId}`);
+    logger.info(
+      chalk.green(`Successfully deleted files for userId: ${userId}`)
+    );
 
-    // Return the response after all deletions are complete
     return new Response(JSON.stringify({ deletedFiles }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
-    logger.error(`DELETE request failed: ${error.message}`);
-    // Return error response if any deletion fails
+    logger.error(chalk.red(`DELETE request failed: ${error.message}`));
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -136,27 +134,28 @@ export async function DELETE(request: Request) {
 }
 
 export async function GET(request: Request) {
-  logger.info('GET request received for fetching files');
+  logger.info(chalk.blue('GET request received for fetching files'));
   try {
     const data = await request.json();
     const userId = data.userId as string;
 
     if (!userId) {
-      logger.error('Invalid user ID in GET request');
+      logger.error(chalk.red('Invalid user ID in GET request'));
       throw new Error('Invalid user ID');
     }
 
     const files: FileObject[] = await getFiles();
 
-    logger.info(`Fetched ${files.length} files for userId: ${userId}`);
+    logger.info(
+      chalk.green(`Fetched ${files.length} files for userId: ${userId}`)
+    );
 
     return new Response(JSON.stringify({ files }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
-    logger.error(`GET request failed: ${error.message}`);
-    // Return error response if any fetching fails
+    logger.error(chalk.red(`GET request failed: ${error.message}`));
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -165,31 +164,35 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  logger.info('PUT request received for updating assistant files');
+  logger.info(chalk.blue('PUT request received for updating assistant files'));
   const formData = await request.formData();
   const fileIds = JSON.parse(formData.get('fileIds') as string);
   const userId = formData.get('userId') as string;
 
   if (!userId || !fileIds) {
-    logger.error('Invalid user or fileIds in PUT request');
-    throw new Error('Invalid user or filIds');
+    logger.error(chalk.red('Invalid user or fileIds in PUT request'));
+    throw new Error('Invalid user or fileIds');
   }
 
-  // Fetch the current assistant
   logger.info(
-    `Fetching current assistant data for assistantId: ${assistantId}`
+    chalk.blue(
+      `Fetching current assistant data for assistantId: ${assistantId}`
+    )
   );
   const assistant: Assistant =
     await openai.beta.assistants.retrieve(assistantId);
 
   if (!assistant) {
-    logger.error(`Failed to retrieve the assistant with ID: ${assistantId}`);
+    logger.error(
+      chalk.red(`Failed to retrieve the assistant with ID: ${assistantId}`)
+    );
     throw new Error('Failed to retrieve the assistant');
   }
 
-  logger.info(`Updating assistant with new fileIds for userId: ${userId}`);
+  logger.info(
+    chalk.blue(`Updating assistant with new fileIds for userId: ${userId}`)
+  );
 
-  // Update the assistant with the new fileIds list
   const updatedAssistant: Assistant = await openai.beta.assistants.update(
     assistantId,
     {
@@ -202,11 +205,13 @@ export async function PUT(request: Request) {
   );
 
   if (!updatedAssistant) {
-    logger.error('Failed to update assistant with new fileIds');
+    logger.error(chalk.red('Failed to update assistant with new fileIds'));
     throw new Error('Failed to update assistant with new fileIds');
   }
 
-  logger.info(`Successfully updated assistant for userId: ${userId}`);
+  logger.info(
+    chalk.green(`Successfully updated assistant for userId: ${userId}`)
+  );
 
   return new Response(JSON.stringify({ assistant: updatedAssistant }), {
     status: 200,

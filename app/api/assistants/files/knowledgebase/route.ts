@@ -1,23 +1,24 @@
 import { openai } from '@/lib/client/openai';
 import { Assistant } from 'openai/resources/beta/assistants.mjs';
 import { logger } from '@/lib/service/winston'; // Import Winston logger
+import chalk from 'chalk'; // Import Chalk for colorized logging
 
 const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
 
 if (!assistantId) {
-  logger.error('Missing OPENAI_ASSISTANT_ID environment variable');
+  logger.error(chalk.red('Missing OPENAI_ASSISTANT_ID environment variable'));
   throw new Error('Missing OPENAI_ASSISTANT_ID');
 }
 
 export async function PUT(request: Request) {
   try {
-    logger.info('PUT request received for updating assistant');
+    logger.info(chalk.blue('PUT request received for updating assistant'));
 
     const formData = await request.formData();
     const userId = formData.get('userId') as string;
 
     if (!userId) {
-      logger.warn('Missing or invalid userId in PUT request');
+      logger.warn(chalk.yellow('Missing or invalid userId in PUT request'));
       return new Response(
         JSON.stringify({ error: 'Invalid user or missing userId' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -25,7 +26,9 @@ export async function PUT(request: Request) {
     }
 
     logger.info(
-      `Fetching assistant with ID: ${assistantId} for userId: ${userId}`
+      chalk.blue(
+        `Fetching assistant with ID: ${assistantId} for userId: ${userId}`
+      )
     );
 
     // Fetch the current assistant
@@ -33,18 +36,22 @@ export async function PUT(request: Request) {
       await openai.beta.assistants.retrieve(assistantId);
 
     if (!assistant) {
-      logger.error('Failed to retrieve the assistant');
+      logger.error(chalk.red('Failed to retrieve the assistant'));
       return new Response(
         JSON.stringify({ error: 'Failed to retrieve the assistant' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    logger.info(`Successfully retrieved assistant with ID: ${assistantId}`);
+    logger.info(
+      chalk.green(`Successfully retrieved assistant with ID: ${assistantId}`)
+    );
 
     // Update the assistant with the new instructions
     logger.info(
-      `Updating assistant instructions for assistant ID: ${assistantId}`
+      chalk.blue(
+        `Updating assistant instructions for assistant ID: ${assistantId}`
+      )
     );
 
     const updatedAssistant: Assistant = await openai.beta.assistants.update(
@@ -59,7 +66,7 @@ export async function PUT(request: Request) {
     );
 
     if (!updatedAssistant) {
-      logger.error('Failed to update assistant with new settings');
+      logger.error(chalk.red('Failed to update assistant with new settings'));
       return new Response(
         JSON.stringify({
           error: 'Failed to update assistant with new settings'
@@ -69,7 +76,9 @@ export async function PUT(request: Request) {
     }
 
     logger.info(
-      `Successfully updated assistant with ID: ${assistantId} for userId: ${userId}`
+      chalk.green(
+        `Successfully updated assistant with ID: ${assistantId} for userId: ${userId}`
+      )
     );
 
     return new Response(JSON.stringify({ assistant: updatedAssistant }), {
@@ -77,7 +86,9 @@ export async function PUT(request: Request) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
-    logger.error(`PUT request failed: ${error.message || 'Unknown error'}`);
+    logger.error(
+      chalk.red(`PUT request failed: ${error.message || 'Unknown error'}`)
+    );
     return new Response(
       JSON.stringify({ error: error.message || 'Unknown error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
