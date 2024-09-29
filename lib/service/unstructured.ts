@@ -30,7 +30,7 @@ export async function parseAndChunk(
     partitionParameters.chunkingStrategy = forgeSettings.chunkingStrategy;
     partitionParameters.maxCharacters = forgeSettings.maxChunkSize;
     partitionParameters.overlap = forgeSettings.chunkOverlap;
-    partitionParameters.splitPdfPage = true;
+    partitionParameters.splitPdfPage = false; // TODO Look into why it's failing with local container
     partitionParameters.splitPdfAllowFailed = true;
     partitionParameters.splitPdfConcurrencyLevel = 10;
   }

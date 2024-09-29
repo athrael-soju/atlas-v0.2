@@ -86,7 +86,10 @@ function validateFileIds(fileIds: any): void {
 }
 
 function validateForgeSettings(forgeSettings: ForgeSettings): void {
-  if (!forgeSettings?.chunkBatch || !forgeSettings?.chunkOverlap) {
+  if (
+    forgeSettings?.chunkBatch == null ||
+    forgeSettings?.chunkOverlap == null
+  ) {
     logger.warn('Invalid forge settings detected.');
     throw new Error('Invalid forge settings');
   }
@@ -126,11 +129,8 @@ async function processFiles(
       await updateFileDateProcessed(userId, [file]);
       logger.info(`File processing complete: ${file.name}`);
     } catch (error: any) {
-      sendUpdate(
-        'Error',
-        `Error processing file '${file.name}': ${error.message}`
-      );
-      logger.error(`Error processing file '${file.name}': ${error.message}`);
+      sendUpdate('Error', `Error processing file '${file.name}': ${error}`);
+      logger.error(`Error processing file '${file.name}': ${error}`);
     } finally {
       sendUpdate('Done', `Finished processing file: ${file.name}`);
     }
@@ -143,10 +143,10 @@ function handleErrorResponse(error: any): NextResponse {
       ? 400
       : 500;
 
-  logger.error(`Error response: ${error.message}`);
+  logger.error(`Error response: ${error}`);
 
   return new NextResponse(
-    JSON.stringify({ message: error.message || 'Internal server error' }),
+    JSON.stringify({ message: error || 'Internal server error' }),
     { status }
   );
 }

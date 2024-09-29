@@ -112,40 +112,26 @@ export function FileUploader(props: FileUploaderProps) {
             {...dropzoneProps}
           >
             <input {...getInputProps()} />
-            {isDragActive ? (
-              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+            <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+              <div className="rounded-full border border-dashed p-3">
                 <Icons.uploadIcon
                   className="size-7 text-muted-foreground"
                   aria-hidden="true"
                 />
+              </div>
+              <div className="flex flex-col gap-px">
                 <p className="font-medium text-muted-foreground">
-                  Drop the files here
+                  Drop or select files to upload
+                </p>
+                <p className="text-sm text-muted-foreground/70">
+                  You can upload
+                  {maxFileCount > 1
+                    ? ` ${maxFileCount === Infinity ? 'multiple' : maxFileCount}
+                      files (up to ${formatBytes(maxSize)} each)`
+                    : ` a file with ${formatBytes(maxSize)}`}
                 </p>
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                <div className="rounded-full border border-dashed p-3">
-                  <Icons.uploadIcon
-                    className="size-7 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="flex flex-col gap-px">
-                  <p className="font-medium text-muted-foreground">
-                    Drop or select files to upload
-                  </p>
-                  <p className="text-sm text-muted-foreground/70">
-                    You can upload
-                    {maxFileCount > 1
-                      ? ` ${
-                          maxFileCount === Infinity ? 'multiple' : maxFileCount
-                        }
-                      files (up to ${formatBytes(maxSize)} each)`
-                      : ` a file with ${formatBytes(maxSize)}`}
-                  </p>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         )}
       </Dropzone>

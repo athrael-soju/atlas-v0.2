@@ -7405,10 +7405,10 @@ unist-util-visit@^5.0.0:
     unist-util-is "^6.0.0"
     unist-util-visit-parents "^6.0.0"
 
-unstructured-client@^0.15.1:
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/unstructured-client/-/unstructured-client-0.15.1.tgz#997fad8e4ef23e5d11656f1bce4bc54addd0860c"
-  integrity sha512-nP9jkmzi50OANgFnQqOHMlebIe0/Gjdru9QQGwOjV4FJ3aUzQy3PyYytx/9KLdkQxv4xN0eFpsDMFXYeb4k9TA==
+unstructured-client@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/unstructured-client/-/unstructured-client-0.18.0.tgz#d5fc6bd009016322f5ae0db6854ff15c066534cf"
+  integrity sha512-f6/S9iXSEMx/L47aW+WXlKASQ5zfTkqbhs6eRwIiIzH2yyasN/RjLm+caJ0VfiD+VptaAU3/8w5MoYeI1DnpuA==
   dependencies:
     async "^3.2.5"
     pdf-lib "^1.17.1"
