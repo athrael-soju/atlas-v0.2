@@ -77,9 +77,9 @@ export async function parseAndChunk(
       );
     }
 
-    // Log the partitioning strategy being used
+    // Log the partitioning parameters being used
     logger.info(
-      chalk.blue(`Partitioning strategy: ${forgeSettings.partitioningStrategy}`)
+      chalk.blue(`Partitioning parameters: ${JSON.stringify(forgeSettings)}`)
     );
 
     // Call the Unstructured client to partition the document

@@ -312,11 +312,6 @@ export async function deleteFromVectorDb(
     );
 
     if (result.chunks.length === 0) {
-      logger.info(
-        chalk.blue(
-          `No more chunks found for file ${file.name}. Proceeding with deletion.`
-        )
-      );
       break;
     }
 
@@ -379,9 +374,6 @@ async function listArchiveChunks(
   limit: number,
   paginationToken?: string
 ): Promise<{ chunks: { id: string }[]; paginationToken?: string }> {
-  logger.info(
-    chalk.blue(`Listing chunks for file ${file.name}, limit ${limit}`)
-  );
   const validLimit = Math.min(Math.max(limit, 1), 100);
 
   const listResult = await namespace.listPaginated({
@@ -392,8 +384,5 @@ async function listArchiveChunks(
 
   const chunks =
     listResult.vectors?.map((vector) => ({ id: vector.id || '' })) || [];
-  logger.info(
-    chalk.blue(`Found ${chunks.length} chunks for file ${file.name}`)
-  );
   return { chunks, paginationToken: listResult.pagination?.next };
 }
