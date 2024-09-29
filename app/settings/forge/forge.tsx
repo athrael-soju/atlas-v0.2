@@ -16,13 +16,12 @@ import {
 import { Searching } from '@/components/spinner';
 
 const defaultValues: Partial<ForgeFormValues> = {
-  parsingProvider: 'io',
+  parsingProvider: 'iol',
   partitioningStrategy: 'fast',
   chunkingStrategy: 'basic',
   minChunkSize: 0,
   maxChunkSize: 512,
-  chunkOverlap: 0,
-  chunkBatch: 50
+  chunkOverlap: 0
 };
 
 export function ForgeForm() {
@@ -55,7 +54,17 @@ export function ForgeForm() {
             label="Provider"
             options={parsingProviders}
             value={form.watch('parsingProvider')}
-            onChange={(val) => form.setValue('parsingProvider', val)}
+            onChange={(val) => {
+              form.setValue('parsingProvider', val);
+              if (val === 'iol') {
+                if (
+                  form.watch('chunkingStrategy') === 'by_page' ||
+                  form.watch('chunkingStrategy') === 'by_similarity'
+                ) {
+                  form.setValue('chunkingStrategy', 'by_title');
+                }
+              }
+            }}
             placeholder="Select provider"
             description="Select parsing provider"
           />
@@ -77,7 +86,10 @@ export function ForgeForm() {
 
           <FormSelect
             label="Chunking Strategy"
-            options={chunkingStrategies}
+            options={chunkingStrategies.filter(
+              (s) =>
+                !s.serverlessOnly || form.watch('parsingProvider') === 'ioc'
+            )}
             value={form.watch('chunkingStrategy')}
             onChange={(val) => form.setValue('chunkingStrategy', val)}
             placeholder="Select strategy"
@@ -120,17 +132,6 @@ export function ForgeForm() {
           step={1}
           description="Set the chunk overlap (0-256)"
         />
-
-        <FormSlider
-          label="Chunk Batch"
-          value={form.watch('chunkBatch')}
-          onChange={(val) => form.setValue('chunkBatch', val)}
-          min={50}
-          max={150}
-          step={50}
-          description="Set the chunk batch (50-150)"
-        />
-
         <Button type="submit" style={{ width: '100%' }}>
           Update settings
         </Button>

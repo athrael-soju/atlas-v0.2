@@ -5,6 +5,7 @@ import { ParsedElement } from '@/types/settings';
 import { Thread } from 'openai/resources/beta/threads/threads.mjs';
 import { FileDeleted, FileObject } from 'openai/resources/index.mjs';
 import Bottleneck from 'bottleneck';
+import { logger } from '@/lib/service/winston';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -35,20 +36,33 @@ const transformObjectValues = (
 };
 
 export async function embedMessage(userId: string, content: string) {
-  const messageToEmbed = `Date: ${new Date().toLocaleString()}. User: ${userId}. Message: ${content}. Metadata: ${''}`;
+  try {
+    logger.info(`Embedding message for user: ${userId}`);
 
-  const response = await openai.embeddings.create({
-    model: embeddingApiModel,
-    input: messageToEmbed,
-    encoding_format: 'float'
-  });
+    const messageToEmbed = `Date: ${new Date().toLocaleString()}. User: ${userId}. Message: ${content}. Metadata: ${''}`;
 
-  const embeddingValues = response.data[0].embedding;
+    const response = await openai.embeddings.create({
+      model: embeddingApiModel,
+      input: messageToEmbed,
+      encoding_format: 'float'
+    });
 
-  return {
-    message: 'Message embeddings generated successfully',
-    values: embeddingValues
-  };
+    const embeddingValues = response.data[0].embedding;
+
+    logger.info(
+      `Successfully generated embeddings for message by user: ${userId}`
+    );
+
+    return {
+      message: 'Message embeddings generated successfully',
+      values: embeddingValues
+    };
+  } catch (error: any) {
+    logger.error(
+      `Failed to embed message for user: ${userId}. Error: ${error.message}`
+    );
+    throw error;
+  }
 }
 
 export async function embedDocument(
@@ -64,82 +78,140 @@ export async function embedDocument(
     reservoirRefreshAmount: 3000,
     reservoirRefreshInterval: 60 * 1000, // 60 seconds
     minTime: 1, // Minimum time between requests (in ms)
-    maxConcurrent: 60 // Increased to the highest possible number without breaching RPM limit
+    maxConcurrent: 60 // Max concurrent requests
   });
 
   // Define a function to process each chunk
   async function processChunk(chunk: any, index: number) {
-    const response = await openai.embeddings.create({
-      model: embeddingApiModel,
-      input: chunk.text,
-      encoding_format: 'float'
-    });
+    try {
+      logger.info(
+        `Embedding chunk ${index + 1}/${chunks.length} for file: ${file.name}`
+      );
 
-    const transformedMetadata = transformObjectValues(chunk.metadata);
+      const response = await openai.embeddings.create({
+        model: embeddingApiModel,
+        input: chunk.text,
+        encoding_format: 'float'
+      });
 
-    const newId = `${toAscii(file.name)}#${file.key}#${index + 1}`;
-    chunkIdList.push(newId);
-    const embeddingValues = response.data[0].embedding;
+      const transformedMetadata = transformObjectValues(chunk.metadata);
 
-    // Add citation field to the metadata
-    const pageInfo = chunk.metadata.page_number
-      ? `, Page ${chunk.metadata.page_number}`
-      : '';
-    const citation = `[${file.url}](${file.name}${pageInfo})`;
+      const newId = `${toAscii(file.name)}#${file.key}#${index + 1}`;
+      chunkIdList.push(newId);
+      const embeddingValues = response.data[0].embedding;
 
-    const metadata = {
-      ...transformedMetadata,
-      text: chunk.text,
-      userId: userId,
-      url: file.url,
-      citation: citation
-    };
+      // Add citation field to the metadata
+      const pageInfo = chunk.metadata.page_number
+        ? `, Page ${chunk.metadata.page_number}`
+        : '';
+      const citation = `[${file.url}](${file.name}${pageInfo})`;
 
-    return {
-      id: newId,
-      values: embeddingValues,
-      metadata: metadata
-    };
+      const metadata = {
+        ...transformedMetadata,
+        text: chunk.text,
+        userId: userId,
+        url: file.url,
+        citation: citation
+      };
+
+      logger.info(
+        `Successfully embedded chunk ${index + 1} for file: ${file.name}`
+      );
+      return {
+        id: newId,
+        values: embeddingValues,
+        metadata: metadata
+      };
+    } catch (error: any) {
+      logger.error(
+        `Failed to embed chunk ${index + 1} for file: ${file.name}. Error: ${
+          error.message
+        }`
+      );
+      throw error;
+    }
   }
 
   // Map over chunks using limiter.schedule
-  const embeddings = await Promise.all(
-    chunks.map((chunk: any, index: number) =>
-      limiter.schedule(() => processChunk(chunk, index))
-    )
-  );
-
-  return embeddings || [];
+  try {
+    logger.info(`Starting embedding process for document: ${file.name}`);
+    const embeddings = await Promise.all(
+      chunks.map((chunk: any, index: number) =>
+        limiter.schedule(() => processChunk(chunk, index))
+      )
+    );
+    logger.info(`Successfully embedded all chunks for document: ${file.name}`);
+    return embeddings || [];
+  } catch (error: any) {
+    logger.error(
+      `Failed to embed document: ${file.name}. Error: ${error.message}`
+    );
+    throw error;
+  }
 }
 
 export const createThread = async (): Promise<Thread> => {
-  const thread = await openai.beta.threads.create();
-  return thread;
+  try {
+    logger.info('Creating a new thread');
+    const thread = await openai.beta.threads.create();
+    logger.info('Thread created successfully');
+    return thread;
+  } catch (error: any) {
+    logger.error(`Failed to create thread. Error: ${error.message}`);
+    throw error;
+  }
 };
 
 export const uploadFile = async (file: File): Promise<FileObject> => {
-  const fileObject = await openai.files.create({
-    file: file,
-    purpose: 'assistants'
-  });
-
-  return fileObject;
+  try {
+    logger.info(`Uploading file: ${file.name}`);
+    const fileObject = await openai.files.create({
+      file: file,
+      purpose: 'assistants'
+    });
+    logger.info(`File uploaded successfully: ${file.name}`);
+    return fileObject;
+  } catch (error: any) {
+    logger.error(
+      `Failed to upload file: ${file.name}. Error: ${error.message}`
+    );
+    throw error;
+  }
 };
 
 export const deleteFile = async (fileIds: string[]): Promise<FileDeleted[]> => {
   const deletedFiles: FileDeleted[] = [];
+  try {
+    logger.info(
+      `Starting file deletion process for file IDs: ${fileIds.join(', ')}`
+    );
 
-  // Iterate over the fileIds and delete each file individually
-  for (const fileId of fileIds) {
-    const deletedFile = await openai.files.del(fileId);
-    deletedFiles.push(deletedFile);
+    // Iterate over the fileIds and delete each file individually
+    for (const fileId of fileIds) {
+      logger.info(`Deleting file with ID: ${fileId}`);
+      const deletedFile = await openai.files.del(fileId);
+      deletedFiles.push(deletedFile);
+      logger.info(`Successfully deleted file with ID: ${fileId}`);
+    }
+
+    logger.info(
+      `File deletion process completed for file IDs: ${fileIds.join(', ')}`
+    );
+    return deletedFiles;
+  } catch (error: any) {
+    logger.error(`Failed to delete files. Error: ${error.message}`);
+    throw error;
   }
-
-  return deletedFiles;
 };
 
 export const getFiles = async (): Promise<FileObject[]> => {
-  const files = await openai.files.list();
-
-  return files.data;
+  try {
+    logger.info('Fetching list of files');
+    const files = await openai.files.list();
+    logger.info(`Successfully fetched ${files.data.length} files`);
+    return files.data;
+  } catch (error: any) {
+    logger.error(`Failed to fetch files. Error: ${error.message}`);
+    throw error;
+  }
 };

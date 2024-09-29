@@ -86,10 +86,7 @@ function validateFileIds(fileIds: any): void {
 }
 
 function validateForgeSettings(forgeSettings: ForgeSettings): void {
-  if (
-    forgeSettings?.chunkBatch == null ||
-    forgeSettings?.chunkOverlap == null
-  ) {
+  if (forgeSettings?.chunkOverlap == null) {
     logger.warn('Invalid forge settings detected.');
     throw new Error('Invalid forge settings');
   }
@@ -116,11 +113,7 @@ async function processFiles(
       logger.info(`File embedded into ${embeddings.length} chunks.`);
 
       sendUpdate('Upserting', `Upserting file: ${file.name}`);
-      const upsertedChunkCount = await upsertDocument(
-        userId,
-        embeddings,
-        forgeSettings.chunkBatch
-      );
+      const upsertedChunkCount = await upsertDocument(userId, embeddings);
       sendUpdate('Upserted', `Upserted ${upsertedChunkCount} chunks.`);
       logger.info(
         `Upserted ${upsertedChunkCount} chunks for file: ${file.name}`

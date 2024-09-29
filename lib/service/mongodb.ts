@@ -9,14 +9,17 @@ import { Collection } from 'mongodb';
 import { AssistantFile } from '@/types/data';
 import { AssistantMode } from '@/types/settings';
 import { getLocalDateTime } from '@/lib/utils';
+import { logger } from '@/lib/service/winston';
 
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
+  logger.info('Connecting to database...');
   return client.db('AtlasII');
 };
 
 // Helper function to find a user by ID
 const findUserById = async (db: Db, userId: string): Promise<IUser | null> => {
+  logger.info(`Finding user with ID: ${userId}`);
   const usersCollection = db.collection('users');
   return usersCollection.findOne({
     _id: new ObjectId(userId)
@@ -36,9 +39,11 @@ export const updateUserField = async (
   );
 
   if (result.modifiedCount !== 1) {
+    logger.error(`Failed to update user document for userId: ${userId}`);
     throw new Error('Failed to update user document');
   }
 
+  logger.info(`User document updated successfully for userId: ${userId}`);
   return { message: `User document updated successfully` };
 };
 
@@ -46,6 +51,7 @@ export const updateUserField = async (
 export const getUserData = async (userId: string) => {
   const session = await getServerSession(authConfig);
   if (!userId || session?.user.id !== userId) {
+    logger.error(`Invalid user access attempt for userId: ${userId}`);
     throw new Error('Invalid user');
   }
 
@@ -53,6 +59,7 @@ export const getUserData = async (userId: string) => {
   const user = await findUserById(db, userId);
 
   if (!user) {
+    logger.error(`User not found in database for userId: ${userId}`);
     throw new Error('User not found in database');
   }
 
@@ -61,11 +68,13 @@ export const getUserData = async (userId: string) => {
     _id: user._id.toString()
   };
 
+  logger.info(`User data retrieved for userId: ${userId}`);
   return plainUser;
 };
 
 export const getUserId = async (): Promise<string | undefined> => {
   const session = await getServerSession(authConfig);
+  logger.info(`Getting user ID from session for user: ${session?.user.id}`);
   return session?.user.id;
 };
 
@@ -74,6 +83,7 @@ export const updateAssistantMode = async (
   userId: string,
   assistantMode: AssistantMode
 ): Promise<{ message: string }> => {
+  logger.info(`Updating assistant mode for userId: ${userId}`);
   return updateUserField(userId, {
     $set: {
       'settings.chat.assistantMode': assistantMode,
@@ -88,7 +98,7 @@ export const updateUserFiles = async (
 ): Promise<{ message: string }> => {
   const db = await connectToDatabase();
   const usersCollection = db.collection('users');
-  // Perform the update, ensuring only the file data is pushed into the array
+  logger.info(`Updating user files for userId: ${userId}`);
   await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
     {
@@ -98,7 +108,7 @@ export const updateUserFiles = async (
       }
     }
   );
-
+  logger.info(`File uploaded successfully for userId: ${userId}`);
   return { message: 'File uploaded successfully' };
 };
 
@@ -108,9 +118,8 @@ export const updateAssistantFiles = async (
   assistantFiles: AssistantFile[]
 ): Promise<UpdateResult<IUser>> => {
   const db = await connectToDatabase();
-  // Type the collection with the User interface
   const usersCollection: Collection<IUser> = db.collection<IUser>('users');
-  // Define the update document with correct types
+  logger.info(`Updating assistant files for userId: ${userId}`);
   const update = {
     $push: {
       'files.analysis': { $each: assistantFiles }
@@ -120,12 +129,12 @@ export const updateAssistantFiles = async (
     }
   };
 
-  // Perform the update
   const result: UpdateResult<IUser> = await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
     update
   );
 
+  logger.info(`Assistant files updated for userId: ${userId}`);
   return result;
 };
 
@@ -135,11 +144,9 @@ export const deleteAssistantFiles = async (
 ): Promise<string[]> => {
   const db = await connectToDatabase();
   const usersCollection = db.collection('users');
-
-  // Assuming 'files' is an array of file objects with unique identifiers
   const fileIds = files.map((file) => file.id); // Modify this based on your file structure
+  logger.info(`Deleting assistant files for userId: ${userId}`);
 
-  // Update the file, or have a specific field to store the openAI Id
   const result = await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
     {
@@ -155,11 +162,15 @@ export const deleteAssistantFiles = async (
   );
 
   if (result.modifiedCount === 0) {
+    logger.error(
+      `No files matching the provided IDs were found for user: ${userId}`
+    );
     throw new Error(
       `No files matching the provided IDs were found for user '${userId}'`
     );
   }
 
+  logger.info(`Successfully deleted assistant files for userId: ${userId}`);
   return fileIds;
 };
 
@@ -169,6 +180,8 @@ export const updateFileDateProcessed = async (
 ): Promise<{ message: string }> => {
   const db = await connectToDatabase();
   const usersCollection = db.collection('users');
+  logger.info(`Updating file dateProcessed for userId: ${userId}`);
+
   const updateOperations = filesToUpdate.map((file) =>
     usersCollection.updateOne(
       { _id: new ObjectId(userId) },
@@ -185,6 +198,7 @@ export const updateFileDateProcessed = async (
   );
 
   await Promise.all(updateOperations);
+  logger.info(`File dateProcessed updated successfully for userId: ${userId}`);
   return { message: 'File dateProcessed updated successfully' };
 };
 
@@ -192,6 +206,10 @@ export const getActiveAnalysisFiles = async (
   userId: string
 ): Promise<string[]> => {
   const user = await getUserData(userId);
+  logger.info(`Getting active analysis files for userId: ${userId}`);
   const activeFiles = user.files.analysis.filter((file) => file.isActive);
+  logger.info(
+    `Found ${activeFiles.length} active analysis files for userId: ${userId}`
+  );
   return activeFiles.map((file) => file.id);
 };
