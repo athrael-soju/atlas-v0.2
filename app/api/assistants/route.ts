@@ -1,15 +1,16 @@
 import { openai } from '@/lib/client/openai';
 import { logger } from '@/lib/service/winston'; // Import Winston logger
+import chalk from 'chalk'; // Import Chalk for colorized logging
 
 // Create a new assistant
 export async function POST() {
   try {
-    logger.info('POST request received to create a new assistant');
+    logger.info(chalk.blue('POST request received to create a new assistant'));
 
     // Ensure the model is defined
     const model = process.env.OPENAI_API_MODEL as string;
     if (!model) {
-      logger.error('Missing OPENAI_API_MODEL environment variable');
+      logger.error(chalk.red('Missing OPENAI_API_MODEL environment variable'));
       return new Response(
         JSON.stringify({ error: 'Missing model configuration' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -17,7 +18,7 @@ export async function POST() {
     }
 
     // Create the assistant
-    logger.info('Creating a new assistant with model:', model);
+    logger.info(chalk.blue(`Creating a new assistant with model: ${model}`));
     const assistant = await openai.beta.assistants.create({
       instructions: 'You are a helpful assistant.',
       name: 'Quickstart Assistant',
@@ -49,7 +50,9 @@ export async function POST() {
       ]
     });
 
-    logger.info(`Assistant created successfully with ID: ${assistant.id}`);
+    logger.info(
+      chalk.green(`Assistant created successfully with ID: ${assistant.id}`)
+    );
 
     return new Response(JSON.stringify({ assistantId: assistant.id }), {
       status: 200,
@@ -57,7 +60,7 @@ export async function POST() {
     });
   } catch (error: any) {
     logger.error(
-      `Error creating assistant: ${error.message || 'Unknown error'}`
+      chalk.red(`Error creating assistant: ${error.message || 'Unknown error'}`)
     );
     return new Response(
       JSON.stringify({ error: error.message || 'Internal Server Error' }),

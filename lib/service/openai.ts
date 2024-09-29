@@ -6,12 +6,13 @@ import { Thread } from 'openai/resources/beta/threads/threads.mjs';
 import { FileDeleted, FileObject } from 'openai/resources/index.mjs';
 import Bottleneck from 'bottleneck';
 import { logger } from '@/lib/service/winston';
+import chalk from 'chalk';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
 
 if (!process.env.OPENAI_API_KEY) {
-  throw new Error('OPENAI_API_KEY is not set');
+  throw new Error(chalk.red('OPENAI_API_KEY is not set'));
 }
 
 const options: ClientOptions = { apiKey: process.env.OPENAI_API_KEY };
@@ -37,7 +38,7 @@ const transformObjectValues = (
 
 export async function embedMessage(userId: string, content: string) {
   try {
-    logger.info(`Embedding message for user: ${userId}`);
+    logger.info(chalk.blue(`Embedding message for user: ${userId}`));
 
     const messageToEmbed = `Date: ${new Date().toLocaleString()}. User: ${userId}. Message: ${content}. Metadata: ${''}`;
 
@@ -50,7 +51,9 @@ export async function embedMessage(userId: string, content: string) {
     const embeddingValues = response.data[0].embedding;
 
     logger.info(
-      `Successfully generated embeddings for message by user: ${userId}`
+      chalk.green(
+        `Successfully generated embeddings for message by user: ${userId}`
+      )
     );
 
     return {
@@ -59,7 +62,9 @@ export async function embedMessage(userId: string, content: string) {
     };
   } catch (error: any) {
     logger.error(
-      `Failed to embed message for user: ${userId}. Error: ${error.message}`
+      chalk.red(
+        `Failed to embed message for user: ${userId}. Error: ${error.message}`
+      )
     );
     throw error;
   }
@@ -84,10 +89,6 @@ export async function embedDocument(
   // Define a function to process each chunk
   async function processChunk(chunk: any, index: number) {
     try {
-      logger.info(
-        `Embedding chunk ${index + 1}/${chunks.length} for file: ${file.name}`
-      );
-
       const response = await openai.embeddings.create({
         model: embeddingApiModel,
         input: chunk.text,
@@ -114,9 +115,6 @@ export async function embedDocument(
         citation: citation
       };
 
-      logger.info(
-        `Successfully embedded chunk ${index + 1} for file: ${file.name}`
-      );
       return {
         id: newId,
         values: embeddingValues,
@@ -124,9 +122,11 @@ export async function embedDocument(
       };
     } catch (error: any) {
       logger.error(
-        `Failed to embed chunk ${index + 1} for file: ${file.name}. Error: ${
-          error.message
-        }`
+        chalk.red(
+          `Failed to embed chunk ${index + 1} for file: ${file.name}. Error: ${
+            error.message
+          }`
+        )
       );
       throw error;
     }
@@ -134,17 +134,23 @@ export async function embedDocument(
 
   // Map over chunks using limiter.schedule
   try {
-    logger.info(`Starting embedding process for document: ${file.name}`);
+    logger.info(
+      chalk.blue(`Starting embedding process for document: ${file.name}`)
+    );
     const embeddings = await Promise.all(
       chunks.map((chunk: any, index: number) =>
         limiter.schedule(() => processChunk(chunk, index))
       )
     );
-    logger.info(`Successfully embedded all chunks for document: ${file.name}`);
+    logger.info(
+      chalk.green(`Successfully embedded all chunks for document: ${file.name}`)
+    );
     return embeddings || [];
   } catch (error: any) {
     logger.error(
-      `Failed to embed document: ${file.name}. Error: ${error.message}`
+      chalk.red(
+        `Failed to embed document: ${file.name}. Error: ${error.message}`
+      )
     );
     throw error;
   }
@@ -152,28 +158,28 @@ export async function embedDocument(
 
 export const createThread = async (): Promise<Thread> => {
   try {
-    logger.info('Creating a new thread');
+    logger.info(chalk.blue('Creating a new thread'));
     const thread = await openai.beta.threads.create();
-    logger.info('Thread created successfully');
+    logger.info(chalk.green('Thread created successfully'));
     return thread;
   } catch (error: any) {
-    logger.error(`Failed to create thread. Error: ${error.message}`);
+    logger.error(chalk.red(`Failed to create thread. Error: ${error.message}`));
     throw error;
   }
 };
 
 export const uploadFile = async (file: File): Promise<FileObject> => {
   try {
-    logger.info(`Uploading file: ${file.name}`);
+    logger.info(chalk.blue(`Uploading file: ${file.name}`));
     const fileObject = await openai.files.create({
       file: file,
       purpose: 'assistants'
     });
-    logger.info(`File uploaded successfully: ${file.name}`);
+    logger.info(chalk.green(`File uploaded successfully: ${file.name}`));
     return fileObject;
   } catch (error: any) {
     logger.error(
-      `Failed to upload file: ${file.name}. Error: ${error.message}`
+      chalk.red(`Failed to upload file: ${file.name}. Error: ${error.message}`)
     );
     throw error;
   }
@@ -183,35 +189,39 @@ export const deleteFile = async (fileIds: string[]): Promise<FileDeleted[]> => {
   const deletedFiles: FileDeleted[] = [];
   try {
     logger.info(
-      `Starting file deletion process for file IDs: ${fileIds.join(', ')}`
+      chalk.blue(
+        `Starting file deletion process for file IDs: ${fileIds.join(', ')}`
+      )
     );
 
     // Iterate over the fileIds and delete each file individually
     for (const fileId of fileIds) {
-      logger.info(`Deleting file with ID: ${fileId}`);
+      logger.info(chalk.blue(`Deleting file with ID: ${fileId}`));
       const deletedFile = await openai.files.del(fileId);
       deletedFiles.push(deletedFile);
-      logger.info(`Successfully deleted file with ID: ${fileId}`);
+      logger.info(chalk.green(`Successfully deleted file with ID: ${fileId}`));
     }
 
     logger.info(
-      `File deletion process completed for file IDs: ${fileIds.join(', ')}`
+      chalk.green(
+        `File deletion process completed for file IDs: ${fileIds.join(', ')}`
+      )
     );
     return deletedFiles;
   } catch (error: any) {
-    logger.error(`Failed to delete files. Error: ${error.message}`);
+    logger.error(chalk.red(`Failed to delete files. Error: ${error.message}`));
     throw error;
   }
 };
 
 export const getFiles = async (): Promise<FileObject[]> => {
   try {
-    logger.info('Fetching list of files');
+    logger.info(chalk.blue('Fetching list of files'));
     const files = await openai.files.list();
-    logger.info(`Successfully fetched ${files.data.length} files`);
+    logger.info(chalk.green(`Successfully fetched ${files.data.length} files`));
     return files.data;
   } catch (error: any) {
-    logger.error(`Failed to fetch files. Error: ${error.message}`);
+    logger.error(chalk.red(`Failed to fetch files. Error: ${error.message}`));
     throw error;
   }
 };

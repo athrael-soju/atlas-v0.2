@@ -5,6 +5,7 @@ import { toAscii } from '@/lib/utils';
 import Bottleneck from 'bottleneck';
 import { Index } from '@pinecone-database/pinecone';
 import { logger } from '@/lib/service/winston';
+import chalk from 'chalk';
 
 const MAX_UPSERT_SIZE_BYTES = 4 * 1024 * 1024; // 4MB limit for Pinecone
 const MAX_METADATA_SIZE_BYTES = 40 * 1024; // 40KB limit for metadata
@@ -44,7 +45,9 @@ function chunkEmbeddingsBySize(
     // Check if the metadata size exceeds 40KB
     if (!isMetadataSizeValid(embedding.metadata)) {
       logger.warn(
-        `Metadata size exceeds 40KB for embedding. Skipping this record.`
+        chalk.yellow(
+          `Metadata size exceeds 40KB for embedding. Skipping this record.`
+        )
       );
       continue; // Skip this embedding if the metadata is too large
     }
@@ -74,7 +77,7 @@ export const upsertDocument = async (
   embeddings: Embedding[]
 ) => {
   let upsertedChunkCount = 0;
-  logger.info(`Starting upsert for user ${userId}`);
+  logger.info(chalk.blue(`Starting upsert for user ${userId}`));
 
   const index = await getIndex();
   const upsertLimiter = new Bottleneck({
@@ -110,34 +113,33 @@ export const upsertDocument = async (
 
     while (attempt < maxRetries) {
       try {
-        logger.info(
-          `Attempting to upsert chunk of ${
-            chunk.length
-          } embeddings for user ${userId}, attempt ${attempt + 1}`
-        );
         await namespace.upsert(chunk);
         upsertedChunkCount += chunk.length;
         totalUpsertedSizePerSecond += chunkSize;
-        logger.info(
-          `Successfully upserted chunk of ${chunk.length} embeddings for user ${userId}`
-        );
+
         break;
       } catch (error: any) {
         if (error.statusCode === 429) {
           logger.warn(
-            `Rate limit hit during upsert for user ${userId}. Retrying after delay ${delay}ms`
+            chalk.yellow(
+              `Rate limit hit during upsert for user ${userId}. Retrying after delay ${delay}ms`
+            )
           );
           attempt++;
           await new Promise((resolve) => setTimeout(resolve, delay));
           delay *= 2;
         } else if (error.message.includes('message length too large')) {
           logger.error(
-            `Upsert failed for user ${userId} - message size exceeds 4MB limit. Chunk size: ${chunkSize} bytes`
+            chalk.red(
+              `Upsert failed for user ${userId} - message size exceeds 4MB limit. Chunk size: ${chunkSize} bytes`
+            )
           );
           throw new Error(`Upsert failed due to size limits.`);
         } else {
           logger.error(
-            `Failed to upsert for user ${userId}. Error: ${error.message}`
+            chalk.red(
+              `Failed to upsert for user ${userId}. Error: ${error.message}`
+            )
           );
           throw error;
         }
@@ -146,7 +148,7 @@ export const upsertDocument = async (
 
     if (attempt === maxRetries) {
       const errorMessage = `Failed to upsert after ${maxRetries} attempts for user ${userId} due to rate limiting`;
-      logger.error(errorMessage);
+      logger.error(chalk.red(errorMessage));
       throw new Error(errorMessage);
     }
   };
@@ -159,7 +161,9 @@ export const upsertDocument = async (
   await Promise.all(upsertPromises);
 
   logger.info(
-    `Upsert completed for user ${userId} with ${upsertedChunkCount} records upserted`
+    chalk.green(
+      `Upsert completed for user ${userId} with ${upsertedChunkCount} records upserted`
+    )
   );
   return upsertedChunkCount;
 };
@@ -177,16 +181,18 @@ export async function query(userEmail: string, embeddings: any, topK: number) {
   let response;
   const maxResultSizeMB = 4; // The maximum allowed result size in MB
   const maxResultSizeBytes = maxResultSizeMB * 1024 * 1024; // Convert to bytes
-  logger.info(`Starting query for user ${userEmail} with topK=${topK}`);
+  logger.info(
+    chalk.blue(`Starting query for user ${userEmail} with topK=${topK}`)
+  );
 
   try {
     response = await queryLimiter.schedule(() =>
       queryByNamespace(userEmail, topK, embeddings.values)
     );
-    logger.info(`Query successful for user ${userEmail}`);
+    logger.info(chalk.green(`Query successful for user ${userEmail}`));
   } catch (error: any) {
     logger.error(
-      `Query failed for user ${userEmail} - Error: ${error.message}`
+      chalk.red(`Query failed for user ${userEmail} - Error: ${error.message}`)
     );
 
     if (error.message.includes('Result size limit exceeded')) {
@@ -194,21 +200,27 @@ export async function query(userEmail: string, embeddings: any, topK: number) {
       const sizeOverLimit = currentResponseSizeBytes - maxResultSizeBytes;
 
       logger.warn(
-        `Result size limit exceeded for user ${userEmail}. Current response size is ${currentResponseSizeBytes} bytes, which is ${sizeOverLimit} bytes over the limit.`
+        chalk.yellow(
+          `Result size limit exceeded for user ${userEmail}. Current response size is ${currentResponseSizeBytes} bytes, which is ${sizeOverLimit} bytes over the limit.`
+        )
       );
 
       const reductionFactor = maxResultSizeBytes / currentResponseSizeBytes;
       const adjustedTopK = Math.max(Math.floor(topK * reductionFactor), 1);
 
       logger.info(
-        `Reducing topK from ${topK} to ${adjustedTopK} for user ${userEmail} to fit within the result size limit.`
+        chalk.blue(
+          `Reducing topK from ${topK} to ${adjustedTopK} for user ${userEmail} to fit within the result size limit.`
+        )
       );
 
       response = await queryLimiter.schedule(() =>
         queryByNamespace(userEmail, adjustedTopK, embeddings.values)
       );
       logger.info(
-        `Query successful after reducing topK to ${adjustedTopK} for user ${userEmail}`
+        chalk.green(
+          `Query successful after reducing topK to ${adjustedTopK} for user ${userEmail}`
+        )
       );
     } else {
       throw error;
@@ -254,7 +266,7 @@ const queryByNamespace = async (
   topK: number,
   embeddedMessage: any
 ) => {
-  logger.info(`Querying namespace ${namespace} with topK=${topK}`);
+  logger.info(chalk.blue(`Querying namespace ${namespace} with topK=${topK}`));
   const index = await getIndex();
   const result = await index.namespace(namespace).query({
     topK: Math.min(topK, 10000),
@@ -276,7 +288,9 @@ export async function deleteFromVectorDb(
   let allChunkIds: string[] = [];
 
   logger.info(
-    `Starting delete operation for user ${userId}, file ${file.name}`
+    chalk.blue(
+      `Starting delete operation for user ${userId}, file ${file.name}`
+    )
   );
   const index = await getIndex();
   const namespace = index.namespace(userId);
@@ -299,7 +313,9 @@ export async function deleteFromVectorDb(
 
     if (result.chunks.length === 0) {
       logger.info(
-        `No more chunks found for file ${file.name}. Proceeding with deletion.`
+        chalk.blue(
+          `No more chunks found for file ${file.name}. Proceeding with deletion.`
+        )
       );
       break;
     }
@@ -325,7 +341,9 @@ export async function deleteFromVectorDb(
   }
 
   logger.info(
-    `Delete operation completed for user ${userId}. Total records deleted: ${deletedCount}`
+    chalk.green(
+      `Delete operation completed for user ${userId}. Total records deleted: ${deletedCount}`
+    )
   );
   return deletedCount;
 }
@@ -342,17 +360,13 @@ const deleteChunks = async (
   }
 
   try {
-    logger.info(
-      `Attempting to delete ${ids.length} records for user ${userId}`
-    );
     await namespace.deleteMany(ids);
     totalDeletedRecordsPerSecond += ids.length;
-    logger.info(
-      `Successfully deleted ${ids.length} records for user ${userId}`
-    );
   } catch (error: any) {
     logger.error(
-      `Failed to delete records for user ${userId}. Error: ${error.message}`
+      chalk.red(
+        `Failed to delete records for user ${userId}. Error: ${error.message}`
+      )
     );
     throw error;
   }
@@ -365,7 +379,9 @@ async function listArchiveChunks(
   limit: number,
   paginationToken?: string
 ): Promise<{ chunks: { id: string }[]; paginationToken?: string }> {
-  logger.info(`Listing chunks for file ${file.name}, limit ${limit}`);
+  logger.info(
+    chalk.blue(`Listing chunks for file ${file.name}, limit ${limit}`)
+  );
   const validLimit = Math.min(Math.max(limit, 1), 100);
 
   const listResult = await namespace.listPaginated({
@@ -376,6 +392,8 @@ async function listArchiveChunks(
 
   const chunks =
     listResult.vectors?.map((vector) => ({ id: vector.id || '' })) || [];
-  logger.info(`Found ${chunks.length} chunks for file ${file.name}`);
+  logger.info(
+    chalk.blue(`Found ${chunks.length} chunks for file ${file.name}`)
+  );
   return { chunks, paginationToken: listResult.pagination?.next };
 }

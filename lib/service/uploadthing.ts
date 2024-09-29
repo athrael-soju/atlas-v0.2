@@ -7,6 +7,7 @@ import { deleteFromVectorDb } from './pinecone';
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import { getLocalDateTime } from '@/lib/utils';
 import { logger } from '@/lib/service/winston';
+import chalk from 'chalk';
 
 export const deleteFiles = async (
   userId: string,
@@ -16,25 +17,29 @@ export const deleteFiles = async (
   const id = userId;
 
   try {
-    logger.info(`Starting to delete files for user: ${userId}`);
+    logger.info(chalk.blue(`Starting to delete files for user: ${userId}`));
 
     for (const file of files) {
-      logger.info(`Processing deletion for file: ${file.key}`);
+      logger.info(chalk.blue(`Processing deletion for file: ${file.key}`));
 
       if (file.dateProcessed) {
         const deletedChunksCount = await deleteFromVectorDb(id, file);
 
         if (!deletedChunksCount) {
           logger.error(
-            `Failed to delete file chunks in vector db for file: ${file.key}`
+            chalk.red(
+              `Failed to delete file chunks in vector db for file: ${file.key}`
+            )
           );
           throw new Error(
-            `Failed to delete file chunks vector db: ${file.key}`
+            chalk.red(`Failed to delete file chunks vector db: ${file.key}`)
           );
         }
 
         logger.info(
-          `Successfully deleted ${deletedChunksCount} chunks for file: ${file.key} in vector db.`
+          chalk.green(
+            `Successfully deleted ${deletedChunksCount} chunks for file: ${file.key} in vector db.`
+          )
         );
       }
 
@@ -43,12 +48,16 @@ export const deleteFiles = async (
 
       if (!response.success || response.deletedCount < 1) {
         logger.error(
-          `Failed to delete file from UploadThing for file: ${file.key}`
+          chalk.red(
+            `Failed to delete file from UploadThing for file: ${file.key}`
+          )
         );
-        throw new Error(`Failed to delete file: ${file.key}`);
+        throw new Error(chalk.red(`Failed to delete file: ${file.key}`));
       }
 
-      logger.info(`Successfully deleted file from UploadThing: ${file.key}`);
+      logger.info(
+        chalk.green(`Successfully deleted file from UploadThing: ${file.key}`)
+      );
 
       const db = client.db('AtlasII');
       const usersCollection = db.collection('users');
@@ -64,24 +73,34 @@ export const deleteFiles = async (
 
       if (result.modifiedCount !== 1) {
         logger.error(
-          `Failed to update user record after deleting files for user: ${userId}`
+          chalk.red(
+            `Failed to update user record after deleting files for user: ${userId}`
+          )
         );
-        throw new Error('Failed to update user after deleting files');
+        throw new Error(
+          chalk.red('Failed to update user after deleting files')
+        );
       }
 
       logger.info(
-        `Successfully updated user record for user: ${userId} after deleting file: ${file.key}`
+        chalk.green(
+          `Successfully updated user record for user: ${userId} after deleting file: ${file.key}`
+        )
       );
       deletedFileCount++;
     }
 
     logger.info(
-      `Finished deleting files for user: ${userId}. Total deleted: ${deletedFileCount}`
+      chalk.green(
+        `Finished deleting files for user: ${userId}. Total deleted: ${deletedFileCount}`
+      )
     );
     return { deletedFileCount };
   } catch (error: any) {
     logger.error(
-      `Error occurred while deleting files for user: ${userId}. Error: ${error.message}`
+      chalk.red(
+        `Error occurred while deleting files for user: ${userId}. Error: ${error.message}`
+      )
     );
     throw error;
   }
@@ -91,7 +110,7 @@ export const deleteFiles = async (
 export const listFiles = async (files: string[] = []) => {
   try {
     const userId = await getUserId();
-    logger.info(`Listing files for user: ${userId}`);
+    logger.info(chalk.blue(`Listing files for user: ${userId}`));
 
     const db = client.db('AtlasII');
     const usersCollection = db.collection('users');
@@ -102,12 +121,14 @@ export const listFiles = async (files: string[] = []) => {
     );
 
     if (!user) {
-      logger.warn(`No user found with ID: ${userId}`);
+      logger.warn(chalk.yellow(`No user found with ID: ${userId}`));
       return { files: [], hasMore: false };
     }
 
     const allFiles = user?.files?.knowledgebase ?? [];
-    logger.info(`Found ${allFiles.length} files for user: ${userId}`);
+    logger.info(
+      chalk.green(`Found ${allFiles.length} files for user: ${userId}`)
+    );
 
     const filteredFiles =
       files.length > 0
@@ -115,12 +136,14 @@ export const listFiles = async (files: string[] = []) => {
         : allFiles;
 
     logger.info(
-      `Returning ${filteredFiles.length} filtered files for user: ${userId}`
+      chalk.green(
+        `Returning ${filteredFiles.length} filtered files for user: ${userId}`
+      )
     );
     return { files: filteredFiles, hasMore: false }; // Adjust `hasMore` based on pagination logic
   } catch (error: any) {
     logger.error(
-      `Error occurred while listing files for user: ${error.message}`
+      chalk.red(`Error occurred while listing files for user: ${error.message}`)
     );
     throw error;
   }
