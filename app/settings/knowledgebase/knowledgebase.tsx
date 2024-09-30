@@ -1,11 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-import { FormSlider } from '@/components/form-slider';
+import { useState } from 'react';
 import { knowledgebaseSchema, KnowledgebaseValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
+import { SettingCard } from '../card';
+import { SliderSetting } from '../slider';
 import { Searching } from '@/components/spinner';
+import { Cpu } from 'lucide-react'; // Import the icon
+import { Button } from '@/components/ui/button'; // ShadCN Button import
 
 const defaultValues: Partial<KnowledgebaseValues> = {
   cohereTopN: 10,
@@ -20,58 +22,90 @@ export function KnowledgebaseForm() {
     formPath: 'settings.knowledgebase'
   });
 
+  const [saving, setSaving] = useState(false); // Track the saving state
+
+  // Handle form submission on button click
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSubmit(form.getValues() as KnowledgebaseValues); // Get form values and submit
+    } finally {
+      setSaving(false); // Reset saving state after submission
+    }
+  };
+
   if (loading) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '80vh'
-        }}
-      >
+      <div className="flex h-80 items-center justify-center">
         <Searching />
       </div>
     );
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormSlider
-          label="Cohere Top N"
-          value={form.watch('cohereTopN')}
-          onChange={(val) => form.setValue('cohereTopN', val)}
-          min={1}
-          max={100}
-          step={1}
+    <div className="container mx-auto py-10">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
+        <SettingCard
+          icon={<Cpu className="h-8 w-8 text-primary" />} // Add an icon
+          title="Cohere Top N"
           description="Set the top N results to consider (1-100)"
-        />
+        >
+          <SliderSetting
+            label="Cohere Top N"
+            value={form.watch('cohereTopN')}
+            min={1}
+            max={100}
+            step={1}
+            onValueChange={(val) => form.setValue('cohereTopN', val)}
+            description="Number of top results"
+          />
+        </SettingCard>
 
-        <FormSlider
-          label="Cohere Relevance Threshold"
-          value={form.watch('cohereRelevanceThreshold')}
-          onChange={(val) => form.setValue('cohereRelevanceThreshold', val)}
-          min={0}
-          max={100}
-          step={5}
+        <SettingCard
+          icon={<Cpu className="h-8 w-8 text-primary" />} // Add an icon
+          title="Cohere Relevance Threshold"
           description="Set the relevance threshold (0-100)"
-        />
+        >
+          <SliderSetting
+            label="Cohere Relevance Threshold"
+            value={form.watch('cohereRelevanceThreshold')}
+            min={0}
+            max={100}
+            step={5}
+            onValueChange={(val) =>
+              form.setValue('cohereRelevanceThreshold', val)
+            }
+            description="Relevance threshold value"
+          />
+        </SettingCard>
 
-        <FormSlider
-          label="Pinecone Top K"
-          value={form.watch('pineconeTopK')}
-          onChange={(val) => form.setValue('pineconeTopK', val)}
-          min={100}
-          max={1000}
-          step={100}
+        <SettingCard
+          icon={<Cpu className="h-8 w-8 text-primary" />} // Add an icon
+          title="Pinecone Top K"
           description="Set the top K results to retrieve (100-1000)"
-        />
+        >
+          <SliderSetting
+            label="Pinecone Top K"
+            value={form.watch('pineconeTopK')}
+            min={100}
+            max={1000}
+            step={100}
+            onValueChange={(val) => form.setValue('pineconeTopK', val)}
+            description="Number of top results to retrieve"
+          />
+        </SettingCard>
+      </div>
 
-        <Button type="submit" style={{ width: '100%' }}>
-          Update settings
+      <div className="mt-8 flex justify-center">
+        <Button
+          onClick={handleSave}
+          className="w-full"
+          variant="default"
+          disabled={saving}
+        >
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
-      </form>
-    </Form>
+      </div>
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import { AssistantMode } from '@/types/settings';
 export const defaultUserSettings = () => ({
   forge: {
     parsingProvider: 'iol',
+    vectorizationProvider: 'pcs',
     minChunkSize: 0,
     maxChunkSize: 512,
     chunkOverlap: 0,

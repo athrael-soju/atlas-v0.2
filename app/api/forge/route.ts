@@ -41,10 +41,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const forgeSettings = userServerData.settings.forge as ForgeSettings;
 
-    // Validate forge settings
-    validateForgeSettings(forgeSettings);
-    logger.info(chalk.blue('Forge settings validated.'));
-
     // Retrieve file data
     const files = userServerData.files.knowledgebase.filter(
       (file: KnowledgebaseFile) => fileIds.includes(file.key)
@@ -85,13 +81,6 @@ function validateFileIds(fileIds: any): void {
   if (!Array.isArray(fileIds)) {
     logger.warn(chalk.yellow('Invalid file IDs provided.'));
     throw new Error('Invalid file IDs');
-  }
-}
-
-function validateForgeSettings(forgeSettings: ForgeSettings): void {
-  if (forgeSettings?.chunkOverlap == null) {
-    logger.warn(chalk.yellow('Invalid forge settings detected.'));
-    throw new Error('Invalid forge settings');
   }
 }
 
