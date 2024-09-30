@@ -31,8 +31,14 @@ export const dashboardNavItems: NavItem[] = [
   {
     title: 'Dashboard',
     href: '/dashboard',
-    icon: 'dashboard',
+    icon: 'home',
     label: 'Dashboard'
+  },
+  {
+    title: 'Analytics',
+    href: '/dashboard/analytics',
+    icon: 'dashboard',
+    label: 'Analytics'
   },
   {
     title: 'Knowledgebase',
