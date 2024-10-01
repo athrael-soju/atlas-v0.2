@@ -177,22 +177,22 @@ const queryLimiter = new Bottleneck({
   minTime: 1
 });
 
-export async function query(userEmail: string, embeddings: any, topK: number) {
+export async function query(userId: string, embeddings: any, topK: number) {
   let response;
   const maxResultSizeMB = 4; // The maximum allowed result size in MB
   const maxResultSizeBytes = maxResultSizeMB * 1024 * 1024; // Convert to bytes
   logger.info(
-    chalk.blue(`Starting query for user ${userEmail} with topK=${topK}`)
+    chalk.blue(`Starting query for user ${userId} with topK=${topK}`)
   );
 
   try {
     response = await queryLimiter.schedule(() =>
-      queryByNamespace(userEmail, topK, embeddings.values)
+      queryByNamespace(userId, topK, embeddings.values)
     );
-    logger.info(chalk.green(`Query successful for user ${userEmail}`));
+    logger.info(chalk.green(`Query successful for user ${userId}`));
   } catch (error: any) {
     logger.error(
-      chalk.red(`Query failed for user ${userEmail} - Error: ${error.message}`)
+      chalk.red(`Query failed for user ${userId} - Error: ${error.message}`)
     );
 
     if (error.message.includes('Result size limit exceeded')) {
@@ -201,7 +201,7 @@ export async function query(userEmail: string, embeddings: any, topK: number) {
 
       logger.warn(
         chalk.yellow(
-          `Result size limit exceeded for user ${userEmail}. Current response size is ${currentResponseSizeBytes} bytes, which is ${sizeOverLimit} bytes over the limit.`
+          `Result size limit exceeded for user ${userId}. Current response size is ${currentResponseSizeBytes} bytes, which is ${sizeOverLimit} bytes over the limit.`
         )
       );
 
@@ -210,16 +210,16 @@ export async function query(userEmail: string, embeddings: any, topK: number) {
 
       logger.info(
         chalk.blue(
-          `Reducing topK from ${topK} to ${adjustedTopK} for user ${userEmail} to fit within the result size limit.`
+          `Reducing topK from ${topK} to ${adjustedTopK} for user ${userId} to fit within the result size limit.`
         )
       );
 
       response = await queryLimiter.schedule(() =>
-        queryByNamespace(userEmail, adjustedTopK, embeddings.values)
+        queryByNamespace(userId, adjustedTopK, embeddings.values)
       );
       logger.info(
         chalk.green(
-          `Query successful after reducing topK to ${adjustedTopK} for user ${userEmail}`
+          `Query successful after reducing topK to ${adjustedTopK} for user ${userId}`
         )
       );
     } else {
@@ -245,7 +245,7 @@ export async function query(userEmail: string, embeddings: any, topK: number) {
 
   return {
     message: 'Pinecone query successful',
-    namespace: userEmail,
+    namespace: userId,
     context
   };
 }
