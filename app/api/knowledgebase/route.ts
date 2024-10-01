@@ -84,11 +84,15 @@ async function retrieveContext(
     logger.info(chalk.green('Message embedding complete.'));
 
     // Query Vector DB from the factory with the embedding
-    logger.info(chalk.blue('Querying Vector DB for context.'));
-
-    const queryResults = await getVectorDbProvider(
+    logger.info(chalk.blue('Querying Vector DB Factory for context.'));
+    const vectorDbProvider = await getVectorDbProvider(
       settings.forge.vectorizationProvider
-    ).query(userId, embeddingResults, settings.knowledgebase.vectorDbTopK);
+    );
+    const queryResults = await vectorDbProvider.query(
+      userId,
+      embeddingResults,
+      settings.knowledgebase.vectorDbTopK
+    );
     sendUpdate('Query complete', 'Query results retrieved from Pinecone.');
     logger.info(chalk.green('Query complete.'));
 
