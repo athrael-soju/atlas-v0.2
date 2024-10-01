@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { SelectSetting } from '../select';
-import { Searching } from '@/components/spinner';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
+import { ProfileFormSkeleton } from './skeleton';
 import {
   countryOptions,
   genderOptions,
@@ -24,7 +24,7 @@ import {
   Settings,
   Shield,
   Cpu
-} from 'lucide-react'; // Imported icons from Lucide
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Popover,
@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { profileFormSchema, ProfileFormValues } from '@/lib/form-schema';
-import { SettingCard } from '../card'; // Assuming you have a SettingCard component
+import { SettingCard } from '../card';
 import { Card } from '@/components/ui/card';
 
 const defaultValues: Partial<ProfileFormValues> = {
@@ -50,61 +50,52 @@ export function ProfileForm() {
     formPath: 'settings.profile'
   });
 
-  const [saving, setSaving] = useState(false); // Track the saving state
+  const [saving, setSaving] = useState(false);
 
-  // Handle form submission on button click
   const handleSave = async () => {
     setSaving(true);
     try {
-      await onSubmit(form.getValues() as ProfileFormValues); // Submit form data
+      onSubmit(form.getValues() as ProfileFormValues);
     } finally {
-      setSaving(false); // Reset saving state after submission
+      setSaving(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex h-80 items-center justify-center">
-        <Searching />
-      </div>
-    );
+    return <ProfileFormSkeleton />;
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label>First Name</label>
           <Input
             disabled={loading}
-            placeholder="John"
-            value={form.watch('firstName') ?? ''} // Provide empty string if undefined
+            placeholder="First Name"
+            value={form.watch('firstName') ?? ''}
             onChange={(e) => form.setValue('firstName', e.target.value)}
           />
         </div>
 
         <div>
-          <label>Last Name</label>
           <Input
             disabled={loading}
-            placeholder="Doe"
-            value={form.watch('lastName') ?? ''} // Provide empty string if undefined
+            placeholder="Last Name"
+            value={form.watch('lastName') ?? ''}
             onChange={(e) => form.setValue('lastName', e.target.value)}
           />
         </div>
 
         <div>
-          <label>Email</label>
           <Input
             disabled={loading}
-            placeholder="john@doe.com"
-            value={form.watch('email') ?? ''} // Provide empty string if undefined
+            placeholder="Email"
+            value={form.watch('email') ?? ''}
             onChange={(e) => form.setValue('email', e.target.value)}
           />
         </div>
 
         <div>
-          <label>Date of Birth</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -115,13 +106,11 @@ export function ProfileForm() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {form.watch('dateOfBirth') ? (
-                  new Date(
-                    form.watch('dateOfBirth') as string
-                  ).toLocaleDateString()
-                ) : (
-                  <span>Pick a date</span>
-                )}
+                {form.watch('dateOfBirth')
+                  ? new Date(
+                      form.watch('dateOfBirth') as string
+                    ).toLocaleDateString()
+                  : 'Pick a date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -149,11 +138,10 @@ export function ProfileForm() {
           </Popover>
         </div>
 
-        {/* Setting Cards for Profile Form with Icon */}
         <SettingCard
-          icon={<Globe className="h-8 w-8 text-primary" />} // Country Icon
+          icon={<Globe className="h-8 w-8 text-primary" />}
           title="Country of Origin"
-          description="Select your country of origin"
+          description={''}
         >
           <SelectSetting
             options={countryOptions}
@@ -163,9 +151,8 @@ export function ProfileForm() {
         </SettingCard>
 
         <SettingCard
-          icon={<User className="h-8 w-8 text-primary" />} // Gender Icon
+          icon={<User className="h-8 w-8 text-primary" />}
           title="Gender"
-          description="Select your gender"
         >
           <SelectSetting
             options={genderOptions}
@@ -175,9 +162,8 @@ export function ProfileForm() {
         </SettingCard>
 
         <SettingCard
-          icon={<Flag className="h-8 w-8 text-primary" />} // Language Icon
+          icon={<Flag className="h-8 w-8 text-primary" />}
           title="Preferred Language"
-          description="Select your preferred language"
         >
           <SelectSetting
             options={languageOptions}
@@ -187,9 +173,8 @@ export function ProfileForm() {
         </SettingCard>
 
         <SettingCard
-          icon={<Briefcase className="h-8 w-8 text-primary" />} // Occupation Icon
+          icon={<Briefcase className="h-8 w-8 text-primary" />}
           title="Occupation"
-          description="Select your occupation"
         >
           <SelectSetting
             options={occupationOptions}
@@ -199,9 +184,8 @@ export function ProfileForm() {
         </SettingCard>
 
         <SettingCard
-          icon={<Settings className="h-8 w-8 text-primary" />} // Technical Aptitude Icon
+          icon={<Settings className="h-8 w-8 text-primary" />}
           title="Technical Aptitude"
-          description="Select your technical aptitude"
         >
           <SelectSetting
             options={technicalAptitudeOptions}
@@ -211,9 +195,8 @@ export function ProfileForm() {
         </SettingCard>
 
         <SettingCard
-          icon={<Shield className="h-8 w-8 text-primary" />} // Military Status Icon
+          icon={<Shield className="h-8 w-8 text-primary" />}
           title="Military Status"
-          description="Select your military status"
         >
           <SelectSetting
             options={militaryStatusOptions}
@@ -224,7 +207,7 @@ export function ProfileForm() {
       </div>
 
       <Card className="grid gap-4">
-        <div className=" flex items-center space-x-4 rounded-md border p-4">
+        <div className="flex items-center space-x-4 rounded-md border p-4">
           <Cpu className="h-8 w-8 text-primary" />
 
           <div className="flex-1 space-y-1">
@@ -240,7 +223,6 @@ export function ProfileForm() {
             onCheckedChange={(val) =>
               form.setValue('personalizedResponses', val)
             }
-            title="Personalized Responses"
           />
         </div>
       </Card>
