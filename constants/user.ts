@@ -13,7 +13,7 @@ export const defaultUserSettings = () => ({
   knowledgebase: {
     cohereTopN: 10,
     cohereRelevanceThreshold: 0,
-    pineconeTopK: 100
+    vectorDbTopK: 100
   },
   chat: {
     assistantMode: AssistantMode.Analysis
