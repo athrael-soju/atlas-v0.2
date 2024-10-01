@@ -1,6 +1,7 @@
 import { Conversation } from './data';
 
 export interface ForgeSettings {
+  vectorizationProvider: string;
   parsingProvider: string;
   partitioningStrategy: string;
   chunkingStrategy: string;

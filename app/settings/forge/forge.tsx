@@ -1,22 +1,41 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-import { FormSlider } from '@/components/form-slider';
+import { useState } from 'react';
+import { FileText, Cpu, Database, Settings } from 'lucide-react';
 import { forgeFormSchema, ForgeFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
-import { FormSelect } from '@/components/form-select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   parsingProviders,
+  vectorizationProviders,
   partitioningStrategies,
   chunkingStrategies,
   partitioningStrategyDescriptions,
+  parsingProviderDescriptions,
+  vectorizationProviderDescriptions,
   chunkingStrategyDescriptions
 } from '@/constants/forge';
-import { Searching } from '@/components/spinner';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { ForgeFormSkeleton } from './skeleton';
 
 const defaultValues: Partial<ForgeFormValues> = {
   parsingProvider: 'iol',
+  vectorizationProvider: 'pcs',
   partitioningStrategy: 'fast',
   chunkingStrategy: 'basic',
   minChunkSize: 0,
@@ -31,111 +50,247 @@ export function ForgeForm() {
     formPath: 'settings.forge'
   });
 
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      onSubmit(form.getValues() as ForgeFormValues);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '80vh'
-        }}
-      >
-        <Searching />
-      </div>
-    );
+    return <ForgeFormSkeleton />; // Use the skeleton component during loading
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <FormSelect
-            label="Provider"
-            options={parsingProviders}
-            value={form.watch('parsingProvider')}
-            onChange={(val) => {
-              form.setValue('parsingProvider', val);
-              if (val === 'iol') {
-                if (
-                  form.watch('chunkingStrategy') === 'by_page' ||
-                  form.watch('chunkingStrategy') === 'by_similarity'
-                ) {
-                  form.setValue('chunkingStrategy', 'by_title');
+    <div className="container mx-auto space-y-8 py-10">
+      <Tabs defaultValue="processing" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="processing">Document Processing</TabsTrigger>
+          <TabsTrigger value="vectorization">Vectorization</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="processing" className="mt-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            <SettingCard
+              icon={<FileText className="h-6 w-6" />}
+              title="Document Processing"
+              description="Configure document ingestion settings"
+            >
+              <Select
+                value={form.watch('parsingProvider')}
+                onValueChange={(val) => form.setValue('parsingProvider', val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select parsing provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parsingProviders.map((provider) => (
+                    <SelectItem key={provider.value} value={provider.value}>
+                      {provider.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {
+                  parsingProviderDescriptions[
+                    form.watch(
+                      'parsingProvider'
+                    ) as keyof typeof parsingProviderDescriptions
+                  ]
                 }
-              }
-            }}
-            placeholder="Select provider"
-            description="Select parsing provider"
-          />
+              </p>
+            </SettingCard>
 
-          <FormSelect
-            label="Partitioning Strategy"
-            options={partitioningStrategies}
-            value={form.watch('partitioningStrategy')}
-            onChange={(val) => form.setValue('partitioningStrategy', val)}
-            placeholder="Select strategy"
-            description={
-              partitioningStrategyDescriptions[
-                form.watch(
-                  'partitioningStrategy'
-                ) as keyof typeof partitioningStrategyDescriptions
-              ]
-            }
-          />
+            <SettingCard
+              icon={<Database className="h-6 w-6" />}
+              title="Partitioning Strategy"
+              description="Choose the strategy for document partitioning"
+            >
+              <Select
+                value={form.watch('partitioningStrategy')}
+                onValueChange={(val) =>
+                  form.setValue('partitioningStrategy', val)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select partitioning strategy" />
+                </SelectTrigger>
+                <SelectContent>
+                  {partitioningStrategies.map((strategy) => (
+                    <SelectItem key={strategy.value} value={strategy.value}>
+                      {strategy.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {
+                  partitioningStrategyDescriptions[
+                    form.watch(
+                      'partitioningStrategy'
+                    ) as keyof typeof partitioningStrategyDescriptions
+                  ]
+                }
+              </p>
+            </SettingCard>
 
-          <FormSelect
-            label="Chunking Strategy"
-            options={chunkingStrategies.filter(
-              (s) =>
-                !s.serverlessOnly || form.watch('parsingProvider') === 'ioc'
-            )}
-            value={form.watch('chunkingStrategy')}
-            onChange={(val) => form.setValue('chunkingStrategy', val)}
-            placeholder="Select strategy"
-            description={
-              chunkingStrategyDescriptions[
-                form.watch(
-                  'chunkingStrategy'
-                ) as keyof typeof chunkingStrategyDescriptions
-              ]
-            }
-          />
-        </div>
+            <SettingCard
+              icon={<Settings className="h-6 w-6" />}
+              title="Chunking Strategy"
+              description="Set chunking parameters for your documents"
+            >
+              <Select
+                value={form.watch('chunkingStrategy')}
+                onValueChange={(val) => form.setValue('chunkingStrategy', val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select chunking strategy" />
+                </SelectTrigger>
+                <SelectContent>
+                  {chunkingStrategies.map((strategy) => (
+                    <SelectItem key={strategy.value} value={strategy.value}>
+                      {strategy.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {
+                  chunkingStrategyDescriptions[
+                    form.watch(
+                      'chunkingStrategy'
+                    ) as keyof typeof chunkingStrategyDescriptions
+                  ]
+                }
+              </p>
+            </SettingCard>
 
-        <FormSlider
-          label="Min Chunk Size"
-          value={form.watch('minChunkSize')}
-          onChange={(val) => form.setValue('minChunkSize', val)}
-          min={0}
-          max={1024}
-          step={256}
-          description="Set the minimum chunk size (0-1024)"
-        />
+            <SettingCard
+              icon={<Settings className="h-6 w-6" />}
+              title="Min Chunk Size"
+              description="Define the minimum chunk size for processing"
+            >
+              <Slider
+                value={[form.watch('minChunkSize')]}
+                min={0}
+                max={1024}
+                step={256}
+                onValueChange={([val]) => form.setValue('minChunkSize', val)}
+              />
+              <p className="mt-2 text-sm text-muted-foreground">
+                Minimum tokens per chunk size: {form.watch('minChunkSize')}
+              </p>
+            </SettingCard>
 
-        <FormSlider
-          label="Max Chunk Size"
-          value={form.watch('maxChunkSize')}
-          onChange={(val) => form.setValue('maxChunkSize', val)}
-          min={0}
-          max={1024}
-          step={256}
-          description="Set the maximum chunk size (0-1024)"
-        />
+            <SettingCard
+              icon={<Settings className="h-6 w-6" />}
+              title="Max Chunk Size"
+              description="Define the maximum chunk size for processing"
+            >
+              <Slider
+                value={[form.watch('maxChunkSize')]}
+                min={0}
+                max={1024}
+                step={256}
+                onValueChange={([val]) => form.setValue('maxChunkSize', val)}
+              />
+              <p className="mt-2 text-sm text-muted-foreground">
+                Maximum tokens per chunk size: {form.watch('maxChunkSize')}
+              </p>
+            </SettingCard>
 
-        <FormSlider
-          label="Chunk Overlap"
-          value={form.watch('chunkOverlap')}
-          onChange={(val) => form.setValue('chunkOverlap', val)}
-          min={0}
-          max={256}
-          step={1}
-          description="Set the chunk overlap (0-256)"
-        />
-        <Button type="submit" style={{ width: '100%' }}>
-          Update settings
+            <SettingCard
+              icon={<Settings className="h-6 w-6" />}
+              title="Chunk Overlap"
+              description="Set the chunk overlap for document partitioning"
+            >
+              <Slider
+                value={[form.watch('chunkOverlap')]}
+                min={0}
+                max={256}
+                step={1}
+                onValueChange={([val]) => form.setValue('chunkOverlap', val)}
+              />
+              <p className="mt-2 text-sm text-muted-foreground">
+                Tokens overlap: {form.watch('chunkOverlap')}
+              </p>
+            </SettingCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="vectorization" className="mt-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            <SettingCard
+              icon={<Cpu className="h-6 w-6" />}
+              title="Vectorization Provider"
+              description="Select and configure the vectorization provider"
+            >
+              <Select
+                value={form.watch('vectorizationProvider')}
+                onValueChange={(val) =>
+                  form.setValue('vectorizationProvider', val)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select vectorization provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vectorizationProviders.map((provider) => (
+                    <SelectItem key={provider.value} value={provider.value}>
+                      {provider.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {
+                  vectorizationProviderDescriptions[
+                    form.watch(
+                      'vectorizationProvider'
+                    ) as keyof typeof vectorizationProviderDescriptions
+                  ]
+                }
+              </p>
+            </SettingCard>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex justify-center">
+        <Button onClick={handleSave} className="w-full" disabled={saving}>
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
-      </form>
-    </Form>
+      </div>
+    </div>
+  );
+}
+
+function SettingCard({
+  icon,
+  title,
+  description,
+  children
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center space-x-2">
+          {icon}
+          <CardTitle>{title}</CardTitle>
+        </div>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }

@@ -3,6 +3,11 @@ export const parsingProviders = [
   { label: 'Unstructured.io (Local)', value: 'iol' }
 ] as const;
 
+export const vectorizationProviders = [
+  { label: 'Pinecone (Serverless)', value: 'pcs' },
+  { label: 'Qdrant (Local)', value: 'qdl' }
+] as const;
+
 export const partitioningStrategies = [
   { label: 'Fast', value: 'fast' },
   { label: 'Hi Res', value: 'hi_res' },
@@ -24,6 +29,14 @@ export const partitioningStrategyDescriptions = {
   auto: 'The “auto” strategy selects the best partitioning approach based on document characteristics and function parameters.',
   ocr_only:
     'A “model-based” strategy that uses Optical Character Recognition to extract text from image-based files.'
+};
+export const parsingProviderDescriptions = {
+  ioc: 'Unstructured.io serverless  uses a cloud-based service to extract text from documents.',
+  iol: 'Unstructured.io open source  uses a local service to extract text from documents.'
+};
+export const vectorizationProviderDescriptions = {
+  pcs: 'Pinecone is a serverless vectorization provider that uses a cloud-based service to convert text into vectors.',
+  qdl: 'Qdrant is a local vectorization provider that uses a local service to convert text into vectors.'
 };
 
 export const chunkingStrategyDescriptions = {

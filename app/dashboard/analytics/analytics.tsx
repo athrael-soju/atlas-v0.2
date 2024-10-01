@@ -2,10 +2,9 @@
 
 import React, { useState } from 'react';
 import { useTheme } from 'next-themes'; // Import the hook from next-themes
-import PageContainer from '@/components/layout/page-container';
 import { Loading } from '@/components/spinner';
 
-export const Metrics = () => {
+export const Analytics = () => {
   const { theme } = useTheme();
   const grafanaTheme = theme === 'dark' ? 'dark' : 'light';
   const [loading, setLoading] = useState(true);
@@ -35,11 +34,3 @@ export const Metrics = () => {
     </div>
   );
 };
-
-export default function Page() {
-  return (
-    <PageContainer scrollable={true}>
-      <Metrics />
-    </PageContainer>
-  );
-}

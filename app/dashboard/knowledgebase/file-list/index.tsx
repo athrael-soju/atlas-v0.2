@@ -1,4 +1,3 @@
-// KnowledgebaseFiles.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -13,6 +12,9 @@ import {
   KnowledgebaseFilesProps
 } from '@/types/file-uploader';
 import { KnowledgebaseTable } from './table';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 export function KnowledgebaseFiles({
   knowledgebaseFiles,
@@ -128,40 +130,55 @@ export function KnowledgebaseFiles({
     }
   };
 
-  if (working || isUploading) {
-    return (
-      <EmptyCard
-        title=""
-        className="w-full"
-        style={{ height: 'calc(100vh - 350px)' }}
-        isFetchingFiles={isFetchingFiles}
-        isWorking={working || isUploading}
-      />
-    );
-  }
-
   return (
-    <>
-      {knowledgebaseFiles.length > 0 ? (
-        <KnowledgebaseTable
-          data={knowledgebaseFiles}
-          onDeleteFiles={onDeleteFiles}
-          globalFilter={globalFilter}
-          setGlobalFilter={setGlobalFilter}
-          sorting={sorting}
-          setSorting={setSorting}
-          handleDeleteSelected={handleDeleteSelected}
-          handleProcessSelected={handleProcessSelected}
-          isFetchingFiles={isFetchingFiles}
-        />
+    <AnimatePresence mode="wait">
+      {working || isUploading ? (
+        <motion.div
+          key="loading"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="flex h-[calc(100vh-350px)] w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </Card>
+        </motion.div>
+      ) : knowledgebaseFiles.length > 0 ? (
+        <motion.div
+          key="table"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <KnowledgebaseTable
+            data={knowledgebaseFiles}
+            onDeleteFiles={onDeleteFiles}
+            globalFilter={globalFilter}
+            setGlobalFilter={setGlobalFilter}
+            sorting={sorting}
+            setSorting={setSorting}
+            handleDeleteSelected={handleDeleteSelected}
+            handleProcessSelected={handleProcessSelected}
+            isFetchingFiles={isFetchingFiles}
+          />
+        </motion.div>
       ) : (
-        <EmptyCard
-          title="No files uploaded"
-          className="w-full"
-          style={{ height: 'calc(100vh - 350px)' }}
-          isFetchingFiles={isFetchingFiles}
-        />
+        <motion.div
+          key="empty"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <EmptyCard
+            title="No files uploaded"
+            className="h-[calc(100vh-350px)] w-full"
+            isFetchingFiles={isFetchingFiles}
+          />
+        </motion.div>
       )}
-    </>
+    </AnimatePresence>
   );
 }

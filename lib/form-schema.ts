@@ -21,6 +21,9 @@ export const forgeFormSchema = z
     parsingProvider: z.string({
       required_error: 'Please select a Parsing provider.'
     }),
+    vectorizationProvider: z.string({
+      required_error: 'Please select a Vectorization provider.'
+    }),
     minChunkSize: z.number().min(0).max(1024).step(256),
     maxChunkSize: z.number().min(0).max(1024).step(256),
     chunkOverlap: z.number().min(0).max(256).step(1),

@@ -38,7 +38,8 @@ import {
   SquareIcon,
   FileTextIcon,
   UploadIcon,
-  Brain
+  Brain,
+  Home
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -80,6 +81,7 @@ export const Icons = {
   fileTextIcon: FileTextIcon,
   uploadIcon: UploadIcon,
   brain: Brain,
+  home: Home,
   gitHub: ({ ...props }: LucideProps) => (
     <svg
       aria-hidden="true"
