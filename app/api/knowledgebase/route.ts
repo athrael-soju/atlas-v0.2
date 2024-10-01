@@ -88,7 +88,7 @@ async function retrieveContext(
     const queryResults = await query(
       userId,
       embeddingResults,
-      settings.knowledgebase.pineconeTopK
+      settings.knowledgebase.vectorDbTopK
     );
     sendUpdate('Query complete', 'Query results retrieved from Pinecone.');
     logger.info(chalk.green('Query complete.'));

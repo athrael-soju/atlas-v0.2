@@ -12,7 +12,7 @@ import { KnowledgebaseFormSkeleton } from './skeleton'; // Import the skeleton
 const defaultValues: Partial<KnowledgebaseValues> = {
   cohereTopN: 10,
   cohereRelevanceThreshold: 0,
-  pineconeTopK: 100
+  vectorDbTopK: 100
 };
 
 export function KnowledgebaseForm() {
@@ -82,11 +82,11 @@ export function KnowledgebaseForm() {
         >
           <SliderSetting
             label="Pinecone Top K"
-            value={form.watch('pineconeTopK')}
+            value={form.watch('vectorDbTopK')}
             min={100}
             max={1000}
             step={100}
-            onValueChange={(val) => form.setValue('pineconeTopK', val)}
+            onValueChange={(val) => form.setValue('vectorDbTopK', val)}
             description="Number of top results to retrieve"
           />
         </SettingCard>
