@@ -65,7 +65,6 @@ tracerProvider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
 tracerProvider.register();
 
 logger.info(`OTLP Trace Exporter running at ${otlpExporterUrl}`);
-
 // Register Instrumentations for HTTP and Runtime metrics
 registerInstrumentations({
   tracerProvider,
