@@ -3,11 +3,11 @@ import { Embedding, ForgeSettings, ParsedElement } from '@/types/settings';
 import { parseAndChunk } from '@/lib/service/unstructured';
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import { embedDocument } from '@/lib/service/openai';
-import { upsertDocument } from '@/lib/service/pinecone';
 import { validateUser } from '@/lib/utils';
 import { updateFileDateProcessed } from '@/lib/service/mongodb';
 import { logger } from '@/lib/service/winston'; // Winston logger
 import chalk from 'chalk'; // Import Chalk for colorized logging
+import { getVectorDbProvider } from '@/lib/service/vector-db/factory';
 
 function sendUpdate(
   status: string,
@@ -107,7 +107,13 @@ async function processFiles(
       );
 
       sendUpdate('Upserting', `Upserting file: ${file.name}`);
-      const upsertedChunkCount = await upsertDocument(userId, embeddings);
+      const vectorDbProvider = await getVectorDbProvider(
+        forgeSettings.vectorizationProvider
+      );
+      const upsertedChunkCount = await vectorDbProvider.upsertDocument(
+        userId,
+        embeddings
+      );
       sendUpdate('Upserted', `Upserted ${upsertedChunkCount} chunks.`);
       logger.info(
         chalk.green(

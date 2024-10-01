@@ -1,34 +1,51 @@
-import client from '@/lib/client/qdrant';
-import { KnowledgebaseFile } from '@/types/file-uploader';
 import { Embedding } from '@/types/settings';
-import { toAscii } from '@/lib/utils';
-import Bottleneck from 'bottleneck';
 import { logger } from '@/lib/service/winston';
+import Bottleneck from 'bottleneck';
 import chalk from 'chalk';
+import { KnowledgebaseFile } from '@/types/file-uploader';
+import { client } from '@/lib/client/qdrant'; // Using the Qdrant client directly
 
-export async function upsertDocument(
+
+export const upsertDocument = async (
   userId: string,
   embeddings: Embedding[]
-): Promise<number> {
-  logger.info(
-    `upsertDocument called with userId: ${userId}, embeddings count: ${embeddings.length}`
-  );
-
-  // Throwing an unimplemented exception
-  throw new Error('upsertDocument function is not implemented');
-}
+) => {
+  logger.info(chalk.blue(`Starting upsert for user ${userId}`));
+  try {
+    throw new Error('query function is not implemented');
+  } catch (error) {
+    logger.error(
+      chalk.red(
+        `Failed to upsert for user ${userId}. Error: ${
+          (error as Error).message
+        }`
+      )
+    );
+    throw error;
+  }
+};
 
 export async function query(
-  userEmail: string,
+  userId: string,
   embeddings: any,
   topK: number
 ): Promise<any> {
   logger.info(
-    `query called with userEmail: ${userEmail}, embeddings: ${embeddings.length}, topK: ${topK}`
+    `query called with userEmail: ${userId}, embeddings: ${embeddings.length}, topK: ${topK}`
   );
 
-  // Throwing an unimplemented exception
-  throw new Error('query function is not implemented');
+  try {
+    // Implement actual query logic here
+    // For now, we're throwing an unimplemented error
+    throw new Error('query function is not implemented');
+  } catch (error) {
+    logger.error(
+      chalk.red(
+        `Query failed for user ${userId}. Error: ${(error as Error).message}`
+      )
+    );
+    throw error;
+  }
 }
 
 export async function deleteFromVectorDb(
@@ -41,6 +58,18 @@ export async function deleteFromVectorDb(
     )}`
   );
 
-  // Throwing an unimplemented exception
-  throw new Error('deleteFromVectorDb function is not implemented');
+  try {
+    // Implement actual delete logic here
+    // For now, we're throwing an unimplemented error
+    throw new Error('deleteFromVectorDb function is not implemented');
+  } catch (error) {
+    logger.error(
+      chalk.red(
+        `Failed to delete from vector DB for user ${userId}. Error: ${
+          (error as Error).message
+        }`
+      )
+    );
+    throw error;
+  }
 }
