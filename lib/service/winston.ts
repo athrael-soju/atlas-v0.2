@@ -16,7 +16,7 @@ const createLogger = () => {
 
   // Dynamic labels for Loki
   const labels = {
-    job: process.env.LABEL_JOB || 'atlas-ii',
+    job: process.env.LABEL_JOB || 'atlasv1',
     env: process.env.NODE_ENV || 'development',
     hostname: os.hostname()
   };

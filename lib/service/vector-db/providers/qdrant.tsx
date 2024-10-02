@@ -21,11 +21,11 @@ export class QdrantProvider implements VectorDbProvider {
     );
 
     try {
-      const result = await qdrantUpsertDocument(userId, embeddings);
+      const upsertedDocuments = await qdrantUpsertDocument(userId, embeddings);
       logger.info(
         chalk.green(`Successfully upserted document for userId: ${userId}`)
       );
-      return result;
+      return upsertedDocuments;
     } catch (error: any) {
       logger.error(
         chalk.red(
