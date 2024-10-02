@@ -12,6 +12,8 @@ import { createThread } from '@/lib/service/openai';
 import { Conversation } from './types/data';
 import * as emoji from 'node-emoji';
 import { getLocalDateTime } from './lib/utils';
+import { logger } from '@/lib/service/winston';
+import chalk from 'chalk';
 
 const ej = emoji.random();
 const { GITHUB_ID, GITHUB_SECRET, GOOGLE_ID, GOOGLE_SECRET, NEXTAUTH_SECRET } =
@@ -28,9 +30,13 @@ if (
 }
 
 async function handleGuestLogin(usersCollection: Collection<Document>) {
+  logger.info(chalk.yellow('Handling guest login...'));
+
   let guestUser = await usersCollection.findOne({ email: 'guest@example.com' });
 
   if (!guestUser) {
+    logger.info(chalk.blue('Creating new guest user...'));
+
     const thread = await createThread();
     const conversation: Conversation = {
       id: thread.id,
@@ -59,8 +65,11 @@ async function handleGuestLogin(usersCollection: Collection<Document>) {
 
     const result = await usersCollection.insertOne(newGuestUser);
     if (result.insertedId) {
+      logger.info(chalk.green('New guest user created successfully.'));
       guestUser = await usersCollection.findOne({ _id: result.insertedId });
     }
+  } else {
+    logger.info(chalk.green('Guest user already exists.'));
   }
 
   return {
@@ -74,10 +83,17 @@ async function findOrCreateUser(
   usersCollection: Collection<Document>,
   user: User | AdapterUser
 ) {
-  // Find if user exists by their email
+  logger.info(
+    chalk.blue(`Looking for existing user with email: ${user.email}`)
+  );
+
   let existingUser = await usersCollection.findOne({ email: user.email });
 
   if (!existingUser && user.id && user.name && user.email) {
+    logger.info(
+      chalk.yellow(`User not found, creating new user: ${user.name}`)
+    );
+
     const thread = await createThread();
     const conversation: Conversation = {
       id: thread.id,
@@ -86,9 +102,8 @@ async function findOrCreateUser(
       active: true
     };
 
-    // Create the new user in MongoDB with provider ID as the _id
     const newUser: IUser = {
-      _id: new ObjectId(user.id), // Use GitHub ID as the _id
+      _id: new ObjectId(user.id),
       name: user.name,
       email: user.email,
       createdAt: getLocalDateTime(),
@@ -106,14 +121,19 @@ async function findOrCreateUser(
     };
 
     await usersCollection.insertOne(newUser);
+    logger.info(chalk.green(`New user created: ${user.name}`));
   } else if (existingUser) {
-    // Update existing user's login time if they already exist
+    logger.info(
+      chalk.blue(`User found, updating login time for: ${existingUser.name}`)
+    );
+
     await usersCollection.updateOne(
       { _id: new ObjectId(existingUser._id) },
       { $set: { updatedAt: getLocalDateTime() } }
     );
-    user.id = existingUser._id.toString(); // Use existing MongoDB _id
+    user.id = existingUser._id.toString();
   }
+
   return user;
 }
 
@@ -140,6 +160,9 @@ const authConfig: NextAuthOptions = {
       credentials: { email: { type: 'email' }, password: { type: 'password' } },
       async authorize(credentials) {
         try {
+          logger.info(
+            chalk.blue(`Attempting login with email: ${credentials?.email}`)
+          );
           await client.connect();
           const db = client.db('AtlasV1');
           const usersCollection = db.collection('users');
@@ -151,7 +174,7 @@ const authConfig: NextAuthOptions = {
           // Other credential logic...
           return null;
         } catch (error) {
-          console.error('Error in authorization function:', error);
+          logger.error(chalk.red('Error in authorization function:'), error);
           return null;
         }
       }
@@ -164,14 +187,15 @@ const authConfig: NextAuthOptions = {
   callbacks: {
     async signIn({ user }) {
       try {
-        console.log('First User:', user);
+        logger.info(chalk.yellow(`User sign-in attempt: ${user.email}`));
         await client.connect();
         const db = client.db('AtlasV1');
         const usersCollection = db.collection('users');
         await findOrCreateUser(usersCollection, user);
+        logger.info(chalk.green(`User signed in: ${user.email}`));
         return true;
       } catch (error) {
-        console.error('Error in signIn callback:', error);
+        logger.error(chalk.red('Error in signIn callback:'), error);
         return false;
       }
     },
