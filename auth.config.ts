@@ -74,9 +74,10 @@ async function findOrCreateUser(
   usersCollection: Collection<Document>,
   user: User | AdapterUser
 ) {
+  // Find if user exists by their email
   let existingUser = await usersCollection.findOne({ email: user.email });
 
-  if (!existingUser && user.name && user.email) {
+  if (!existingUser && user.id && user.name && user.email) {
     const thread = await createThread();
     const conversation: Conversation = {
       id: thread.id,
@@ -85,8 +86,9 @@ async function findOrCreateUser(
       active: true
     };
 
+    // Create the new user in MongoDB with provider ID as the _id
     const newUser: IUser = {
-      _id: new ObjectId(),
+      _id: new ObjectId(user.id), // Use GitHub ID as the _id
       name: user.name,
       email: user.email,
       createdAt: getLocalDateTime(),
@@ -102,18 +104,15 @@ async function findOrCreateUser(
         conversations: [conversation]
       }
     };
+
     await usersCollection.insertOne(newUser);
-    user.id = newUser._id.toString();
   } else if (existingUser) {
+    // Update existing user's login time if they already exist
     await usersCollection.updateOne(
       { _id: new ObjectId(existingUser._id) },
-      {
-        $set: {
-          updatedAt: getLocalDateTime()
-        }
-      }
+      { $set: { updatedAt: getLocalDateTime() } }
     );
-    user.id = existingUser._id.toString();
+    user.id = existingUser._id.toString(); // Use existing MongoDB _id
   }
   return user;
 }
@@ -142,7 +141,7 @@ const authConfig: NextAuthOptions = {
       async authorize(credentials) {
         try {
           await client.connect();
-          const db = client.db('AtlasII');
+          const db = client.db('AtlasV1');
           const usersCollection = db.collection('users');
 
           if (credentials?.email === 'guest@example.com') {
@@ -165,8 +164,9 @@ const authConfig: NextAuthOptions = {
   callbacks: {
     async signIn({ user }) {
       try {
+        console.log('First User:', user);
         await client.connect();
-        const db = client.db('AtlasII');
+        const db = client.db('AtlasV1');
         const usersCollection = db.collection('users');
         await findOrCreateUser(usersCollection, user);
         return true;

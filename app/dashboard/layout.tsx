@@ -4,7 +4,7 @@ import { dashboardNavItems } from '@/constants/nav-items';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Atlas II',
+  title: 'Atlas V1',
   description: 'Even better than the first one!'
 };
 

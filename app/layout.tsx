@@ -10,7 +10,7 @@ import { getAuthSession } from '@/auth';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Atlas II',
+  title: 'Atlas V1',
   description: `It's great!`
 };
 

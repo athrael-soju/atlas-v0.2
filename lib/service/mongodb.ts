@@ -15,7 +15,7 @@ import chalk from 'chalk';
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
   logger.info(chalk.blue('Connecting to database...'));
-  return client.db('AtlasII');
+  return client.db('AtlasV1');
 };
 
 // Helper function to find a user by ID
@@ -55,16 +55,22 @@ export const updateUserField = async (
 // Main functions
 export const getUserData = async (userId: string) => {
   const session = await getServerSession(authConfig);
-  if (!userId || session?.user.id !== userId) {
+
+  // Convert session ID to ObjectId for MongoDB querying
+  const sessionUserId = session?.user.id;
+
+  if (!userId || sessionUserId !== userId) {
     logger.error(
       chalk.red(`Invalid user access attempt for userId: ${userId}`)
     );
     throw new Error('Invalid user');
   }
 
+  // Ensure the userId matches the MongoDB ObjectId format
   const db = await connectToDatabase();
-  const user = await findUserById(db, userId);
-
+  const objectId = new ObjectId(userId);
+  const user = await findUserById(db, objectId.toString()); // Ensure proper conversion
+  
   if (!user) {
     logger.error(chalk.red(`User not found in database for userId: ${userId}`));
     throw new Error('User not found in database');

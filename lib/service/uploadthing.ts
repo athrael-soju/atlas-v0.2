@@ -59,7 +59,7 @@ export const deleteFiles = async (
         chalk.green(`Successfully deleted file from UploadThing: ${file.key}`)
       );
 
-      const db = client.db('AtlasII');
+      const db = client.db('AtlasV1');
       const usersCollection = db.collection('users');
       const result = await usersCollection.updateOne(
         { _id: new ObjectId(userId) },
@@ -112,7 +112,7 @@ export const listFiles = async (files: string[] = []) => {
     const userId = await getUserId();
     logger.info(chalk.blue(`Listing files for user: ${userId}`));
 
-    const db = client.db('AtlasII');
+    const db = client.db('AtlasV1');
     const usersCollection = db.collection('users');
 
     const user = await usersCollection.findOne(

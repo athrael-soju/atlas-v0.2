@@ -5,7 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
-// Import the font for Atlas II
+// Import the font for Atlas V1
 import { Spectral } from 'next/font/google';
 
 const spectral = Spectral({
@@ -38,7 +38,7 @@ export default function AuthenticationPage() {
           {/* Centered and Maximized Icon with responsive sizes */}
           <Image
             src={'/atlas.png'}
-            alt={'Atlas II Logo'}
+            alt={'Atlas V1 Logo'}
             // Default size for large screens
             width={500}
             height={500}
@@ -57,7 +57,7 @@ export default function AuthenticationPage() {
             }}
           >
             <span className="block text-center text-white lg:text-left">
-              Atlas II
+              Atlas V1
             </span>
           </h2>
         </div>
@@ -78,7 +78,7 @@ export default function AuthenticationPage() {
         <div className="flex flex-col items-center justify-center space-y-4 lg:hidden">
           <Image
             src={'/atlas.png'}
-            alt={'Atlas II Logo'}
+            alt={'Atlas V1 Logo'}
             // Consistent size for small and mobile screens
             width={200}
             height={200}
@@ -97,7 +97,7 @@ export default function AuthenticationPage() {
               fontFamily: "'Spectral', serif"
             }}
           >
-            <span className="block text-center text-gray-800">Atlas II</span>
+            <span className="block text-center text-gray-800">Atlas V1</span>
           </h2>
         </div>
 
@@ -105,7 +105,7 @@ export default function AuthenticationPage() {
         <div className="flex w-full max-w-sm flex-col justify-center space-y-6 text-center">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome to Atlas II
+              Welcome to Atlas V1
             </h1>
             <p className="text-sm text-muted-foreground">
               Login as a guest or with your GitHub account
