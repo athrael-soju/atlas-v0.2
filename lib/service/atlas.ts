@@ -10,6 +10,8 @@ const handleSSEChunk = (data: string) => {
   const { status, message } = JSON.parse(data);
   if (status === 'Reranking complete') {
     contextEnrichedMessage = message;
+  } else if (status === 'No context') {
+    contextEnrichedMessage = null;
   }
 };
 

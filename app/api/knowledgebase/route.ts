@@ -93,15 +93,20 @@ async function retrieveContext(
     sendUpdate('Query complete', 'Query results retrieved from Pinecone.');
     logger.info(chalk.green('Query complete.'));
 
-    // Rerank the results
-    logger.info(chalk.blue('Reranking query results.'));
-    rerankingContext = await rerank(
-      message,
-      queryResults.context,
-      settings.knowledgebase
-    );
-    sendUpdate('Reranking complete', `${rerankingContext}`);
-    logger.info(chalk.green('Reranking complete.'));
+    if (queryResults.context.length > 0) {
+      // Rerank the results
+      logger.info(chalk.blue('Reranking query results.'));
+      rerankingContext = await rerank(
+        message,
+        queryResults.context,
+        settings.knowledgebase
+      );
+      sendUpdate('Reranking complete', `${rerankingContext}`);
+      logger.info(chalk.green('Reranking complete.'));
+    } else {
+      sendUpdate('No context', 'No context found for the message.');
+      logger.warn(chalk.yellow('No context found for the message.'));
+    }
   } catch (error: any) {
     sendUpdate('Error', `Error retrieving context: ${error.message}`);
     logger.error(

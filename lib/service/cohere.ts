@@ -32,19 +32,6 @@ export async function rerank(
   queryResults: any[],
   knowledgebaseSettings: KnowledgebaseSettings
 ): Promise<string> {
-  if (queryResults.length < 1) {
-    logger.warn(
-      chalk.yellow(
-        `No relevant documents found to rerank for message: ${userMessage}`
-      )
-    );
-    return `
-==============
-Context: No relevant documents found to rerank.
-==============
-`;
-  }
-
   try {
     logger.info(
       chalk.blue(`Starting reranking process for user message: ${userMessage}`)
