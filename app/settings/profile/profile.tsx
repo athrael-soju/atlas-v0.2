@@ -66,8 +66,8 @@ export function ProfileForm() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="container mx-auto space-y-8 py-10">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <div>
           <Input
             disabled={loading}
@@ -141,7 +141,6 @@ export function ProfileForm() {
         <SettingCard
           icon={<Globe className="h-8 w-8 text-primary" />}
           title="Country of Origin"
-          description={''}
         >
           <SelectSetting
             options={countryOptions}

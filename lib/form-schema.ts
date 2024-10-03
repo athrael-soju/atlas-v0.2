@@ -42,7 +42,7 @@ export const forgeFormSchema = z
 export type ForgeFormValues = z.infer<typeof forgeFormSchema>;
 
 export const knowledgebaseSchema = z.object({
-  cohereTopN: z.number().min(1).max(100).step(1),
+  rerankTopN: z.number().min(1).max(100).step(1),
   cohereRelevanceThreshold: z.number().min(0).max(100).step(5),
   vectorDbTopK: z.number().min(100).max(1000).step(100)
 });

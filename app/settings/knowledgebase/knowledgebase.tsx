@@ -10,7 +10,7 @@ import { ListOrdered, Filter, Database } from 'lucide-react';
 import { KnowledgebaseFormSkeleton } from './skeleton'; // Import the skeleton
 
 const defaultValues: Partial<KnowledgebaseValues> = {
-  cohereTopN: 10,
+  rerankTopN: 10,
   cohereRelevanceThreshold: 0,
   vectorDbTopK: 100
 };
@@ -39,31 +39,31 @@ export function KnowledgebaseForm() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto space-y-8 py-10">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
         <SettingCard
           icon={<ListOrdered className="h-8 w-8 text-primary" />}
-          title="Cohere Top N"
+          title="Rerank Top N"
           description="Set the top N results to consider (1-100)"
         >
           <SliderSetting
-            label="Cohere Top N"
-            value={form.watch('cohereTopN')}
+            label="Rerank Top N"
+            value={form.watch('rerankTopN')}
             min={1}
             max={100}
             step={1}
-            onValueChange={(val) => form.setValue('cohereTopN', val)}
+            onValueChange={(val) => form.setValue('rerankTopN', val)}
             description="Number of top results"
           />
         </SettingCard>
 
         <SettingCard
           icon={<Filter className="h-8 w-8 text-primary" />}
-          title="Cohere Relevance Threshold"
+          title="Rerank Relevance Threshold"
           description="Set the relevance threshold (0-100)"
         >
           <SliderSetting
-            label="Cohere Relevance Threshold"
+            label="Rerank Relevance Threshold"
             value={form.watch('cohereRelevanceThreshold')}
             min={0}
             max={100}
@@ -77,12 +77,12 @@ export function KnowledgebaseForm() {
 
         <SettingCard
           icon={<Database className="h-8 w-8 text-primary" />}
-          title="Pinecone Top K"
+          title="Vector DB Top K"
           description="Set the top K results to retrieve (100-1000)"
         >
           <SliderSetting
-            label="Pinecone Top K"
-            value={form.watch('vectorDbTopK')}
+            label="Vector DB Top K"
+            value={form.watch('pineconeTopK')}
             min={100}
             max={1000}
             step={100}
