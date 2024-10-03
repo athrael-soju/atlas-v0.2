@@ -84,8 +84,7 @@ export function formatFilteredResults(
 Context: Start
 ==============${formattedResults}==============
 Context: End
-==============
-Instructions: Use available context to respond to the user message.`;
+==============`;
 }
 
 // Function to include personalized information in the response (if applicable)

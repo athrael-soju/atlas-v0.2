@@ -105,8 +105,7 @@ export async function embedDocument(
       const pageInfo = chunk.metadata.page_number
         ? `, Page ${chunk.metadata.page_number}`
         : '';
-      const citation = `[${file.url}](${file.name}${pageInfo})`;
-
+      const citation = `[${file.name}, ${pageInfo}](${file.url})`;
       const metadata = {
         ...transformedMetadata,
         text: chunk.text,

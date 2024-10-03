@@ -82,7 +82,7 @@ export function KnowledgebaseForm() {
         >
           <SliderSetting
             label="Vector DB Top K"
-            value={form.watch('pineconeTopK')}
+            value={form.watch('vectorDbTopK')}
             min={100}
             max={1000}
             step={100}
