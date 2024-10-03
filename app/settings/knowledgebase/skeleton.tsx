@@ -5,13 +5,13 @@ export function KnowledgebaseFormSkeleton() {
   return (
     <div className="container mx-auto py-10">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
-        {/* Cohere Top N Skeleton */}
+        {/* Rerank Top N Skeleton */}
         <SkeletonSettingCard />
 
-        {/* Cohere Relevance Threshold Skeleton */}
+        {/* Rerank Relevance Threshold Skeleton */}
         <SkeletonSettingCard />
 
-        {/* Pinecone Top K Skeleton */}
+        {/* Vector DB Top K Skeleton */}
         <SkeletonSettingCard />
       </div>
 

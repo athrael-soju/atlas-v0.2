@@ -24,7 +24,7 @@ export interface ParsedElement {
 }
 
 export interface KnowledgebaseSettings {
-  cohereTopN: number;
+  rerankTopN: number;
   cohereRelevanceThreshold: number;
   pineconeTopK: number;
 }

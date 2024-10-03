@@ -10,7 +10,7 @@ import { ListOrdered, Filter, Database } from 'lucide-react';
 import { KnowledgebaseFormSkeleton } from './skeleton'; // Import the skeleton
 
 const defaultValues: Partial<KnowledgebaseValues> = {
-  cohereTopN: 10,
+  rerankTopN: 10,
   cohereRelevanceThreshold: 0,
   pineconeTopK: 100
 };
@@ -43,27 +43,27 @@ export function KnowledgebaseForm() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
         <SettingCard
           icon={<ListOrdered className="h-8 w-8 text-primary" />}
-          title="Cohere Top N"
+          title="Rerank Top N"
           description="Set the top N results to consider (1-100)"
         >
           <SliderSetting
-            label="Cohere Top N"
-            value={form.watch('cohereTopN')}
+            label="Rerank Top N"
+            value={form.watch('rerankTopN')}
             min={1}
             max={100}
             step={1}
-            onValueChange={(val) => form.setValue('cohereTopN', val)}
+            onValueChange={(val) => form.setValue('rerankTopN', val)}
             description="Number of top results"
           />
         </SettingCard>
 
         <SettingCard
           icon={<Filter className="h-8 w-8 text-primary" />}
-          title="Cohere Relevance Threshold"
+          title="Rerank Relevance Threshold"
           description="Set the relevance threshold (0-100)"
         >
           <SliderSetting
-            label="Cohere Relevance Threshold"
+            label="Rerank Relevance Threshold"
             value={form.watch('cohereRelevanceThreshold')}
             min={0}
             max={100}

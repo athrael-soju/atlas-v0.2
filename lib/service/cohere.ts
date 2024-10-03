@@ -42,7 +42,7 @@ export async function rerank(
       documents: queryResults,
       rankFields: ['text', 'filename', 'page_number', 'filetype', 'languages'],
       query: userMessage,
-      topN: knowledgebaseSettings.cohereTopN,
+      topN: knowledgebaseSettings.rerankTopN,
       returnDocuments: true
     });
 

@@ -11,7 +11,7 @@ export const defaultUserSettings = () => ({
     chunkingStrategy: 'basic'
   },
   knowledgebase: {
-    cohereTopN: 10,
+    rerankTopN: 10,
     cohereRelevanceThreshold: 0,
     pineconeTopK: 100
   },
