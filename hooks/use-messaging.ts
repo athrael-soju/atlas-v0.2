@@ -168,7 +168,7 @@ export const useMessaging = (
       appendMessage('user', userMessage);
 
       // Step 1: Fetch context-enriched message if knowledgebase mode is enabled
-      let contextMessage = text;
+      let contextMessage = '';
       if (assistantMode === AssistantMode.Knowledgebase) {
         const contextEnrichedMessage = await fetchContextEnrichedMessage(
           userId,
@@ -186,18 +186,12 @@ export const useMessaging = (
         finalMessage = `${personalizedInfo}\n==============\n${contextMessage}`; // Append personalized info before context
       }
 
-      // Step 3: Append user message at the end
-      finalMessage += `
-==============
-User message: ${userMessage}
-==============`;
-
       // Step 4: Send the message after context and personalization are added
       const response = await fetch(
         `/api/assistants/threads/${conversationId}/messages`,
         {
           method: 'POST',
-          body: JSON.stringify({ text: finalMessage })
+          body: JSON.stringify({ userMessage, finalMessage })
         }
       );
       // Handle the response stream
@@ -218,6 +212,7 @@ User message: ${userMessage}
       // Re-enable the input and stop thinking indicator
       setIsThinking(false);
       setInputDisabled(false);
+    } finally {
     }
   };
 
