@@ -1,6 +1,6 @@
 import { rerank } from '@/lib/service/cohere';
 import { embedMessage } from '@/lib/service/openai';
-import { query } from '@/lib/service/pinecone';
+import { getVectorDbProvider } from '@/lib/service/vector-db/factory';
 import { validateUser } from '@/lib/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/service/winston'; // Import Winston logger
@@ -83,12 +83,15 @@ async function retrieveContext(
     );
     logger.info(chalk.green('Message embedding complete.'));
 
-    // Query Pinecone with the embedding
-    logger.info(chalk.blue('Querying Pinecone for context.'));
-    const queryResults = await query(
+    // Query Vector DB from the factory with the embedding
+    logger.info(chalk.blue('Querying Vector DB Factory for context.'));
+    const vectorDbProvider = await getVectorDbProvider(
+      settings.forge.vectorizationProvider
+    );
+    const queryResults = await vectorDbProvider.query(
       userId,
       embeddingResults,
-      settings.knowledgebase.pineconeTopK
+      settings.knowledgebase.vectorDbTopK
     );
     sendUpdate('Query complete', 'Query results retrieved from Pinecone.');
     logger.info(chalk.green('Query complete.'));

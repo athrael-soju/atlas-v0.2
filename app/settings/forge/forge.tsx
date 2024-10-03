@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { FileText, Cpu, Database, Settings } from 'lucide-react';
 import { forgeFormSchema, ForgeFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
@@ -51,6 +51,36 @@ export function ForgeForm() {
   });
 
   const [saving, setSaving] = useState(false);
+
+  const selectedParsingProvider = form.watch('parsingProvider');
+  const selectedChunkingStrategy = form.watch('chunkingStrategy');
+
+  // Filter chunking strategies based on the selected parsing provider
+  const filteredChunkingStrategies = useMemo(() => {
+    const isServerlessProvider = parsingProviders.find(
+      (provider) => provider.value === selectedParsingProvider
+    )?.serverless;
+
+    // Show all non-serverless strategies, and show serverless-only strategies when the provider is serverless
+    return chunkingStrategies.filter(
+      (strategy) => !strategy.serverlessOnly || isServerlessProvider
+    );
+  }, [selectedParsingProvider]);
+
+  // Check if the selected chunking strategy is valid whenever the provider changes
+  useEffect(() => {
+    const isStrategyValid = filteredChunkingStrategies.some(
+      (strategy) => strategy.value === selectedChunkingStrategy
+    );
+
+    if (!isStrategyValid) {
+      // If the current strategy is no longer valid, set it to the first available strategy
+      form.setValue(
+        'chunkingStrategy',
+        filteredChunkingStrategies[0]?.value || ''
+      );
+    }
+  }, [filteredChunkingStrategies, selectedChunkingStrategy, form]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -152,7 +182,7 @@ export function ForgeForm() {
                   <SelectValue placeholder="Select chunking strategy" />
                 </SelectTrigger>
                 <SelectContent>
-                  {chunkingStrategies.map((strategy) => (
+                  {filteredChunkingStrategies.map((strategy) => (
                     <SelectItem key={strategy.value} value={strategy.value}>
                       {strategy.label}
                     </SelectItem>

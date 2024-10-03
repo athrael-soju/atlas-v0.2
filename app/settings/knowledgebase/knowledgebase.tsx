@@ -12,7 +12,7 @@ import { KnowledgebaseFormSkeleton } from './skeleton'; // Import the skeleton
 const defaultValues: Partial<KnowledgebaseValues> = {
   rerankTopN: 10,
   cohereRelevanceThreshold: 0,
-  pineconeTopK: 100
+  vectorDbTopK: 100
 };
 
 export function KnowledgebaseForm() {
@@ -86,7 +86,7 @@ export function KnowledgebaseForm() {
             min={100}
             max={1000}
             step={100}
-            onValueChange={(val) => form.setValue('pineconeTopK', val)}
+            onValueChange={(val) => form.setValue('vectorDbTopK', val)}
             description="Number of top results to retrieve"
           />
         </SettingCard>

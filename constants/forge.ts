@@ -1,6 +1,6 @@
 export const parsingProviders = [
-  { label: 'Unstructured.io (Serverless)', value: 'ioc' },
-  { label: 'Unstructured.io (Local)', value: 'iol' }
+  { label: 'Unstructured.io (Serverless)', value: 'ioc', serverless: true },
+  { label: 'Unstructured.io (Local)', value: 'iol', serverless: false }
 ] as const;
 
 export const vectorizationProviders = [
@@ -16,7 +16,7 @@ export const partitioningStrategies = [
 ] as const;
 
 export const chunkingStrategies = [
-  { label: 'Basic', value: 'basic', serverlessOnly: false },
+  { label: 'Basic', value: 'basic', serverlessOnly: true },
   { label: 'By Title', value: 'by_title', serverlessOnly: false },
   { label: 'By Page', value: 'by_page', serverlessOnly: true },
   { label: 'By Similarity', value: 'by_similarity', serverlessOnly: true }

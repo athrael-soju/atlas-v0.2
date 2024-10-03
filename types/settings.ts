@@ -26,7 +26,7 @@ export interface ParsedElement {
 export interface KnowledgebaseSettings {
   rerankTopN: number;
   cohereRelevanceThreshold: number;
-  pineconeTopK: number;
+  vectorDbTopK: number;
 }
 export enum AssistantMode {
   Knowledgebase = 'Knowledgebase',
