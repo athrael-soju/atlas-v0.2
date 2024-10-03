@@ -39,7 +39,7 @@ export function KnowledgebaseForm() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto space-y-8 py-10">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
         <SettingCard
           icon={<ListOrdered className="h-8 w-8 text-primary" />}
