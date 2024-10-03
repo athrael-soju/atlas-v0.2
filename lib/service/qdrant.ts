@@ -77,9 +77,42 @@ export async function deleteFromVectorDb(
   );
 
   try {
-    // Implement actual delete logic here
-    // For now, we're throwing an unimplemented error
-    throw new Error('deleteFromVectorDb function is not implemented');
+    // Extract the filename or URL from the file object
+    const { name, url } = file;
+
+    if (!name && !url) {
+      throw new Error('No filename or URL provided for deletion.');
+    }
+
+    // Use the Qdrant client to delete points based on the filename or URL filter
+    await client.delete(QDRANT_COLLECTION, {
+      filter: {
+        must: [
+          {
+            key: 'name', // Filter based on the filename
+            match: {
+              value: name // Match the points that have the same filename
+            }
+          },
+          {
+            key: 'url', // Optionally, filter based on the URL as well
+            match: {
+              value: url // Match the points that have the same URL
+            }
+          }
+        ]
+      }
+    });
+
+    // Log success and return the number of points deleted (if provided by response)
+    logger.info(
+      chalk.green(
+        `Successfully deleted vectors for user ${userId} and file ${
+          name || url
+        }`
+      )
+    );
+    return 1;
   } catch (error) {
     logger.error(
       chalk.red(

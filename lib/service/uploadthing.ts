@@ -1,13 +1,13 @@
 import { UTApi } from 'uploadthing/server';
 import client from '@/lib/client/mongodb';
 import { ObjectId } from 'mongodb';
-import { getUserId } from '@/lib/service/mongodb';
+import { getUserData, getUserId } from '@/lib/service/mongodb';
 const utapi = new UTApi();
-import { deleteFromVectorDb } from './pinecone';
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import { getLocalDateTime } from '@/lib/utils';
 import { logger } from '@/lib/service/winston';
 import chalk from 'chalk';
+import { getVectorDbProvider } from './vector-db/factory';
 
 export const deleteFiles = async (
   userId: string,
@@ -18,12 +18,16 @@ export const deleteFiles = async (
 
   try {
     logger.info(chalk.blue(`Starting to delete files for user: ${userId}`));
+    const userData = await getUserData(userId);
+    const provider = await getVectorDbProvider(
+      userData.settings.forge?.vectorizationProvider || 'pcs'
+    );
 
     for (const file of files) {
       logger.info(chalk.blue(`Processing deletion for file: ${file.key}`));
 
       if (file.dateProcessed) {
-        const deletedChunksCount = await deleteFromVectorDb(id, file);
+        const deletedChunksCount = await provider.deleteFromVectorDb(id, file);
 
         if (!deletedChunksCount) {
           logger.error(
@@ -58,7 +62,6 @@ export const deleteFiles = async (
       logger.info(
         chalk.green(`Successfully deleted file from UploadThing: ${file.key}`)
       );
-
       const db = client.db('AtlasV1');
       const usersCollection = db.collection('users');
       const result = await usersCollection.updateOne(
