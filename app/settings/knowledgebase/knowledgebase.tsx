@@ -77,11 +77,11 @@ export function KnowledgebaseForm() {
 
         <SettingCard
           icon={<Database className="h-8 w-8 text-primary" />}
-          title="Pinecone Top K"
+          title="Vector DB Top K"
           description="Set the top K results to retrieve (100-1000)"
         >
           <SliderSetting
-            label="Pinecone Top K"
+            label="Vector DB Top K"
             value={form.watch('pineconeTopK')}
             min={100}
             max={1000}
