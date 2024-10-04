@@ -15,8 +15,12 @@ export class PineconeProvider implements VectorDbProvider {
     return pineconeUpsertDocument(userId, embeddings);
   }
 
-  async query(userEmail: string, embeddings: any, topK: number): Promise<any> {
-    return pineconeQuery(userEmail, embeddings, topK);
+  async query(
+    userId: string,
+    embedding: Embedding,
+    topK: number
+  ): Promise<any> {
+    return pineconeQuery(userId, embedding, topK);
   }
 
   async deleteFromVectorDb(

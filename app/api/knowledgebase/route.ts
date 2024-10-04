@@ -5,6 +5,7 @@ import { validateUser } from '@/lib/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/service/winston'; // Import Winston logger
 import chalk from 'chalk'; // Import Chalk for colorized logging
+import { Embedding } from '@/types/settings';
 
 function sendUpdate(
   status: string,
@@ -76,7 +77,7 @@ async function retrieveContext(
     logger.info(chalk.blue(`Embedding message for user: ${userId}`));
 
     // Embed the message
-    const embeddingResults = await embedMessage(userId, message);
+    const embeddingResults = (await embedMessage(userId, message)) as Embedding;
     sendUpdate(
       'Embedding complete',
       `Message embedding complete for: ${message}`

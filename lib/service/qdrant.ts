@@ -45,17 +45,63 @@ export const upsertDocument = async (
 
 export async function query(
   userId: string,
-  embeddings: any,
+  embedding: Embedding,
   topK: number
 ): Promise<any> {
   logger.info(
-    `query called with userEmail: ${userId}, embeddings: ${embeddings.length}, topK: ${topK}`
+    `query called with userId: ${userId}, embedding: ${embedding.values.length}, topK: ${topK}`
   );
 
   try {
-    // Implement actual query logic here
-    // For now, we're throwing an unimplemented error
-    throw new Error('query function is not implemented');
+    if (embedding.values.length === 0) {
+      throw new Error('No embedding provided for the query.');
+    }
+
+    // Using the first embedding for the query - this could be adjusted as needed
+    const response = await client.search(QDRANT_COLLECTION, {
+      vector: embedding.values,
+      limit: topK,
+      filter: {
+        must: [
+          {
+            key: 'metadata.userId',
+            match: {
+              value: userId
+            }
+          }
+        ]
+      },
+      with_payload: true,
+      with_vector: false
+    });
+
+    logger.info(
+      chalk.green(
+        `Query successful for user ${userId}, retrieved ${response.values.length} results.`
+      )
+    );
+
+    const context = response.map((item: any) => {
+      const contextItem: any = {
+        text: item.payload.metadata.text,
+        filename: item.payload.metadata.filename,
+        filetype: item.payload.metadata.filetype,
+        languages: item.payload.metadata.languages.join(', '),
+        userId: item.payload.metadata.userId,
+        url: item.payload.metadata.url,
+        citation: item.payload.metadata.citation
+      };
+      if (item.payload.metadata.page_number) {
+        contextItem.page_number = item.payload.metadata.page_number.toString();
+      }
+      return contextItem;
+    });
+
+    return {
+      message: 'Qdrant query successful',
+      namespace: userId,
+      context
+    };
   } catch (error) {
     logger.error(
       chalk.red(

@@ -177,7 +177,7 @@ const queryLimiter = new Bottleneck({
   minTime: 1
 });
 
-export async function query(userId: string, embeddings: any, topK: number) {
+export async function query(userId: string, embedding: any, topK: number) {
   let response;
   const maxResultSizeMB = 4; // The maximum allowed result size in MB
   const maxResultSizeBytes = maxResultSizeMB * 1024 * 1024; // Convert to bytes
@@ -187,7 +187,7 @@ export async function query(userId: string, embeddings: any, topK: number) {
 
   try {
     response = await queryLimiter.schedule(() =>
-      queryByNamespace(userId, topK, embeddings.values)
+      queryByNamespace(userId, topK, embedding.values)
     );
     logger.info(chalk.green(`Query successful for user ${userId}`));
   } catch (error: any) {
@@ -215,7 +215,7 @@ export async function query(userId: string, embeddings: any, topK: number) {
       );
 
       response = await queryLimiter.schedule(() =>
-        queryByNamespace(userId, adjustedTopK, embeddings.values)
+        queryByNamespace(userId, adjustedTopK, embedding.values)
       );
       logger.info(
         chalk.green(
@@ -233,7 +233,7 @@ export async function query(userId: string, embeddings: any, topK: number) {
       filename: item.metadata.filename,
       filetype: item.metadata.filetype,
       languages: item.metadata.languages.join(', '),
-      user_email: item.metadata.user_email,
+      userId: item.metadata.userId,
       url: item.metadata.url,
       citation: item.metadata.citation
     };

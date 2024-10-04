@@ -7,6 +7,7 @@ import { FileDeleted, FileObject } from 'openai/resources/index.mjs';
 import Bottleneck from 'bottleneck';
 import { logger } from '@/lib/service/winston';
 import chalk from 'chalk';
+import { v4 as uuidv4 } from 'uuid';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -57,7 +58,7 @@ export async function embedMessage(userId: string, content: string) {
     );
 
     return {
-      message: 'Message embeddings generated successfully',
+      id: uuidv4(),
       values: embeddingValues
     };
   } catch (error: any) {
