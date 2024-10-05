@@ -21,7 +21,8 @@ export async function GET(
       const endTime = Date.now();
       const duration = endTime - startTime;
       logger.error(
-        chalk.red(`Missing fileId in request - Request took ${duration}ms`)
+        chalk.red(`Missing fileId in request - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -44,7 +45,10 @@ export async function GET(
     if (!file || !fileContent) {
       const endTime = Date.now();
       const duration = endTime - startTime;
-      logger.error(chalk.red(`File not found - Request took ${duration}ms`));
+      logger.error(
+        chalk.red(`File not found - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
       logger.info(
         chalk.blue(
           '==================== END GET REQUEST ======================'
@@ -60,7 +64,8 @@ export async function GET(
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`File downloaded successfully - Request took ${duration}ms`)
+      chalk.green(`File downloaded successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END GET REQUEST ======================')
@@ -78,8 +83,8 @@ export async function GET(
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during GET request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during GET request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

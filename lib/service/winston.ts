@@ -24,33 +24,17 @@ const createLogger = () => {
     hostname: os.hostname()
   };
 
-  // Add custom metadata (service name, environment, requestId)
-  const addCustomMetadata = winston.format((info) => {
-    info.customMetadata = {
-      service: 'winston-service',
-      environment: process.env.NODE_ENV || 'development',
-      requestId: info.requestId || 'N/A' // This could be dynamically set per request in real use
-    };
-    return info;
-  });
-
   // Format for development (human-readable) and production (JSON)
   const devFormat = winston.format.combine(
     winston.format.colorize(),
     winston.format.timestamp(),
-    addCustomMetadata(),
-    winston.format.printf(
-      ({ timestamp, level, message, customMetadata, ...meta }) => {
-        return `${timestamp} [${level.toUpperCase()}]: ${message} ${JSON.stringify(
-          customMetadata
-        )} ${JSON.stringify(meta)}`;
-      }
-    )
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    })
   );
 
   const prodFormat = winston.format.combine(
     winston.format.timestamp(),
-    addCustomMetadata(),
     winston.format.json() // Structured logs for better parsing in production
   );
 

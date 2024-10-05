@@ -79,8 +79,8 @@ export async function POST(
     const duration = endTime - startTime;
     logger.info(
       chalk.green(
-        `Assistant response stream started successfully - Request took ${duration}ms`
-      )
+        `Assistant response stream started successfully - Request took `
+      ) + chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END POST REQUEST ======================')
@@ -94,8 +94,8 @@ export async function POST(
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

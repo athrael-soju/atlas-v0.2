@@ -1,24 +1,29 @@
 import { openai } from '@/lib/client/openai';
-import {
-  logInfo,
-  logError,
-  logSuccess,
-  logTiming
-} from '@/lib/service/logging';
+import { logger } from '@/lib/service/winston'; // Import Winston logger
+import chalk from 'chalk'; // Import Chalk for colorized logging
 
 // Create a new assistant
 export async function POST() {
   const startTime = Date.now();
-  logInfo('==================== START POST REQUEST ====================');
-  logInfo('POST request received to create a new assistant');
+  logger.info(
+    chalk.blue('==================== START POST REQUEST ====================')
+  );
+  logger.info(chalk.blue('POST request received to create a new assistant'));
 
   try {
     // Ensure the model is defined
     const model = process.env.OPENAI_API_MODEL as string;
     if (!model) {
-      logError('Missing model configuration');
-      logTiming('Missing model configuration validation', startTime);
-      logInfo('==================== END POST REQUEST ======================');
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`Missing model configuration - Request took ${duration}ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END POST REQUEST ======================'
+        )
+      );
 
       return new Response(
         JSON.stringify({ error: 'Missing model configuration' }),
@@ -58,18 +63,33 @@ export async function POST() {
       ]
     });
 
-    logSuccess('Assistant created successfully');
-    logTiming('Complete POST request', startTime);
-    logInfo('==================== END POST REQUEST ======================');
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.info(
+      chalk.green(`Assistant created successfully - Request took ${duration}ms`)
+    );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
 
     return new Response(JSON.stringify({ assistantId: assistant.id }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
-    logError(`Error occurred during POST request - ${error.message}`);
-    logTiming('POST request handling', startTime);
-    logInfo('==================== END POST REQUEST ======================');
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(
+        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
+      ),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
 
     return new Response(
       JSON.stringify({ error: error.message || 'Internal Server Error' }),

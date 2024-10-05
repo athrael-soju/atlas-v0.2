@@ -10,7 +10,9 @@ export async function POST(
   logger.info(
     chalk.blue('==================== START POST REQUEST ====================')
   );
-  logger.info(chalk.blue('POST request received  for submitting tool outputs to thread'));
+  logger.info(
+    chalk.blue('POST request received  for submitting tool outputs to thread')
+  );
 
   try {
     // Parse request body
@@ -22,8 +24,8 @@ export async function POST(
       const duration = endTime - startTime;
       logger.error(
         chalk.red(
-          `Missing toolCallOutputs or runId in request body - Request took ${duration}ms`
-        )
+          `Missing toolCallOutputs or runId in request body - Request took `
+        ) + chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -49,9 +51,8 @@ export async function POST(
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(
-        `Tool outputs submitted successfully - Request took ${duration}ms`
-      )
+      chalk.green(`Tool outputs submitted successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END POST REQUEST ======================')
@@ -63,8 +64,8 @@ export async function POST(
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

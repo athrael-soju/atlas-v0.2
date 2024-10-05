@@ -37,7 +37,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!userId) {
       const endTime = Date.now();
       const duration = endTime - startTime;
-      logger.error(chalk.red(`Invalid user - Request took ${duration}ms`));
+      logger.error(
+        chalk.red(`Invalid user - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
       logger.info(
         chalk.blue(
           '==================== END POST REQUEST ======================'
@@ -70,9 +73,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             const endTime = Date.now();
             const duration = endTime - startTime;
             logger.info(
-              chalk.green(
-                `All files processed successfully - Request took ${duration}ms`
-              )
+              chalk.green(`All files processed successfully - Request took `) +
+                chalk.magenta(`${duration} ms`)
             );
             logger.info(
               chalk.blue(
@@ -86,8 +88,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             const duration = endTime - startTime;
             logger.error(
               chalk.red(
-                `Error processing files - ${err.message} - Request took ${duration}ms`
-              )
+                `Error processing files - ${err.message} - Request took `
+              ) + chalk.magenta(`${duration} ms`)
             );
             logger.info(
               chalk.blue(
@@ -111,8 +113,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

@@ -26,7 +26,8 @@ export async function PUT(request: Request) {
       const endTime = Date.now();
       const duration = endTime - startTime;
       logger.error(
-        chalk.red(`Invalid user or missing userId - Request took ${duration}ms`)
+        chalk.red(`Invalid user or missing userId - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -48,9 +49,8 @@ export async function PUT(request: Request) {
       const endTime = Date.now();
       const duration = endTime - startTime;
       logger.error(
-        chalk.red(
-          `Failed to retrieve the assistant - Request took ${duration}ms`
-        )
+        chalk.red(`Failed to retrieve the assistant - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -81,8 +81,8 @@ export async function PUT(request: Request) {
       const duration = endTime - startTime;
       logger.error(
         chalk.red(
-          `Failed to update assistant with new settings - Request took ${duration}ms`
-        )
+          `Failed to update assistant with new settings - Request took `
+        ) + chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -101,7 +101,8 @@ export async function PUT(request: Request) {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Assistant updated successfully - Request took ${duration}ms`)
+      chalk.green(`Assistant updated successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END PUT REQUEST ======================')
@@ -116,8 +117,8 @@ export async function PUT(request: Request) {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during PUT request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during PUT request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

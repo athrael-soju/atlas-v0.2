@@ -27,7 +27,8 @@ export async function GET() {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Files listed successfully - Request took ${duration}ms`)
+      chalk.green(`Files listed successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END GET REQUEST ======================')
@@ -38,9 +39,8 @@ export async function GET() {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.error(
-      chalk.red(
-        `Failed to retrieve files - ${error.message} - Request took ${duration}ms`
-      ),
+      chalk.red(`Failed to retrieve files - ${error.message} - Request took `) +
+        chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }
@@ -72,9 +72,8 @@ export async function DELETE(req: NextRequest) {
       const endTime = Date.now();
       const duration = endTime - startTime;
       logger.error(
-        chalk.red(
-          `Unauthorized request - Missing userId - Request took ${duration}ms`
-        )
+        chalk.red(`Unauthorized request - Missing userId - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -88,9 +87,8 @@ export async function DELETE(req: NextRequest) {
       const endTime = Date.now();
       const duration = endTime - startTime;
       logger.error(
-        chalk.red(
-          `Invalid request - File(s) do not exist - Request took ${duration}ms`
-        )
+        chalk.red(`Invalid request - File(s) do not exist - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -108,7 +106,8 @@ export async function DELETE(req: NextRequest) {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Files deleted successfully - Request took ${duration}ms`)
+      chalk.green(`Files deleted successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue(
@@ -121,9 +120,8 @@ export async function DELETE(req: NextRequest) {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.error(
-      chalk.red(
-        `Failed to delete files - ${error.message} - Request took ${duration}ms`
-      ),
+      chalk.red(`Failed to delete files - ${error.message} - Request took `) +
+        chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

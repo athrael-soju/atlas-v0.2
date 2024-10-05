@@ -16,7 +16,8 @@ export async function POST() {
       const endTime = Date.now();
       const duration = endTime - startTime;
       logger.error(
-        chalk.red(`Failed to create thread - Request took ${duration}ms`)
+        chalk.red(`Failed to create thread - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -33,7 +34,8 @@ export async function POST() {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Thread created successfully - Request took ${duration}ms`)
+      chalk.green(`Thread created successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END POST REQUEST ======================')
@@ -48,8 +50,8 @@ export async function POST() {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

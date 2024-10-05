@@ -4,13 +4,8 @@ import { getVectorDbProvider } from '@/lib/service/vector-db/factory';
 import { validateUser } from '@/lib/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { Embedding } from '@/types/settings';
-import {
-  logInfo,
-  logError,
-  logWarn,
-  logSuccess,
-  logTiming
-} from '@/lib/service/logging';
+import { logger } from '@/lib/service/winston'; // Import Winston logger
+import chalk from 'chalk'; // Import Chalk for colorized logging
 
 function sendUpdate(
   status: string,
@@ -23,8 +18,10 @@ function sendUpdate(
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
-  logInfo('==================== START GET REQUEST ====================');
-  logInfo('GET request received for retrieving context');
+  logger.info(
+    chalk.blue('==================== START GET REQUEST ====================')
+  );
+  logger.info(chalk.blue('GET request received for retrieving context'));
 
   try {
     const { searchParams } = req.nextUrl;
@@ -32,9 +29,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const message = searchParams.get('message');
 
     if (!userId || !message) {
-      logWarn('No userId or message provided');
-      logTiming('GET request handling', startTime);
-      logInfo('==================== END GET REQUEST ======================');
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`No userId or message provided - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END GET REQUEST ======================'
+        )
+      );
+
       return NextResponse.json(
         { error: 'No userId or message provided' },
         { status: 400 }
@@ -54,18 +60,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
         retrieveContext(userId, message, settings, send)
           .then(() => {
-            logSuccess('Context retrieved successfully');
-            logTiming('GET request handling', startTime);
-            logInfo(
-              '==================== END GET REQUEST ======================'
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            logger.info(
+              chalk.green(`Context retrieved successfully - Request took `) +
+                chalk.magenta(`${duration} ms`)
+            );
+            logger.info(
+              chalk.blue(
+                '==================== END GET REQUEST ======================'
+              )
             );
             controller.close();
           })
           .catch((err) => {
-            logError(`Error retrieving context - ${err.message}`);
-            logTiming('GET request handling', startTime);
-            logInfo(
-              '==================== END GET REQUEST ======================'
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            logger.error(
+              chalk.red(
+                `Error retrieving context - ${err.message} - Request took `
+              ) + chalk.magenta(`${duration} ms`)
+            );
+            logger.info(
+              chalk.blue(
+                '==================== END GET REQUEST ======================'
+              )
             );
             controller.error(err);
           });
@@ -80,9 +99,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }
     });
   } catch (error: any) {
-    logError(`Error occurred during GET request - ${error.message}`);
-    logTiming('GET request handling', startTime);
-    logInfo('==================== END GET REQUEST ======================');
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(
+        `Error occurred during GET request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
+    );
     return handleErrorResponse(error);
   }
 }

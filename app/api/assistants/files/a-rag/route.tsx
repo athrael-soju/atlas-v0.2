@@ -25,7 +25,10 @@ export async function POST(request: Request) {
     if (!file) {
       const endTime = Date.now();
       const duration = endTime - startTime;
-      logger.error(chalk.red(`No file provided - Request took ${duration}ms`));
+      logger.error(
+        chalk.red(`No file provided - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
       logger.info(
         chalk.blue(
           '==================== END POST REQUEST ======================'
@@ -51,7 +54,8 @@ export async function POST(request: Request) {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`File uploaded successfully - Request took ${duration}ms`)
+      chalk.green(`File uploaded successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END POST REQUEST ======================')
@@ -66,8 +70,8 @@ export async function POST(request: Request) {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }
@@ -117,7 +121,8 @@ export async function GET() {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Files listed successfully - Request took ${duration}ms`)
+      chalk.green(`Files listed successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END GET REQUEST ======================')
@@ -132,8 +137,8 @@ export async function GET() {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during GET request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during GET request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }
@@ -155,7 +160,9 @@ export async function DELETE(request: Request) {
   logger.info(
     chalk.blue('==================== START DELETE REQUEST ====================')
   );
-  logger.info(chalk.blue('DELETE request received for deleting file from vector store'));
+  logger.info(
+    chalk.blue('DELETE request received for deleting file from vector store')
+  );
 
   try {
     const body = await request.json();
@@ -164,7 +171,10 @@ export async function DELETE(request: Request) {
     if (!fileId) {
       const endTime = Date.now();
       const duration = endTime - startTime;
-      logger.error(chalk.red(`Missing fileId - Request took ${duration}ms`));
+      logger.error(
+        chalk.red(`Missing fileId - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
       logger.info(
         chalk.blue(
           '==================== END DELETE REQUEST ======================'
@@ -183,7 +193,8 @@ export async function DELETE(request: Request) {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`File deleted successfully - Request took ${duration}ms`)
+      chalk.green(`File deleted successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue(
@@ -197,8 +208,8 @@ export async function DELETE(request: Request) {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during DELETE request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during DELETE request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }

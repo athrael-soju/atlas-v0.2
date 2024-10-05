@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
       const duration = endTime - startTime;
       logger.error(
         chalk.red(
-          `Unauthorized request - No valid session found - Request took ${duration}ms`
-        )
+          `Unauthorized request - No valid session found - Request took `
+        ) + chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -72,8 +72,8 @@ export async function POST(req: NextRequest) {
       const duration = endTime - startTime;
       logger.error(
         chalk.red(
-          `Invalid request payload - Missing path or data - Request took ${duration}ms`
-        )
+          `Invalid request payload - Missing path or data - Request took `
+        ) + chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -92,7 +92,8 @@ export async function POST(req: NextRequest) {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`User data updated successfully - Request took ${duration}ms`)
+      chalk.green(`User data updated successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END POST REQUEST ======================')
@@ -104,8 +105,8 @@ export async function POST(req: NextRequest) {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }
@@ -135,8 +136,8 @@ export async function GET(req: NextRequest) {
       const duration = endTime - startTime;
       logger.error(
         chalk.red(
-          `Unauthorized request - No valid session found - Request took ${duration}ms`
-        )
+          `Unauthorized request - No valid session found - Request took `
+        ) + chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -156,8 +157,8 @@ export async function GET(req: NextRequest) {
       const duration = endTime - startTime;
       logger.error(
         chalk.red(
-          `Invalid request - Path parameter is required - Request took ${duration}ms`
-        )
+          `Invalid request - Path parameter is required - Request took `
+        ) + chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -182,9 +183,8 @@ export async function GET(req: NextRequest) {
       const endTime = Date.now();
       const duration = endTime - startTime;
       logger.error(
-        chalk.red(
-          `Data not found at path: ${path} - Request took ${duration}ms`
-        )
+        chalk.red(`Data not found at path: ${path} - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
       logger.info(
         chalk.blue(
@@ -200,7 +200,8 @@ export async function GET(req: NextRequest) {
     const endTime = Date.now();
     const duration = endTime - startTime;
     logger.info(
-      chalk.green(`User data fetched successfully - Request took ${duration}ms`)
+      chalk.green(`User data fetched successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
     logger.info(
       chalk.blue('==================== END GET REQUEST ======================')
@@ -212,8 +213,8 @@ export async function GET(req: NextRequest) {
     const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error occurred during GET request - ${error.message} - Request took ${duration}ms`
-      ),
+        `Error occurred during GET request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
       {
         stack: error.stack
       }
