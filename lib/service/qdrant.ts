@@ -5,19 +5,23 @@ import chalk from 'chalk'; // Import Chalk
 import { client } from '@/lib/client/qdrant'; // Using the Qdrant client you've set up
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import Bottleneck from 'bottleneck'; // Import Bottleneck
+import pRetry from 'p-retry'; // Import p-retry for retry logic
+import cliProgress from 'cli-progress'; // Import cliProgress for progress bars
 
 const QDRANT_COLLECTION = process.env.QDRANT_COLLECTION || 'atlasv1';
 
+// Updated Bottleneck configuration for controlled concurrency
 const limiter = new Bottleneck({
-  maxConcurrent: 1, // Limit to one concurrent request
-  minTime: 200 // Minimum time between each request in milliseconds
+  maxConcurrent: 3, // Increased concurrent requests to 3 for better throughput
+  minTime: 100 // Minimum time between each request in milliseconds
 });
 
 export const upsertDocument = async (
   userId: string,
   embeddings: Embedding[],
-  batchPercentage: number = 10 // Default batch size is 10% of total embeddings
+  batchPercentage: number = 20 // Adjusted batch size to 20% for better balance
 ) => {
+  const start = Date.now();
   logger.info(chalk.blue(`Starting upsert for user ${userId}`));
 
   if (embeddings.length === 0) {
@@ -36,45 +40,75 @@ export const upsertDocument = async (
   );
 
   let totalUpserted = 0;
+  const batches = [];
 
-  // Process the embeddings in batches
+  // Create batches of embeddings
   for (let i = 0; i < embeddings.length; i += batchSize) {
-    const batch = embeddings.slice(i, i + batchSize);
-
-    // Prepare the points for the current batch
-    const points = batch.map((embedding) => ({
-      id: uuidv4(), // Generate a UUID for the point
-      payload: {
-        embeddingId: embedding.id, // The ID of the embedding
-        metadata: embedding.metadata || {} // Attach any additional metadata if available
-      },
-      vector: embedding.values // The embedding's vector
-    }));
-
-    try {
-      // Perform the upsert operation using the Qdrant client, limiting concurrency with Bottleneck
-      await limiter.schedule(() =>
-        client.upsert(QDRANT_COLLECTION, {
-          points // The list of points (embeddings) to upsert
-        })
-      );
-      totalUpserted += batch.length;
-    } catch (error) {
-      logger.error(
-        chalk.red(
-          `Failed to upsert batch for user ${userId}. Error: ${
-            (error as Error).message
-          }. Response: ${JSON.stringify((error as any).response?.data)}`
-        )
-      );
-      throw error;
-    }
+    batches.push(embeddings.slice(i, i + batchSize));
   }
 
+  // Initialize progress bar for batch processing
+  const progressBar = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic
+  );
+  progressBar.start(batches.length, 0);
+
+  // Process all batches concurrently with retry logic for better resilience
+  await Promise.all(
+    batches.map((batch, index) =>
+      pRetry(
+        () =>
+          limiter.schedule(async () => {
+            const points = batch.map((embedding) => ({
+              id: uuidv4(),
+              payload: {
+                embeddingId: embedding.id,
+                metadata: embedding.metadata || {}
+              },
+              vector: embedding.values
+            }));
+
+            try {
+              await client.upsert(QDRANT_COLLECTION, { points });
+              totalUpserted += batch.length;
+              progressBar.increment();
+            } catch (error) {
+              logger.error(
+                chalk.red(
+                  `Failed to upsert batch for user ${userId}. Error: ${
+                    (error as Error).message
+                  }. Response: ${JSON.stringify((error as any).response?.data)}`
+                )
+              );
+              throw error;
+            }
+          }),
+        {
+          retries: 3,
+          onFailedAttempt: (error: { attemptNumber: any }) => {
+            logger.warn(
+              chalk.yellow(
+                `Attempt ${error.attemptNumber} failed for upserting batch for user ${userId}. Retrying...`
+              )
+            );
+          }
+        }
+      )
+    )
+  );
+
+  progressBar.stop();
+
+  const duration = Date.now() - start;
   logger.info(
     chalk.green(
       `Upsert completed for user ${userId}, total embeddings upserted: ${totalUpserted}`
     )
+  );
+  logger.info(
+    chalk.green(`Upsert operation for user ${userId} took `) +
+      chalk.magenta(`${duration} ms`)
   );
   return totalUpserted;
 };
@@ -84,8 +118,11 @@ export async function query(
   embedding: Embedding,
   topK: number
 ): Promise<any> {
+  const start = Date.now();
   logger.info(
-    `query called with userId: ${userId}, embedding: ${embedding.values.length}, topK: ${topK}`
+    chalk.blue(
+      `query called with userId: ${userId}, embedding: ${embedding.values.length}, topK: ${topK}`
+    )
   );
 
   try {
@@ -113,7 +150,7 @@ export async function query(
 
     logger.info(
       chalk.green(
-        `Query successful for user ${userId}, retrieved ${response.values.length} results.`
+        `Query successful for user ${userId}, retrieved ${response.length} results.`
       )
     );
 
@@ -122,7 +159,7 @@ export async function query(
         text: item.payload.metadata.text,
         filename: item.payload.metadata.filename,
         filetype: item.payload.metadata.filetype,
-        languages: item.payload.metadata.languages.join(', '),
+        languages: item.payload.metadata.languages?.join(', '),
         userId: item.payload.metadata.userId,
         url: item.payload.metadata.url,
         citation: item.payload.metadata.citation
@@ -133,6 +170,11 @@ export async function query(
       return contextItem;
     });
 
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Query operation for user ${userId} took `) +
+        chalk.magenta(`${duration} ms`)
+    );
     return {
       message: 'Qdrant query successful',
       namespace: userId,
@@ -152,40 +194,31 @@ export async function deleteFromVectorDb(
   userId: string,
   file: KnowledgebaseFile
 ): Promise<number> {
+  const start = Date.now();
   logger.info(
-    `deleteFromVectorDb called with userId: ${userId}, file: ${JSON.stringify(
-      file
-    )}`
+    chalk.green(
+      `Delete operation started for userId: ${userId}, file: ${JSON.stringify(
+        file
+      )}`
+    )
   );
 
   try {
-    // Extract the filename or URL from the file object
     const { name, url } = file;
 
     if (!name && !url) {
       throw new Error('No filename or URL provided for deletion.');
     }
 
-    // Count the number of points to be deleted
-    const countResponse = await client.count(QDRANT_COLLECTION, {
-      filter: {
-        must: [
-          {
-            key: 'metadata.filename',
-            match: {
-              value: name
-            }
-          },
-          {
-            key: 'metadata.url',
-            match: {
-              value: url
-            }
-          }
-        ]
-      }
-    });
+    const filter = {
+      must: [
+        { key: 'metadata.filename', match: { value: name } },
+        { key: 'metadata.url', match: { value: url } }
+      ]
+    };
 
+    // Count the number of points to be deleted
+    const countResponse = await client.count(QDRANT_COLLECTION, { filter });
     const pointsToDelete = countResponse.count || 0;
 
     if (pointsToDelete === 0) {
@@ -200,32 +233,19 @@ export async function deleteFromVectorDb(
     }
 
     // Use the Qdrant client to delete points based on the filename or URL filter
-    await client.delete(QDRANT_COLLECTION, {
-      filter: {
-        must: [
-          {
-            key: 'metadata.filename',
-            match: {
-              value: name
-            }
-          },
-          {
-            key: 'metadata.url',
-            match: {
-              value: url
-            }
-          }
-        ]
-      }
-    });
+    await client.delete(QDRANT_COLLECTION, { filter });
 
-    // Log success and return the number of points deleted
     logger.info(
       chalk.green(
         `Successfully deleted ${pointsToDelete} vectors for user ${userId} and file ${
           name || url
         }`
       )
+    );
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Delete operation for user ${userId} took `) +
+        chalk.magenta(`${duration} ms`)
     );
     return pointsToDelete;
   } catch (error) {

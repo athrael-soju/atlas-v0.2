@@ -8,6 +8,8 @@ import Bottleneck from 'bottleneck';
 import { logger } from '@/lib/service/winston';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
+import pRetry from 'p-retry';
+import cliProgress from 'cli-progress';
 
 const embeddingApiModel =
   process.env.OPENAI_API_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -38,6 +40,7 @@ const transformObjectValues = (
 };
 
 export async function embedMessage(userId: string, content: string) {
+  const start = Date.now();
   try {
     logger.info(chalk.blue(`Embedding message for user: ${userId}`));
 
@@ -68,6 +71,12 @@ export async function embedMessage(userId: string, content: string) {
       )
     );
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Embedding message for user: ${userId} took `) +
+        chalk.magenta(`${duration} ms`)
+    );
   }
 }
 
@@ -76,72 +85,82 @@ export async function embedDocument(
   file: KnowledgebaseFile,
   chunks: ParsedElement[]
 ) {
+  const start = Date.now();
   const chunkIdList: string[] = [];
 
-  // Initialize Bottleneck limiter
+  // Initialize Bottleneck limiter for 5000 RPM (minTime: 12 ms)
   const limiter = new Bottleneck({
-    reservoir: 3000, // Maximum number of requests per minute
-    reservoirRefreshAmount: 3000,
+    reservoir: 5000, // Maximum number of requests per minute
+    reservoirRefreshAmount: 5000,
     reservoirRefreshInterval: 60 * 1000, // 60 seconds
-    minTime: 1, // Minimum time between requests (in ms)
-    maxConcurrent: 60 // Max concurrent requests
+    minTime: 12 // Minimum time between requests (in ms) to allow up to 5000 RPM (~83 RPS)
   });
 
-  // Define a function to process each chunk
-  async function processChunk(chunk: any, index: number) {
-    try {
-      const response = await openai.embeddings.create({
-        model: embeddingApiModel,
-        input: chunk.text,
-        encoding_format: 'float'
-      });
+  // Initialize Progress Bar
+  const progressBar = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic
+  );
+  progressBar.start(chunks.length, 0);
 
-      const transformedMetadata = transformObjectValues(chunk.metadata);
-
-      const newId = `${toAscii(file.name)}#${file.key}#${index + 1}`;
-      chunkIdList.push(newId);
-      const embeddingValues = response.data[0].embedding;
-
-      // Add citation field to the metadata
-      const pageInfo = chunk.metadata.page_number
-        ? `, Page ${chunk.metadata.page_number}`
-        : '';
-      const citation = `[${file.name}, ${pageInfo}](${file.url})`;
-      const metadata = {
-        ...transformedMetadata,
-        text: chunk.text,
-        userId: userId,
-        url: file.url,
-        citation: citation
-      };
-
-      return {
-        id: newId,
-        values: embeddingValues,
-        metadata: metadata
-      };
-    } catch (error: any) {
-      logger.error(
-        chalk.red(
-          `Failed to embed chunk ${index + 1} for file: ${file.name}. Error: ${
-            error.message
-          }`
-        )
-      );
-      throw error;
-    }
-  }
-
-  // Map over chunks using limiter.schedule
   try {
     logger.info(
       chalk.blue(`Starting embedding process for document: ${file.name}`)
     );
+
+    // Process all chunks using Bottleneck rate limiting
     const embeddings = await Promise.all(
-      chunks.map((chunk: any, index: number) =>
-        limiter.schedule(() => processChunk(chunk, index))
-      )
+      chunks.map(async (chunk, index) => {
+        return limiter.schedule(async () => {
+          try {
+            // Request the embedding from OpenAI API
+            const response = await openai.embeddings.create({
+              model: embeddingApiModel,
+              input: chunk.text,
+              encoding_format: 'float'
+            });
+
+            // Create metadata for the chunk
+            const transformedMetadata = transformObjectValues(chunk.metadata);
+            const newId = `${toAscii(file.name)}#${file.key}#${index + 1}`;
+            chunkIdList.push(newId);
+            const embeddingValues = response.data[0].embedding;
+
+            // Add citation field to the metadata
+            const pageInfo = chunk.metadata.page_number
+              ? `, Page ${chunk.metadata.page_number}`
+              : '';
+            const citation = `[${file.name}${pageInfo}](${file.url})`;
+            const metadata = {
+              ...transformedMetadata,
+              text: chunk.text,
+              userId: userId,
+              url: file.url,
+              citation: citation
+            };
+
+            // Increment the progress bar
+            progressBar.increment(1);
+
+            return {
+              id: newId,
+              values: embeddingValues,
+              metadata: metadata
+            };
+          } catch (error: any) {
+            logger.error(
+              chalk.red(
+                `Failed to embed chunk ${index + 1} for file: ${
+                  file.name
+                }. Error: ${error.message}`
+              )
+            );
+            throw error;
+          }
+        });
+      })
     );
+
     logger.info(
       chalk.green(`Successfully embedded all chunks for document: ${file.name}`)
     );
@@ -153,10 +172,19 @@ export async function embedDocument(
       )
     );
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Embedding document for file: ${file.name} took `) +
+        chalk.magenta(`${duration} ms`)
+    );
+    progressBar.update(100);
+    progressBar.stop();
   }
 }
 
 export const createThread = async (): Promise<Thread> => {
+  const start = Date.now();
   try {
     logger.info(chalk.blue('Creating a new thread'));
     const thread = await openai.beta.threads.create();
@@ -165,10 +193,16 @@ export const createThread = async (): Promise<Thread> => {
   } catch (error: any) {
     logger.error(chalk.red(`Failed to create thread. Error: ${error.message}`));
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Creating thread took `) + chalk.magenta(`${duration} ms`)
+    );
   }
 };
 
 export const uploadFile = async (file: File): Promise<FileObject> => {
+  const start = Date.now();
   try {
     logger.info(chalk.blue(`Uploading file: ${file.name}`));
     const fileObject = await openai.files.create({
@@ -182,10 +216,17 @@ export const uploadFile = async (file: File): Promise<FileObject> => {
       chalk.red(`Failed to upload file: ${file.name}. Error: ${error.message}`)
     );
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Uploading file: ${file.name} took `) +
+        chalk.magenta(`${duration} ms`)
+    );
   }
 };
 
 export const deleteFile = async (fileIds: string[]): Promise<FileDeleted[]> => {
+  const start = Date.now();
   const deletedFiles: FileDeleted[] = [];
   try {
     logger.info(
@@ -196,9 +237,15 @@ export const deleteFile = async (fileIds: string[]): Promise<FileDeleted[]> => {
 
     // Iterate over the fileIds and delete each file individually
     for (const fileId of fileIds) {
+      const fileStart = Date.now();
       logger.info(chalk.blue(`Deleting file with ID: ${fileId}`));
       const deletedFile = await openai.files.del(fileId);
       deletedFiles.push(deletedFile);
+      const fileDuration = Date.now() - fileStart;
+      logger.info(
+        chalk.green(`Deleting file with ID: ${fileId} took `) +
+          chalk.magenta(`${fileDuration} ms`)
+      );
       logger.info(chalk.green(`Successfully deleted file with ID: ${fileId}`));
     }
 
@@ -211,10 +258,17 @@ export const deleteFile = async (fileIds: string[]): Promise<FileDeleted[]> => {
   } catch (error: any) {
     logger.error(chalk.red(`Failed to delete files. Error: ${error.message}`));
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`File deletion process took `) +
+        chalk.magenta(`${duration} ms`)
+    );
   }
 };
 
 export const getFiles = async (): Promise<FileObject[]> => {
+  const start = Date.now();
   try {
     logger.info(chalk.blue('Fetching list of files'));
     const files = await openai.files.list();
@@ -223,5 +277,11 @@ export const getFiles = async (): Promise<FileObject[]> => {
   } catch (error: any) {
     logger.error(chalk.red(`Failed to fetch files. Error: ${error.message}`));
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Fetching list of files took `) +
+        chalk.magenta(`${duration} ms`)
+    );
   }
 };

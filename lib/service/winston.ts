@@ -4,6 +4,9 @@ import os from 'os';
 
 let loggerInstance: winston.Logger; // Variable to hold the singleton instance
 
+// Set max listeners limit to prevent warning (optional but good to include)
+process.setMaxListeners(20);
+
 // Function to initialize the logger only once
 const createLogger = () => {
   if (loggerInstance) {
@@ -67,35 +70,28 @@ const createLogger = () => {
     ]
   });
 
-  // Handle uncaught exceptions and unhandled rejections
-  loggerInstance.exceptions.handle(
-    new winston.transports.File({ filename: 'exceptions.log' })
-  );
+  // Handle uncaught exceptions and unhandled rejections - apply globally ONCE
+  if (
+    !process
+      .listeners('uncaughtException')
+      .some((listener) => listener.name === 'handleExceptions')
+  ) {
+    process.on('uncaughtException', (err) => {
+      loggerInstance.error(`Uncaught Exception: ${err.message}`, {
+        stack: err.stack
+      });
+    });
+  }
 
-  loggerInstance.rejections.handle(
-    new winston.transports.File({ filename: 'rejections.log' })
-  );
-
-  // Optional: If you want to log unhandled exceptions to Loki, you can do:
-  loggerInstance.exceptions.handle(
-    new winston.transports.Console(), // Console transport for visibility
-    new LokiTransport({
-      host: process.env.LOKI_URL || 'http://host.docker.internal:3100',
-      labels: labels,
-      json: true,
-      replaceTimestamp: true
-    })
-  );
-
-  loggerInstance.rejections.handle(
-    new winston.transports.Console(), // Console transport for visibility
-    new LokiTransport({
-      host: process.env.LOKI_URL || 'http://host.docker.internal:3100',
-      labels: labels,
-      json: true,
-      replaceTimestamp: true
-    })
-  );
+  if (
+    !process
+      .listeners('unhandledRejection')
+      .some((listener) => listener.name === 'handleRejections')
+  ) {
+    process.on('unhandledRejection', (reason) => {
+      loggerInstance.error(`Unhandled Rejection: ${reason}`);
+    });
+  }
 
   return loggerInstance; // Return the newly created instance
 };

@@ -7,14 +7,28 @@ export async function GET(
   _request: Request,
   { params: { fileId } }: { params: { fileId: string } }
 ) {
-  try {
-    logger.info(
-      chalk.blue(`GET request received to download file with ID: ${fileId}`)
-    );
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START GET REQUEST ====================')
+  );
+  logger.info(
+    chalk.blue('GET request received for downloading file by fileId')
+  );
 
+  try {
     // Validate if fileId is provided
     if (!fileId) {
-      logger.warn(chalk.yellow('No fileId provided in the request'));
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`Missing fileId in request - Request took ${duration}ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END GET REQUEST ======================'
+        )
+      );
+
       return new Response(
         JSON.stringify({ error: 'Missing fileId in request' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -28,19 +42,28 @@ export async function GET(
     ]);
 
     if (!file || !fileContent) {
-      logger.error(
-        chalk.red(`File or file content not found for ID: ${fileId}`)
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(chalk.red(`File not found - Request took ${duration}ms`));
+      logger.info(
+        chalk.blue(
+          '==================== END GET REQUEST ======================'
+        )
       );
+
       return new Response(JSON.stringify({ error: 'File not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.info(
-      chalk.green(
-        `Successfully retrieved file with ID: ${fileId}, starting download`
-      )
+      chalk.green(`File downloaded successfully - Request took ${duration}ms`)
+    );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
     );
 
     // Return the file content as a response with the appropriate headers
@@ -51,13 +74,20 @@ export async function GET(
       }
     });
   } catch (error: any) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error downloading file with ID: ${fileId}: ${
-          error.message || 'Unknown error'
-        }`
-      )
+        `Error occurred during GET request - ${error.message} - Request took ${duration}ms`
+      ),
+      {
+        stack: error.stack
+      }
     );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
+    );
+
     return new Response(
       JSON.stringify({ error: error.message || 'Internal Server Error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

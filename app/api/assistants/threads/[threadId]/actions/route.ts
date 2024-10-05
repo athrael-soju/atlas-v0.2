@@ -6,17 +6,31 @@ export async function POST(
   request: Request,
   { params: { threadId } }: { params: { threadId: string } }
 ) {
-  try {
-    logger.info(chalk.blue(`POST request received for thread ID: ${threadId}`));
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START POST REQUEST ====================')
+  );
+  logger.info(chalk.blue('POST request received  for submitting tool outputs to thread'));
 
+  try {
     // Parse request body
     const { toolCallOutputs, runId } = await request.json();
 
     // Validate inputs
     if (!toolCallOutputs || !runId) {
-      logger.warn(
-        chalk.yellow('Missing toolCallOutputs or runId in the request body')
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(
+          `Missing toolCallOutputs or runId in request body - Request took ${duration}ms`
+        )
       );
+      logger.info(
+        chalk.blue(
+          '==================== END POST REQUEST ======================'
+        )
+      );
+
       return new Response(
         JSON.stringify({
           error: 'Missing toolCallOutputs or runId in request body'
@@ -25,13 +39,6 @@ export async function POST(
       );
     }
 
-    // Log the details of toolCallOutputs and runId
-    logger.info(
-      chalk.blue(
-        `Submitting tool outputs for run ID: ${runId} in thread ID: ${threadId}`
-      )
-    );
-
     // Submit the tool outputs and start the stream
     const stream = openai.beta.threads.runs.submitToolOutputsStream(
       threadId,
@@ -39,18 +46,33 @@ export async function POST(
       { tool_outputs: toolCallOutputs }
     );
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Stream started successfully for thread ID: ${threadId}`)
-    );
-    return new Response(stream.toReadableStream());
-  } catch (error: any) {
-    logger.error(
-      chalk.red(
-        `Error in submitting tool outputs for thread ID: ${threadId}: ${
-          error.message || 'Unknown error'
-        }`
+      chalk.green(
+        `Tool outputs submitted successfully - Request took ${duration}ms`
       )
     );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
+
+    return new Response(stream.toReadableStream());
+  } catch (error: any) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(
+        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
+      ),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
+
     return new Response(
       JSON.stringify({ error: error.message || 'Internal Server Error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

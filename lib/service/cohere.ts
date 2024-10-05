@@ -10,6 +10,7 @@ function filterResults(
   results: RerankResponseResultsItem[],
   relevanceThreshold: number
 ): RerankResponseResultsItem[] {
+  const start = Date.now();
   logger.info(
     chalk.blue(
       `Filtering results with relevance score >= ${relevanceThreshold}. Total results: ${results.length}`
@@ -23,6 +24,10 @@ function filterResults(
       `Filtered results count: ${filteredResults.length} (Threshold: ${relevanceThreshold})`
     )
   );
+  const duration = Date.now() - start;
+  logger.info(
+    chalk.green('Filtering results took ') + chalk.magenta(`${duration} ms`)
+  );
   return filteredResults;
 }
 
@@ -32,6 +37,7 @@ export async function rerank(
   queryResults: any[],
   knowledgebaseSettings: KnowledgebaseSettings
 ): Promise<string> {
+  const start = Date.now();
   try {
     logger.info(
       chalk.blue(`Starting reranking process for user message: ${userMessage}`)
@@ -46,7 +52,7 @@ export async function rerank(
       returnDocuments: true
     });
 
-    logger.info(chalk.green(`Reranking completed. Processing results...`));
+    logger.info(chalk.green('Reranking completed. Processing results...'));
 
     const filteredResults = filterResults(
       rerankResponse.results,
@@ -59,7 +65,7 @@ export async function rerank(
           `Found ${filteredResults.length} relevant documents after filtering.`
         )
       );
-      let formattedResults = formatFilteredResults(filteredResults);
+      const formattedResults = formatFilteredResults(filteredResults);
       return formattedResults;
     } else {
       logger.warn(
@@ -79,5 +85,10 @@ Context: No relevant documents found with a relevance score of ${knowledgebaseSe
       )
     );
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Reranking process for message "${userMessage}" took `) + chalk.magenta(`${duration} ms`)
+    );
   }
 }

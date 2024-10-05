@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/service/winston'; // Import Winston logger
+import chalk from 'chalk'; // Import Chalk for colorized logging
 import { Embedding, ForgeSettings, ParsedElement } from '@/types/settings';
 import { parseAndChunk } from '@/lib/service/unstructured';
 import { KnowledgebaseFile } from '@/types/file-uploader';
 import { embedDocument } from '@/lib/service/openai';
 import { validateUser } from '@/lib/utils';
 import { updateFileDateProcessed } from '@/lib/service/mongodb';
-import { logger } from '@/lib/service/winston'; // Winston logger
-import chalk from 'chalk'; // Import Chalk for colorized logging
 import { getVectorDbProvider } from '@/lib/service/vector-db/factory';
 
 function sendUpdate(
@@ -19,25 +19,38 @@ function sendUpdate(
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  try {
-    logger.info(chalk.blue('POST request received for file processing.'));
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START POST REQUEST ====================')
+  );
+  logger.info(
+    chalk.blue(
+      'POST request received for processing files and embedding content'
+    )
+  );
 
+  try {
     const formData = await req.formData();
     const fileIds = JSON.parse(formData.get('fileIds') as string);
     const userId = formData.get('userId') as string;
 
     if (!userId) {
-      logger.warn(chalk.yellow('Invalid user ID in request.'));
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(chalk.red(`Invalid user - Request took ${duration}ms`));
+      logger.info(
+        chalk.blue(
+          '==================== END POST REQUEST ======================'
+        )
+      );
       throw new Error('Invalid user');
     }
 
     // Validate user
     const userServerData = await validateUser(userId);
-    logger.info(chalk.green(`User validated successfully: ${userId}`));
 
     // Validate file IDs
     validateFileIds(fileIds);
-    logger.info(chalk.blue(`File IDs validated: ${fileIds.join(', ')}`));
 
     const forgeSettings = userServerData.settings.forge as ForgeSettings;
 
@@ -45,7 +58,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const files = userServerData.files.knowledgebase.filter(
       (file: KnowledgebaseFile) => fileIds.includes(file.key)
     );
-    logger.info(chalk.blue(`Retrieved ${files.length} files for processing.`));
 
     // Setup and return SSE stream
     const stream = new ReadableStream({
@@ -54,10 +66,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           sendUpdate(state, message, controller);
 
         processFiles(userId, files, forgeSettings, send)
-          .then(() => controller.close())
+          .then(() => {
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            logger.info(
+              chalk.green(
+                `All files processed successfully - Request took ${duration}ms`
+              )
+            );
+            logger.info(
+              chalk.blue(
+                '==================== END POST REQUEST ======================'
+              )
+            );
+            controller.close();
+          })
           .catch((err) => {
+            const endTime = Date.now();
+            const duration = endTime - startTime;
             logger.error(
-              chalk.red(`Error in processing files: ${err.message}`)
+              chalk.red(
+                `Error processing files - ${err.message} - Request took ${duration}ms`
+              )
+            );
+            logger.info(
+              chalk.blue(
+                '==================== END POST REQUEST ======================'
+              )
             );
             controller.error(err);
           });
@@ -71,15 +106,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         Connection: 'keep-alive'
       }
     });
-  } catch (error) {
-    logger.error(chalk.red(`Error handling POST request: ${error}`));
+  } catch (error: any) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(
+        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
+      ),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
     return handleErrorResponse(error);
   }
 }
 
 function validateFileIds(fileIds: any): void {
   if (!Array.isArray(fileIds)) {
-    logger.warn(chalk.yellow('Invalid file IDs provided.'));
     throw new Error('Invalid file IDs');
   }
 }
@@ -93,19 +139,11 @@ async function processFiles(
   for (const file of files) {
     try {
       sendUpdate('Processing', `Processing file: ${file.name}`);
-      logger.info(chalk.blue(`Processing file: ${file.name}`));
-
       const chunks: ParsedElement[] = await parseAndChunk(forgeSettings, file);
       sendUpdate('Processed', `File chunked into ${chunks.length} parts.`);
-      logger.info(chalk.blue(`File chunked into ${chunks.length} parts.`));
-
       sendUpdate('Embedding', `Embedding file: ${file.name}`);
       const embeddings: Embedding[] = await embedDocument(userId, file, chunks);
       sendUpdate('Embedded', `File embedded into ${embeddings.length} chunks.`);
-      logger.info(
-        chalk.blue(`File embedded into ${embeddings.length} chunks.`)
-      );
-
       sendUpdate('Upserting', `Upserting file: ${file.name}`);
       const vectorDbProvider = await getVectorDbProvider(
         forgeSettings.vectorizationProvider
@@ -115,19 +153,18 @@ async function processFiles(
         embeddings
       );
       sendUpdate('Upserted', `Upserted ${upsertedChunkCount} chunks.`);
-      logger.info(
-        chalk.green(
-          `Upserted ${upsertedChunkCount} chunks for file: ${file.name}`
-        )
-      );
-
       await updateFileDateProcessed(userId, [file]);
-      logger.info(chalk.green(`File processing complete: ${file.name}`));
     } catch (error: any) {
-      sendUpdate('Error', `Error processing file '${file.name}': ${error}`);
-      logger.error(chalk.red(`Error processing file '${file.name}': ${error}`));
-    } finally {
-      sendUpdate('Done', `Finished processing file: ${file.name}`);
+      sendUpdate(
+        'Error',
+        `Error processing file '${file.name}': ${error.message}`
+      );
+      logger.error(
+        chalk.red(`Error processing file '${file.name}': ${error.message}`),
+        {
+          stack: error.stack
+        }
+      );
     }
   }
 }
@@ -138,10 +175,8 @@ function handleErrorResponse(error: any): NextResponse {
       ? 400
       : 500;
 
-  logger.error(chalk.red(`Error response: ${error}`));
-
   return new NextResponse(
-    JSON.stringify({ message: error || 'Internal server error' }),
+    JSON.stringify({ message: error.message || 'Internal server error' }),
     { status }
   );
 }
