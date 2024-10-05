@@ -196,7 +196,7 @@ export async function deleteFromVectorDb(
 ): Promise<number> {
   const start = Date.now();
   logger.info(
-    chalk.green(
+    chalk.blue(
       `Delete operation started for userId: ${userId}, file: ${JSON.stringify(
         file
       )}`
