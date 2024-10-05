@@ -11,12 +11,10 @@ async function getValidSession() {
   try {
     const session = await getServerSession(authConfig);
     if (!session || !session.user || !session.user.id) {
-      logger.warn(chalk.yellow('Unauthorized access attempt'));
       return null;
     }
     return session;
   } catch (error: any) {
-    logger.error(chalk.red(`Error retrieving session: ${error.message}`));
     return null;
   }
 }
@@ -28,9 +26,6 @@ async function handleUpdate(
   fieldPath: string
 ) {
   try {
-    logger.info(
-      chalk.blue(`Updating user data for userId: ${userId}, path: ${fieldPath}`)
-    );
     return await updateUserField(userId, {
       $set: {
         [fieldPath]: updateData,
@@ -38,16 +33,33 @@ async function handleUpdate(
       }
     });
   } catch (error: any) {
-    logger.error(chalk.red(`Error updating user field: ${error.message}`));
     throw error;
   }
 }
 
 // POST Route - Dynamic updates to user data
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START POST REQUEST ====================')
+  );
+  logger.info(chalk.blue('POST request received  for updating user data'));
+
   try {
     const session = await getValidSession();
     if (!session) {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(
+          `Unauthorized request - No valid session found - Request took `
+        ) + chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END POST REQUEST ======================'
+        )
+      );
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -56,7 +68,18 @@ export async function POST(req: NextRequest) {
 
     // Validate request payload
     if (!path || typeof path !== 'string' || !data) {
-      logger.warn(chalk.yellow('Invalid POST request, missing path or data.'));
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(
+          `Invalid request payload - Missing path or data - Request took `
+        ) + chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END POST REQUEST ======================'
+        )
+      );
       return NextResponse.json(
         { message: 'Invalid request, path and data are required' },
         { status: 400 }
@@ -66,14 +89,31 @@ export async function POST(req: NextRequest) {
     // Perform the update based on the provided path and data
     const response = await handleUpdate(userId, data, path);
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.info(
-      chalk.green(
-        `User data updated successfully for userId: ${userId}, path: ${path}`
-      )
+      chalk.green(`User data updated successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
+
     return NextResponse.json(response, { status: 200 });
   } catch (error: any) {
-    logger.error(chalk.red(`Error in POST request: ${error.message}`));
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
     return NextResponse.json(
       { message: 'Internal server error', error: error.message },
       { status: 500 }
@@ -83,9 +123,27 @@ export async function POST(req: NextRequest) {
 
 // GET Route - Fetching dynamic parts of user data
 export async function GET(req: NextRequest) {
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START GET REQUEST ====================')
+  );
+  logger.info(chalk.blue('GET request received for fetching user data'));
+
   try {
     const session = await getValidSession();
     if (!session) {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(
+          `Unauthorized request - No valid session found - Request took `
+        ) + chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END GET REQUEST ======================'
+        )
+      );
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -95,7 +153,18 @@ export async function GET(req: NextRequest) {
 
     // Validate the 'path' query parameter
     if (!path || typeof path !== 'string') {
-      logger.warn(chalk.yellow('Invalid GET request, missing path parameter.'));
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(
+          `Invalid request - Path parameter is required - Request took `
+        ) + chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END GET REQUEST ======================'
+        )
+      );
       return NextResponse.json(
         { message: 'Path parameter is required' },
         { status: 400 }
@@ -103,9 +172,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch user data from the database
-    logger.info(
-      chalk.blue(`Fetching user data for userId: ${userId}, path: ${path}`)
-    );
     const userData = await getUserData(userId);
 
     // Use dynamic path access, e.g., userData['settings.chat']
@@ -114,8 +180,16 @@ export async function GET(req: NextRequest) {
       .reduce((obj, key) => (obj as Record<string, any>)?.[key], userData);
 
     if (dataAtPath === undefined) {
-      logger.warn(
-        chalk.yellow(`Data not found at path: ${path} for userId: ${userId}`)
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`Data not found at path: ${path} - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END GET REQUEST ======================'
+        )
       );
       return NextResponse.json(
         { message: `Data not found at path: ${path}` },
@@ -123,12 +197,31 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.info(
-      chalk.green(`User data fetched successfully for path: ${path}`)
+      chalk.green(`User data fetched successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
+    );
+
     return NextResponse.json({ [path]: dataAtPath }, { status: 200 });
   } catch (error: any) {
-    logger.error(chalk.red(`Error in GET request: ${error.message}`));
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(
+        `Error occurred during GET request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
+    );
     return NextResponse.json(
       { message: 'Internal server error', error: error.message },
       { status: 500 }

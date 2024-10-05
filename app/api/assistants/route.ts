@@ -4,13 +4,27 @@ import chalk from 'chalk'; // Import Chalk for colorized logging
 
 // Create a new assistant
 export async function POST() {
-  try {
-    logger.info(chalk.blue('POST request received to create a new assistant'));
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START POST REQUEST ====================')
+  );
+  logger.info(chalk.blue('POST request received to create a new assistant'));
 
+  try {
     // Ensure the model is defined
     const model = process.env.OPENAI_API_MODEL as string;
     if (!model) {
-      logger.error(chalk.red('Missing OPENAI_API_MODEL environment variable'));
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`Missing model configuration - Request took ${duration}ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END POST REQUEST ======================'
+        )
+      );
+
       return new Response(
         JSON.stringify({ error: 'Missing model configuration' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -18,7 +32,6 @@ export async function POST() {
     }
 
     // Create the assistant
-    logger.info(chalk.blue(`Creating a new assistant with model: ${model}`));
     const assistant = await openai.beta.assistants.create({
       instructions: 'You are a helpful assistant.',
       name: 'Quickstart Assistant',
@@ -50,8 +63,13 @@ export async function POST() {
       ]
     });
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Assistant created successfully with ID: ${assistant.id}`)
+      chalk.green(`Assistant created successfully - Request took ${duration}ms`)
+    );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
     );
 
     return new Response(JSON.stringify({ assistantId: assistant.id }), {
@@ -59,9 +77,20 @@ export async function POST() {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.error(
-      chalk.red(`Error creating assistant: ${error.message || 'Unknown error'}`)
+      chalk.red(
+        `Error occurred during POST request - ${error.message} - Request took ${duration}ms`
+      ),
+      {
+        stack: error.stack
+      }
     );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
+
     return new Response(
       JSON.stringify({ error: error.message || 'Internal Server Error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

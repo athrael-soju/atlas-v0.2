@@ -6,6 +6,7 @@ import Bottleneck from 'bottleneck';
 import { Index } from '@pinecone-database/pinecone';
 import { logger } from '@/lib/service/winston';
 import chalk from 'chalk';
+import cliProgress from 'cli-progress';
 
 const MAX_UPSERT_SIZE_BYTES = 4 * 1024 * 1024; // 4MB limit for Pinecone
 const MAX_METADATA_SIZE_BYTES = 40 * 1024; // 40KB limit for metadata
@@ -35,6 +36,16 @@ function chunkEmbeddingsBySize(
   embeddings: Embedding[],
   maxSize: number
 ): Embedding[][] {
+  const start = Date.now();
+  logger.info(chalk.blue('Chunking embeddings by size...'));
+
+  // Initialize progress bar
+  const progressBar = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic
+  );
+  progressBar.start(embeddings.length, 0);
+
   const chunks: Embedding[][] = [];
   let currentChunk: Embedding[] = [];
   let currentSize = 0;
@@ -46,9 +57,10 @@ function chunkEmbeddingsBySize(
     if (!isMetadataSizeValid(embedding.metadata)) {
       logger.warn(
         chalk.yellow(
-          `Metadata size exceeds 40KB for embedding. Skipping this record.`
+          'Metadata size exceeds 40KB for embedding. Skipping this record.'
         )
       );
+      progressBar.increment();
       continue; // Skip this embedding if the metadata is too large
     }
 
@@ -61,6 +73,7 @@ function chunkEmbeddingsBySize(
 
     currentChunk.push(embedding);
     currentSize += embeddingSize;
+    progressBar.increment();
   }
 
   // Push the last chunk if it's not empty
@@ -68,6 +81,11 @@ function chunkEmbeddingsBySize(
     chunks.push(currentChunk);
   }
 
+  progressBar.stop();
+  const duration = Date.now() - start;
+  logger.info(
+    chalk.green('Chunking embeddings took ') + chalk.magenta(`${duration} ms`)
+  );
   return chunks;
 }
 
@@ -76,6 +94,7 @@ export const upsertDocument = async (
   userId: string,
   embeddings: Embedding[]
 ) => {
+  const start = Date.now();
   let upsertedChunkCount = 0;
   logger.info(chalk.blue(`Starting upsert for user ${userId}`));
 
@@ -93,6 +112,13 @@ export const upsertDocument = async (
     embeddings,
     MAX_UPSERT_SIZE_BYTES
   );
+
+  // Initialize progress bar
+  const progressBar = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic
+  );
+  progressBar.start(chunkedDataBySize.length, 0);
 
   const upsertChunkWithRetry = async (chunk: Embedding[]) => {
     const namespace = index.namespace(userId);
@@ -117,6 +143,9 @@ export const upsertDocument = async (
         upsertedChunkCount += chunk.length;
         totalUpsertedSizePerSecond += chunkSize;
 
+        // Update progress bar here
+        progressBar.increment();
+
         break;
       } catch (error: any) {
         if (error.statusCode === 429) {
@@ -134,7 +163,7 @@ export const upsertDocument = async (
               `Upsert failed for user ${userId} - message size exceeds 4MB limit. Chunk size: ${chunkSize} bytes`
             )
           );
-          throw new Error(`Upsert failed due to size limits.`);
+          throw new Error('Upsert failed due to size limits.');
         } else {
           logger.error(
             chalk.red(
@@ -153,17 +182,23 @@ export const upsertDocument = async (
     }
   };
 
-  // Schedule upserts with rate limiting
+  // Schedule upserts with rate limiting and update progress bar after each upsert
   const upsertPromises = chunkedDataBySize.map((chunk) =>
     upsertLimiter.schedule(() => upsertChunkWithRetry(chunk))
   );
 
   await Promise.all(upsertPromises);
+  progressBar.stop();
 
   logger.info(
     chalk.green(
       `Upsert completed for user ${userId} with ${upsertedChunkCount} records upserted`
     )
+  );
+  const duration = Date.now() - start;
+  logger.info(
+    chalk.green(`Upsert operation for user ${userId} took `) +
+      chalk.magenta(`${duration} ms`)
   );
   return upsertedChunkCount;
 };
@@ -177,7 +212,8 @@ const queryLimiter = new Bottleneck({
   minTime: 1
 });
 
-export async function query(userId: string, embeddings: any, topK: number) {
+export async function query(userId: string, embedding: any, topK: number) {
+  const start = Date.now();
   let response;
   const maxResultSizeMB = 4; // The maximum allowed result size in MB
   const maxResultSizeBytes = maxResultSizeMB * 1024 * 1024; // Convert to bytes
@@ -187,7 +223,7 @@ export async function query(userId: string, embeddings: any, topK: number) {
 
   try {
     response = await queryLimiter.schedule(() =>
-      queryByNamespace(userId, topK, embeddings.values)
+      queryByNamespace(userId, topK, embedding.values)
     );
     logger.info(chalk.green(`Query successful for user ${userId}`));
   } catch (error: any) {
@@ -215,7 +251,7 @@ export async function query(userId: string, embeddings: any, topK: number) {
       );
 
       response = await queryLimiter.schedule(() =>
-        queryByNamespace(userId, adjustedTopK, embeddings.values)
+        queryByNamespace(userId, adjustedTopK, embedding.values)
       );
       logger.info(
         chalk.green(
@@ -233,7 +269,7 @@ export async function query(userId: string, embeddings: any, topK: number) {
       filename: item.metadata.filename,
       filetype: item.metadata.filetype,
       languages: item.metadata.languages.join(', '),
-      user_email: item.metadata.user_email,
+      userId: item.metadata.userId,
       url: item.metadata.url,
       citation: item.metadata.citation
     };
@@ -243,6 +279,11 @@ export async function query(userId: string, embeddings: any, topK: number) {
     return contextItem;
   });
 
+  const duration = Date.now() - start;
+  logger.info(
+    chalk.green(`Query operation for user ${userId} took `) +
+      chalk.magenta(`${duration} ms`)
+  );
   return {
     message: 'Pinecone query successful',
     namespace: userId,
@@ -266,6 +307,7 @@ const queryByNamespace = async (
   topK: number,
   embeddedMessage: any
 ) => {
+  const start = Date.now();
   logger.info(chalk.blue(`Querying namespace ${namespace} with topK=${topK}`));
   const index = await getIndex();
   const result = await index.namespace(namespace).query({
@@ -274,6 +316,11 @@ const queryByNamespace = async (
     includeValues: false,
     includeMetadata: true
   });
+  const duration = Date.now() - start;
+  logger.info(
+    chalk.green(`Querying namespace ${namespace} took `) +
+      chalk.magenta(`${duration} ms`)
+  );
   return result;
 };
 
@@ -282,6 +329,7 @@ export async function deleteFromVectorDb(
   userId: string,
   file: KnowledgebaseFile
 ): Promise<number> {
+  const start = Date.now();
   const pageSize = 100;
   let paginationToken: string | undefined;
   let deletedCount = 0;
@@ -303,6 +351,13 @@ export async function deleteFromVectorDb(
     minTime: 1
   });
 
+  // Initialize progress bar for delete operation
+  const progressBar = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic
+  );
+  progressBar.start(1000, 0); // Starts for 1000 chunks in this example
+
   do {
     const result = await listArchiveChunks(
       file,
@@ -323,6 +378,7 @@ export async function deleteFromVectorDb(
         deleteChunks(idsToDelete, namespace, userId)
       );
       deletedCount += idsToDelete.length;
+      progressBar.increment(idsToDelete.length);
     }
 
     paginationToken = result.paginationToken;
@@ -335,10 +391,17 @@ export async function deleteFromVectorDb(
     deletedCount += allChunkIds.length;
   }
 
+  progressBar.stop();
+
   logger.info(
     chalk.green(
       `Delete operation completed for user ${userId}. Total records deleted: ${deletedCount}`
     )
+  );
+  const duration = Date.now() - start;
+  logger.info(
+    chalk.green(`Delete operation for user ${userId} took `) +
+      chalk.magenta(`${duration} ms`)
   );
   return deletedCount;
 }
@@ -349,6 +412,7 @@ const deleteChunks = async (
   namespace: Index,
   userId: string
 ) => {
+  const start = Date.now();
   if (totalDeletedRecordsPerSecond + ids.length > MAX_DELETE_SIZE_PER_SECOND) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     totalDeletedRecordsPerSecond = 0;
@@ -364,6 +428,12 @@ const deleteChunks = async (
       )
     );
     throw error;
+  } finally {
+    const duration = Date.now() - start;
+    logger.info(
+      chalk.green(`Deleting chunks for user ${userId} took `) +
+        chalk.magenta(`${duration} ms`)
+    );
   }
 };
 
@@ -374,6 +444,12 @@ async function listArchiveChunks(
   limit: number,
   paginationToken?: string
 ): Promise<{ chunks: { id: string }[]; paginationToken?: string }> {
+  const start = Date.now();
+  logger.info(
+    chalk.blue(
+      `Listing archive chunks for file ${file.name} with limit ${limit}`
+    )
+  );
   const validLimit = Math.min(Math.max(limit, 1), 100);
 
   const listResult = await namespace.listPaginated({
@@ -384,5 +460,10 @@ async function listArchiveChunks(
 
   const chunks =
     listResult.vectors?.map((vector) => ({ id: vector.id || '' })) || [];
+  const duration = Date.now() - start;
+  logger.info(
+    chalk.green(`Listing archive chunks for file ${file.name} took `) +
+      chalk.magenta(`${duration} ms`)
+  );
   return { chunks, paginationToken: listResult.pagination?.next };
 }

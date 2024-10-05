@@ -15,15 +15,40 @@ export const { POST } = createRouteHandler({
 
 // GET route for listing files
 export async function GET() {
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START GET REQUEST ====================')
+  );
+  logger.info(chalk.blue('GET request received for listing files'));
+
   try {
-    logger.info(chalk.blue('GET request received for listing files.'));
     const result = await listFiles();
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Successfully retrieved ${result.files.length} files.`)
+      chalk.green(`Files listed successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
+    );
+
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
-    logger.error(chalk.red(`Error listing files: ${error.message}`));
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(`Failed to retrieve files - ${error.message} - Request took `) +
+        chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
+    );
+
     return NextResponse.json(
       { error: 'Failed to retrieve files' },
       { status: 500 }
@@ -33,20 +58,42 @@ export async function GET() {
 
 // DELETE route for deleting files
 export async function DELETE(req: NextRequest) {
-  try {
-    logger.info(chalk.blue('DELETE request received for file deletion.'));
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START DELETE REQUEST ====================')
+  );
+  logger.info(chalk.blue('DELETE request received for deleting files'));
 
+  try {
     const body = await req.json();
     const { userId, files } = body;
 
     if (!userId) {
-      logger.warn(chalk.yellow('Unauthorized request: Missing userId.'));
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`Unauthorized request - Missing userId - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END DELETE REQUEST ======================'
+        )
+      );
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!files || !Array.isArray(files) || files.length === 0) {
-      logger.warn(
-        chalk.yellow('Invalid file deletion request: No files provided.')
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`Invalid request - File(s) do not exist - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END DELETE REQUEST ======================'
+        )
       );
       return NextResponse.json(
         { error: 'Invalid request, file(s) do not exist' },
@@ -54,13 +101,37 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    logger.info(chalk.blue(`Deleting files for user: ${userId}`));
     const result = await deleteFiles(userId, files);
-    logger.info(chalk.green(`Successfully deleted files for user: ${userId}`));
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.info(
+      chalk.green(`Files deleted successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
+    );
+    logger.info(
+      chalk.blue(
+        '==================== END DELETE REQUEST ======================'
+      )
+    );
 
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
-    logger.error(chalk.red(`Error deleting files: ${error.message}`));
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(`Failed to delete files - ${error.message} - Request took `) +
+        chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue(
+        '==================== END DELETE REQUEST ======================'
+      )
+    );
+
     return NextResponse.json(
       { error: 'Failed to delete files' },
       { status: 500 }

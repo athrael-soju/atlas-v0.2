@@ -4,6 +4,9 @@ import os from 'os';
 
 let loggerInstance: winston.Logger; // Variable to hold the singleton instance
 
+// Set max listeners limit to prevent warning (optional but good to include)
+process.setMaxListeners(20);
+
 // Function to initialize the logger only once
 const createLogger = () => {
   if (loggerInstance) {
@@ -21,33 +24,17 @@ const createLogger = () => {
     hostname: os.hostname()
   };
 
-  // Add custom metadata (service name, environment, requestId)
-  const addCustomMetadata = winston.format((info) => {
-    info.customMetadata = {
-      service: 'winston-service',
-      environment: process.env.NODE_ENV || 'development',
-      requestId: info.requestId || 'N/A' // This could be dynamically set per request in real use
-    };
-    return info;
-  });
-
   // Format for development (human-readable) and production (JSON)
   const devFormat = winston.format.combine(
     winston.format.colorize(),
     winston.format.timestamp(),
-    addCustomMetadata(),
-    winston.format.printf(
-      ({ timestamp, level, message, customMetadata, ...meta }) => {
-        return `${timestamp} [${level.toUpperCase()}]: ${message} ${JSON.stringify(
-          customMetadata
-        )} ${JSON.stringify(meta)}`;
-      }
-    )
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    })
   );
 
   const prodFormat = winston.format.combine(
     winston.format.timestamp(),
-    addCustomMetadata(),
     winston.format.json() // Structured logs for better parsing in production
   );
 
@@ -67,35 +54,28 @@ const createLogger = () => {
     ]
   });
 
-  // Handle uncaught exceptions and unhandled rejections
-  loggerInstance.exceptions.handle(
-    new winston.transports.File({ filename: 'exceptions.log' })
-  );
+  // Handle uncaught exceptions and unhandled rejections - apply globally ONCE
+  if (
+    !process
+      .listeners('uncaughtException')
+      .some((listener) => listener.name === 'handleExceptions')
+  ) {
+    process.on('uncaughtException', (err) => {
+      loggerInstance.error(`Uncaught Exception: ${err.message}`, {
+        stack: err.stack
+      });
+    });
+  }
 
-  loggerInstance.rejections.handle(
-    new winston.transports.File({ filename: 'rejections.log' })
-  );
-
-  // Optional: If you want to log unhandled exceptions to Loki, you can do:
-  loggerInstance.exceptions.handle(
-    new winston.transports.Console(), // Console transport for visibility
-    new LokiTransport({
-      host: process.env.LOKI_URL || 'http://host.docker.internal:3100',
-      labels: labels,
-      json: true,
-      replaceTimestamp: true
-    })
-  );
-
-  loggerInstance.rejections.handle(
-    new winston.transports.Console(), // Console transport for visibility
-    new LokiTransport({
-      host: process.env.LOKI_URL || 'http://host.docker.internal:3100',
-      labels: labels,
-      json: true,
-      replaceTimestamp: true
-    })
-  );
+  if (
+    !process
+      .listeners('unhandledRejection')
+      .some((listener) => listener.name === 'handleRejections')
+  ) {
+    process.on('unhandledRejection', (reason) => {
+      loggerInstance.error(`Unhandled Rejection: ${reason}`);
+    });
+  }
 
   return loggerInstance; // Return the newly created instance
 };

@@ -13,7 +13,7 @@ export interface ForgeSettings {
 export interface Embedding {
   id: string;
   values: number[];
-  metadata: {
+  metadata?: {
     text: any;
     userId: string;
   };

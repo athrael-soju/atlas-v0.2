@@ -5,8 +5,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-
 interface SelectSettingProps {
   value: string;
   options: { value: string; label: string }[];

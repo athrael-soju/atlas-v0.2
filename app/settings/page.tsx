@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import {

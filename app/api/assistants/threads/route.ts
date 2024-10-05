@@ -3,32 +3,63 @@ import { logger } from '@/lib/service/winston'; // Import Winston logger
 import chalk from 'chalk'; // Import Chalk for colorized logging
 
 export async function POST() {
-  try {
-    logger.info(chalk.blue('POST request received to create a new thread.'));
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START POST REQUEST ====================')
+  );
+  logger.info(chalk.blue('POST request received  for creating a new thread'));
 
+  try {
     const thread = await createThread();
 
     if (!thread || !thread.id) {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
       logger.error(
-        chalk.red('Failed to create a thread. Thread object is invalid.')
+        chalk.red(`Failed to create thread - Request took `) +
+          chalk.magenta(`${duration} ms`)
       );
+      logger.info(
+        chalk.blue(
+          '==================== END POST REQUEST ======================'
+        )
+      );
+
       return new Response(
         JSON.stringify({ error: 'Failed to create thread' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.info(
-      chalk.green(`Successfully created thread with ID: ${thread.id}`)
+      chalk.green(`Thread created successfully - Request took `) +
+        chalk.magenta(`${duration} ms`)
     );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
+
     return new Response(JSON.stringify({ threadId: thread.id }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error: any) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.error(
-      chalk.red(`Error creating thread: ${error.message || 'Unknown error'}`)
+      chalk.red(
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
     );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
+
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to create thread' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

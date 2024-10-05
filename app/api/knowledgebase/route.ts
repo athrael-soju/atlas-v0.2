@@ -3,6 +3,7 @@ import { embedMessage } from '@/lib/service/openai';
 import { getVectorDbProvider } from '@/lib/service/vector-db/factory';
 import { validateUser } from '@/lib/utils';
 import { NextRequest, NextResponse } from 'next/server';
+import { Embedding } from '@/types/settings';
 import { logger } from '@/lib/service/winston'; // Import Winston logger
 import chalk from 'chalk'; // Import Chalk for colorized logging
 
@@ -16,15 +17,30 @@ function sendUpdate(
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  try {
-    logger.info(chalk.blue('GET request received for retrieving context.'));
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START GET REQUEST ====================')
+  );
+  logger.info(chalk.blue('GET request received for retrieving context'));
 
+  try {
     const { searchParams } = req.nextUrl;
     const userId = searchParams.get('userId');
     const message = searchParams.get('message');
 
     if (!userId || !message) {
-      logger.warn(chalk.yellow('Missing userId or message in request.'));
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(`No userId or message provided - Request took `) +
+          chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END GET REQUEST ======================'
+        )
+      );
+
       return NextResponse.json(
         { error: 'No userId or message provided' },
         { status: 400 }
@@ -33,7 +49,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // Validate user
     const userServerData = await validateUser(userId);
-    logger.info(chalk.green(`User validated successfully: ${userId}`));
 
     const settings = userServerData.settings;
 
@@ -42,10 +57,35 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       start(controller) {
         const send = (state: string, message: string) =>
           sendUpdate(state, message, controller);
+
         retrieveContext(userId, message, settings, send)
-          .then(() => controller.close())
+          .then(() => {
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            logger.info(
+              chalk.green(`Context retrieved successfully - Request took `) +
+                chalk.magenta(`${duration} ms`)
+            );
+            logger.info(
+              chalk.blue(
+                '==================== END GET REQUEST ======================'
+              )
+            );
+            controller.close();
+          })
           .catch((err) => {
-            logger.error(chalk.red(`Error retrieving context: ${err.message}`));
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            logger.error(
+              chalk.red(
+                `Error retrieving context - ${err.message} - Request took `
+              ) + chalk.magenta(`${duration} ms`)
+            );
+            logger.info(
+              chalk.blue(
+                '==================== END GET REQUEST ======================'
+              )
+            );
             controller.error(err);
           });
       }
@@ -59,7 +99,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }
     });
   } catch (error: any) {
-    logger.error(chalk.red(`Error in GET request: ${error.message}`));
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.error(
+      chalk.red(
+        `Error occurred during GET request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
+    );
+    logger.info(
+      chalk.blue('==================== END GET REQUEST ======================')
+    );
     return handleErrorResponse(error);
   }
 }
@@ -73,18 +125,14 @@ async function retrieveContext(
   let rerankingContext = '';
   try {
     sendUpdate('Retrieving context', `${message}`);
-    logger.info(chalk.blue(`Embedding message for user: ${userId}`));
-
     // Embed the message
-    const embeddingResults = await embedMessage(userId, message);
+    const embeddingResults = (await embedMessage(userId, message)) as Embedding;
     sendUpdate(
       'Embedding complete',
       `Message embedding complete for: ${message}`
     );
-    logger.info(chalk.green('Message embedding complete.'));
 
     // Query Vector DB from the factory with the embedding
-    logger.info(chalk.blue('Querying Vector DB Factory for context.'));
     const vectorDbProvider = await getVectorDbProvider(
       settings.forge.vectorizationProvider
     );
@@ -93,33 +141,23 @@ async function retrieveContext(
       embeddingResults,
       settings.knowledgebase.vectorDbTopK
     );
-    sendUpdate('Query complete', 'Query results retrieved from Pinecone.');
-    logger.info(chalk.green('Query complete.'));
+    sendUpdate('Query complete', 'Query results retrieved from Vector DB.');
 
     if (queryResults.context.length > 0) {
       // Rerank the results
-      logger.info(chalk.blue('Reranking query results.'));
       rerankingContext = await rerank(
         message,
         queryResults.context,
         settings.knowledgebase
       );
       sendUpdate('Reranking complete', `${rerankingContext}`);
-      logger.info(chalk.green('Reranking complete.'));
     } else {
       sendUpdate('No context', 'No context found for the message.');
-      logger.warn(chalk.yellow('No context found for the message.'));
     }
   } catch (error: any) {
     sendUpdate('Error', `Error retrieving context: ${error.message}`);
-    logger.error(
-      chalk.red(
-        `Error in retrieving context for user: ${userId}, message: ${error.message}`
-      )
-    );
   } finally {
     sendUpdate('Done', `Processing complete for: ${message}`);
-    logger.info(chalk.green(`Processing done for message: ${message}`));
   }
 }
 
@@ -127,8 +165,6 @@ function handleErrorResponse(error: any): NextResponse {
   const status = ['Invalid user', 'Invalid file IDs'].includes(error.message)
     ? 400
     : 500;
-
-  logger.error(chalk.red(`Returning error response: ${error.message}`));
 
   return new NextResponse(
     JSON.stringify({ message: error.message || 'Internal server error' }),

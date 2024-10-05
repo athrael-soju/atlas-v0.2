@@ -1,12 +1,11 @@
 import { openai } from '@/lib/client/openai';
-import { logger } from '@/lib/service/winston';
-import chalk from 'chalk';
+import { logger } from '@/lib/service/winston'; // Import Winston logger
+import chalk from 'chalk'; // Import Chalk for colorized logging
 import { Message } from 'openai/resources/beta/threads/messages.mjs';
 
 const assistantId = process.env.OPENAI_ASSISTANT_ID as string;
 
 if (!assistantId) {
-  logger.error(chalk.red('Missing OPENAI_ASSISTANT_ID environment variable'));
   throw new Error('Missing OPENAI_ASSISTANT_ID');
 }
 
@@ -14,51 +13,38 @@ export async function POST(
   request: Request,
   { params: { threadId } }: { params: { threadId: string } }
 ) {
+  const startTime = Date.now();
+  logger.info(
+    chalk.blue('==================== START POST REQUEST ====================')
+  );
+  logger.info(
+    chalk.blue(
+      'POST request received for creating messages and initiating assistant response stream'
+    )
+  );
+
   let contextMessage: Message | null = null;
   const { userMessage, finalMessage } = await request.json();
-  try {
-    logger.info(chalk.blue(`POST request received for thread ID: ${threadId}`));
 
+  try {
     // Create the user's message in the thread
-    logger.info(chalk.blue(`Creating user message for thread ID: ${threadId}`));
     await openai.beta.threads.messages.create(threadId, {
       role: 'user',
       content: userMessage
     });
-    logger.info(
-      chalk.green(
-        `Successfully created user message for thread ID: ${threadId}`
-      )
-    );
 
     if (finalMessage !== '') {
       // Create the context message in the thread
-      logger.info(
-        chalk.blue(`Creating user context message for thread ID: ${threadId}`)
-      );
       contextMessage = await openai.beta.threads.messages.create(threadId, {
         role: 'user',
         content: finalMessage
       });
-      logger.info(
-        chalk.green(
-          `Successfully created user context message for thread ID: ${threadId}`
-        )
-      );
     }
 
     // Initiate a stream for the assistant's response
-    logger.info(
-      chalk.blue(
-        `Starting stream for thread ID: ${threadId} with assistant ID: ${assistantId}`
-      )
-    );
     const assistantStream = openai.beta.threads.runs.stream(threadId, {
       assistant_id: assistantId
     });
-    logger.info(
-      chalk.green(`Successfully started stream for thread ID: ${threadId}`)
-    );
 
     // Create a new ReadableStream to send to the client
     const readableStream = new ReadableStream({
@@ -76,62 +62,48 @@ export async function POST(
           // Close the stream when done
           controller.close();
         } catch (err) {
-          logger.error(
-            chalk.red(
-              `Error in stream for thread ID: ${threadId}: ${
-                (err as Error).message
-              }`
-            )
-          );
           controller.error(err);
         } finally {
           // After the stream ends, delete the contextMessage
           if (contextMessage !== null) {
-            logger.info(chalk.blue('Optimizing assistant message list'));
-            try {
-              await openai.beta.threads.messages.del(
-                contextMessage.thread_id,
-                contextMessage.id
-              );
-
-              // const messages = await openai.beta.threads.messages.list(
-              //   contextMessage.thread_id
-              // );
-              // logger.info(
-              //   chalk.green(
-              //     messages.data
-              //       .map((message) => JSON.stringify(message.content))
-              //       .join('\n')
-              //   )
-              // );
-
-              logger.info(chalk.green('Optimization complete'));
-            } catch (deleteError) {
-              logger.error(
-                chalk.red(
-                  `Failed to delete context message: ${
-                    (deleteError as Error).message
-                  }`
-                )
-              );
-            }
+            await openai.beta.threads.messages.del(
+              contextMessage.thread_id,
+              contextMessage.id
+            );
           }
-          logger.info(chalk.blue('POST request processing complete'));
         }
       }
     });
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    logger.info(
+      chalk.green(
+        `Assistant response stream started successfully - Request took `
+      ) + chalk.magenta(`${duration} ms`)
+    );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
 
     return new Response(readableStream, {
       headers: { 'Content-Type': 'text/event-stream' }
     });
   } catch (error: any) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     logger.error(
       chalk.red(
-        `Error in POST request for thread ID: ${threadId}: ${
-          error.message || 'Unknown error'
-        }`
-      )
+        `Error occurred during POST request - ${error.message} - Request took `
+      ) + chalk.magenta(`${duration} ms`),
+      {
+        stack: error.stack
+      }
     );
+    logger.info(
+      chalk.blue('==================== END POST REQUEST ======================')
+    );
+
     return new Response(
       JSON.stringify({ error: error.message || 'Internal Server Error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
