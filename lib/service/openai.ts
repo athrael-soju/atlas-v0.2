@@ -8,7 +8,6 @@ import Bottleneck from 'bottleneck';
 import { logger } from '@/lib/service/winston';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
-import pRetry from 'p-retry';
 import cliProgress from 'cli-progress';
 
 const embeddingApiModel =
