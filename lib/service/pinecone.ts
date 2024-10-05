@@ -57,7 +57,7 @@ function chunkEmbeddingsBySize(
     if (!isMetadataSizeValid(embedding.metadata)) {
       logger.warn(
         chalk.yellow(
-          `Metadata size exceeds 40KB for embedding. Skipping this record.`
+          'Metadata size exceeds 40KB for embedding. Skipping this record.'
         )
       );
       progressBar.increment();
@@ -143,6 +143,9 @@ export const upsertDocument = async (
         upsertedChunkCount += chunk.length;
         totalUpsertedSizePerSecond += chunkSize;
 
+        // Update progress bar here
+        progressBar.increment();
+
         break;
       } catch (error: any) {
         if (error.statusCode === 429) {
@@ -160,7 +163,7 @@ export const upsertDocument = async (
               `Upsert failed for user ${userId} - message size exceeds 4MB limit. Chunk size: ${chunkSize} bytes`
             )
           );
-          throw new Error(`Upsert failed due to size limits.`);
+          throw new Error('Upsert failed due to size limits.');
         } else {
           logger.error(
             chalk.red(
@@ -179,7 +182,7 @@ export const upsertDocument = async (
     }
   };
 
-  // Schedule upserts with rate limiting
+  // Schedule upserts with rate limiting and update progress bar after each upsert
   const upsertPromises = chunkedDataBySize.map((chunk) =>
     upsertLimiter.schedule(() => upsertChunkWithRetry(chunk))
   );
