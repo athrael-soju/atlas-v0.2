@@ -55,13 +55,14 @@ export async function parseAndChunk(
       if (isPdf && forgeSettings.vectorizationProvider === 'ios') {
         partitionParameters.splitPdfPage = true;
         partitionParameters.splitPdfAllowFailed = true;
-        partitionParameters.splitPdfConcurrencyLevel = 10;
+        partitionParameters.splitPdfConcurrencyLevel = 5;
       }
       if (forgeSettings.partitioningStrategy !== Strategy.HiRes) {
         partitionParameters.chunkingStrategy = forgeSettings.chunkingStrategy;
+        partitionParameters.splitPdfPage = false;
       }
     }
-
+    console.log('partitionParameters', partitionParameters);
     // Partition the document
     const parsedDataResponse = await unstructuredClient.general.partition(
       {
