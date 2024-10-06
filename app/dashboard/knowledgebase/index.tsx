@@ -8,7 +8,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useHandleFiles } from '@/hooks/use-handle-files';
 import { FileUploader } from '@/app/dashboard/knowledgebase/file-uploader';
 import { KnowledgebaseFiles } from '@/app/dashboard/knowledgebase/file-list';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const FormSchema = z.object({
   processAll: z.boolean().default(false)
@@ -26,8 +26,14 @@ export function Knowledgebase() {
   } = useHandleFiles('attachment');
   const [working, setWorking] = useState(false);
 
+  // Avoid multiple fetches by using a ref
+  const hasFetchedFiles = useRef(false);
+
   useEffect(() => {
-    fetchKnowledgebaseFiles();
+    if (!hasFetchedFiles.current) {
+      fetchKnowledgebaseFiles();
+      hasFetchedFiles.current = true;
+    }
   }, [fetchKnowledgebaseFiles]);
 
   const form = useForm<z.infer<typeof FormSchema>>({

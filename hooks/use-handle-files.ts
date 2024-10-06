@@ -1,11 +1,10 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/lib/handle-error';
 import { uploadFiles } from '@/lib/uploadthing';
 import type { KnowledgebaseFile } from '@/types/file-uploader';
 import type { UploadFilesOptions } from 'uploadthing/types';
 import { type OurFileRouter } from '@/lib/client/uploadthing';
-import { useControllableState } from '@/hooks/use-controllable-state';
 
 interface useHandleFilesProps
   extends Partial<UploadFilesOptions<OurFileRouter, keyof OurFileRouter>> {}
@@ -14,26 +13,16 @@ export function useHandleFiles(
   endpoint: keyof OurFileRouter,
   props: useHandleFilesProps = {}
 ) {
-  const [knowledgebaseFiles, setKnowledgebaseFiles] = useControllableState<
+  // Replacing useControllableState with useState to ensure stability
+  const [knowledgebaseFiles, setKnowledgebaseFiles] = useState<
     KnowledgebaseFile[] | undefined
-  >({
-    defaultProp: [],
-    onChange: (files) => {
-      //console.info('Uploaded files changed:', files);
-    }
-  });
+  >([]);
 
-  const [progress, setProgress] = useControllableState<Record<string, number>>({
-    defaultProp: {}
-  });
+  const [progress, setProgress] = useState<Record<string, number>>({});
 
-  const [isFetchingFiles, setIsFetchingFiles] = useControllableState<boolean>({
-    defaultProp: false
-  });
+  const [isFetchingFiles, setIsFetchingFiles] = useState<boolean>(false);
 
-  const [isUploading, setIsUploading] = useControllableState<boolean>({
-    defaultProp: false
-  });
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const fetchKnowledgebaseFiles = useCallback(async () => {
     try {
@@ -56,7 +45,7 @@ export function useHandleFiles(
     } finally {
       setIsFetchingFiles(false);
     }
-  }, [setKnowledgebaseFiles, setIsFetchingFiles]);
+  }, []); // `useState` guarantees `setKnowledgebaseFiles` is stable, so `fetchKnowledgebaseFiles` is stable
 
   const onUpload = async (files: File[]) => {
     try {
@@ -65,7 +54,7 @@ export function useHandleFiles(
         ...props,
         files,
         onUploadProgress: ({ file, progress }) => {
-          setProgress((prev) => ({ ...prev, [file]: progress }));
+          setProgress((prev) => ({ ...prev, [file.name]: progress }));
         }
       }).then(() => fetchKnowledgebaseFiles());
     } catch (err) {
