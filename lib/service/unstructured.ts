@@ -62,7 +62,6 @@ export async function parseAndChunk(
         partitionParameters.splitPdfPage = false;
       }
     }
-    console.log('partitionParameters', partitionParameters);
     // Partition the document
     const parsedDataResponse = await unstructuredClient.general.partition(
       {
