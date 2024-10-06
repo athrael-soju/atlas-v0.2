@@ -4,6 +4,7 @@ import { unstructuredClient } from '@/lib/client/unstructured';
 import { logger } from '@/lib/service/winston';
 import chalk from 'chalk';
 import cliProgress from 'cli-progress';
+import { Strategy } from 'unstructured-client/sdk/models/shared';
 
 export async function parseAndChunk(
   forgeSettings: ForgeSettings,
@@ -38,6 +39,7 @@ export async function parseAndChunk(
 
     // Prepare partition parameters
     const isCsv = file.name.endsWith('.csv');
+    const isPdf = file.name.endsWith('.pdf');
     const partitionParameters: any = {
       files: {
         content: uint8Array,
@@ -48,16 +50,15 @@ export async function parseAndChunk(
 
     // Additional params for non-CSV files
     if (!isCsv) {
-      partitionParameters.chunkingStrategy = forgeSettings.chunkingStrategy;
       partitionParameters.maxCharacters = forgeSettings.maxChunkSize;
       partitionParameters.overlap = forgeSettings.chunkOverlap;
-
-      if (forgeSettings.parsingProvider === 'iol') {
-        partitionParameters.splitPdfPage = false;
-      } else {
+      if (isPdf) {
         partitionParameters.splitPdfPage = true;
         partitionParameters.splitPdfAllowFailed = true;
         partitionParameters.splitPdfConcurrencyLevel = 10;
+      }
+      if (forgeSettings.partitioningStrategy !== Strategy.HiRes) {
+        partitionParameters.chunkingStrategy = forgeSettings.chunkingStrategy;
       }
     }
 
