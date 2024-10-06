@@ -52,7 +52,7 @@ export async function parseAndChunk(
     if (!isCsv) {
       partitionParameters.maxCharacters = forgeSettings.maxChunkSize;
       partitionParameters.overlap = forgeSettings.chunkOverlap;
-      if (isPdf) {
+      if (isPdf && forgeSettings.vectorizationProvider === 'ios') {
         partitionParameters.splitPdfPage = true;
         partitionParameters.splitPdfAllowFailed = true;
         partitionParameters.splitPdfConcurrencyLevel = 10;
