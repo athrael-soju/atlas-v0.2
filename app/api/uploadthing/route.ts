@@ -9,7 +9,7 @@ import chalk from 'chalk'; // Import Chalk for colorized logging
 export const { POST } = createRouteHandler({
   router: ourFileRouter,
   config: {
-    logLevel: 'info'
+    logLevel: 'Info'
   }
 });
 

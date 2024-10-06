@@ -1,6 +1,4 @@
 import { QdrantClient } from '@qdrant/js-client-rest';
-import { logger } from '@/lib/service/winston'; // Import the Winston logger
-import chalk from 'chalk'; // Import Chalk
 
 // Access environment variables
 const QDRANT_HOST = process.env.QDRANT_HOST;
@@ -52,45 +50,10 @@ client
         },
         on_disk_payload: true // Store payload on disk
       });
-      logger.info(
-        chalk.green(
-          `Collection ${QDRANT_COLLECTION} created with extended configurations`
-        )
-      );
-    } else {
-      logger.info(
-        chalk.yellow(`Collection ${QDRANT_COLLECTION} already exists`)
-      );
     }
   })
-  .then(() => {
-    logger.info(chalk.green('Collection check/creation complete'));
-  })
   .catch((err) => {
-    logger.error(
-      chalk.red(`Error checking/creating collection: ${err.message}`)
-    );
+    throw new Error(`Error checking/creating collection: ${err.message}`);
   });
-
-// Example of creating a collection with sparse vectors
-// client
-//   .createCollection(QDRANT_COLLECTION, {
-//     vectors: { size: 100, distance: 'Cosine' },
-//     sparse_vectors: {
-//       'splade-model-name': {
-//         index: {
-//           on_disk: false
-//         }
-//       }
-//     }
-//   })
-//   .then(() => {
-//     // Log success message with Chalk for color
-//     logger.info(chalk.green('Sparse collection created successfully'));
-//   })
-//   .catch((err) => {
-//     // Log error message with Chalk for color
-//     logger.error(chalk.red(`Error creating sparse collection: ${err.message}`));
-//   });
 
 export { client };

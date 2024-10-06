@@ -7,6 +7,8 @@ import { Embedding } from '@/types/settings';
 import { logger } from '@/lib/service/winston'; // Import Winston logger
 import chalk from 'chalk'; // Import Chalk for colorized logging
 
+export const dynamic = 'force-dynamic';
+
 function sendUpdate(
   status: string,
   message: string,
