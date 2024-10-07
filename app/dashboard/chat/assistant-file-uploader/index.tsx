@@ -14,10 +14,7 @@ import {
 import { formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AssistantFile } from '@/types/data';
-import {
-  assistantFilesFormSchema,
-  AssistantFilesFormValues
-} from '@/lib/form-schema';
+import { filesFormSchema, FilesFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { Input } from '@/components/ui/input';
 
@@ -26,7 +23,7 @@ import { FileActions } from './file-actions';
 import { FileTable } from './file-table';
 import { updateAnalysisAssistant } from '@/lib/service/atlas';
 
-const defaultValues: Partial<AssistantFilesFormValues> = {
+const defaultValues: Partial<FilesFormValues> = {
   analysis: []
 };
 
@@ -44,8 +41,8 @@ export const AssistantFileUploader = ({
   const [working, setWorking] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { form, onSubmit } = useFetchAndSubmit<AssistantFilesFormValues>({
-    schema: assistantFilesFormSchema,
+  const { form, onSubmit } = useFetchAndSubmit<FilesFormValues>({
+    schema: filesFormSchema,
     defaultValues,
     formPath: 'files'
   });
@@ -56,7 +53,6 @@ export const AssistantFileUploader = ({
     acceptedFiles: File[],
     rejectedFiles: any[]
   ) => {
-    // TODO: Handle situation where some, or no files are accepted from openai
     if (acceptedFiles.length > 0) {
       setIsUploading(true);
       setWorking(true);
@@ -72,7 +68,16 @@ export const AssistantFileUploader = ({
 
         if (response.ok) {
           const data = await response.json();
-          onSubmit({ analysis: assistantFiles.concat(data.assistantFiles) });
+
+          // Fetch existing files data (analysis and knowledgebase)
+          const existingFiles = form.getValues(); // This retrieves current form data
+
+          // Merge new analysis data while preserving existing knowledgebase
+          onSubmit({
+            ...existingFiles,
+            analysis: assistantFiles.concat(data.assistantFiles)
+          });
+
           toast({
             title: 'Files uploaded successfully',
             description: `${acceptedFiles.length} file(s) have been uploaded`,
@@ -133,7 +138,13 @@ export const AssistantFileUploader = ({
           description: `${result.deletedFileCount} file(s) have been deleted successfully`,
           variant: 'default'
         });
+
+        // Fetch current files (both analysis and knowledgebase)
+        const existingFiles = form.getValues();
+
+        // Update only analysis, keep knowledgebase unchanged
         onSubmit({
+          ...existingFiles, // Preserve knowledgebase and other fields
           analysis: assistantFiles.filter((file) => !files.includes(file))
         });
       } else {
@@ -153,6 +164,8 @@ export const AssistantFileUploader = ({
       filteredFileIds = assistantFiles
         .filter((file) => !files.includes(file))
         .map((f) => f.id);
+
+      // Update the analysis assistant with the filtered file IDs
       await updateAnalysisAssistant(userId, filteredFileIds);
       setWorking(false);
     }
@@ -167,16 +180,25 @@ export const AssistantFileUploader = ({
         f.id === file.id ? updatedFile : f
       );
 
-      // Pass the updated assistantFiles to onSubmit or any other handler
-      onSubmit({ analysis: updatedAssistantFiles });
+      // Fetch current files (both analysis and knowledgebase)
+      const existingFiles = form.getValues();
 
-      // Now use the updatedAssistantFiles for filtering
+      // Update only analysis, keep knowledgebase unchanged
+      onSubmit({
+        ...existingFiles, // Preserve knowledgebase and other fields
+        analysis: updatedAssistantFiles
+      });
+
+      // Now use the updatedAssistantFiles for filtering active files
       const fileIds: string[] = updatedAssistantFiles
         .filter((f) => f.isActive)
         .map((f) => f.id);
+
+      // Update the analysis assistant with active file IDs
       setAssistantFileIds(fileIds);
       const response = await updateAnalysisAssistant(userId, fileIds);
-      if (!response?.ok) {
+
+      if (response?.ok) {
         toast({
           title: 'Done!',
           description: `${file.filename} has been ${
