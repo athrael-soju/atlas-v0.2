@@ -95,8 +95,8 @@ export const fileSchema = z.object({
 });
 
 export const filesFormSchema = z.object({
-  analysis: z.array(assistantFileSchema),
-  knowledgebase: z.array(fileSchema)
+  analysis: z.array(assistantFileSchema).optional(),
+  knowledgebase: z.array(fileSchema).optional()
 });
 
 export type FilesFormValues = z.infer<typeof filesFormSchema>;

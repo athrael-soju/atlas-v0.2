@@ -47,8 +47,8 @@ export const AssistantFileUploader = ({
     formPath: 'files'
   });
 
-  const assistantFiles = form.getValues('analysis') || [];
-
+  const assistantFiles = form.getValues('analysis') as AssistantFile[];
+  console
   const handleUpdateFiles = async (
     acceptedFiles: File[],
     rejectedFiles: any[]
@@ -69,14 +69,7 @@ export const AssistantFileUploader = ({
         if (response.ok) {
           const data = await response.json();
 
-          // Fetch existing files data (analysis and knowledgebase)
-          const existingFiles = form.getValues(); // This retrieves current form data
-
-          // Merge new analysis data while preserving existing knowledgebase
-          onSubmit({
-            ...existingFiles,
-            analysis: assistantFiles.concat(data.assistantFiles)
-          });
+          onSubmit(assistantFiles.concat(data.assistantFiles));
 
           toast({
             title: 'Files uploaded successfully',
@@ -139,14 +132,8 @@ export const AssistantFileUploader = ({
           variant: 'default'
         });
 
-        // Fetch current files (both analysis and knowledgebase)
-        const existingFiles = form.getValues();
-
         // Update only analysis, keep knowledgebase unchanged
-        onSubmit({
-          ...existingFiles, // Preserve knowledgebase and other fields
-          analysis: assistantFiles.filter((file) => !files.includes(file))
-        });
+        onSubmit(assistantFiles.filter((file) => !files.includes(file)));
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
@@ -180,14 +167,8 @@ export const AssistantFileUploader = ({
         f.id === file.id ? updatedFile : f
       );
 
-      // Fetch current files (both analysis and knowledgebase)
-      const existingFiles = form.getValues();
-
       // Update only analysis, keep knowledgebase unchanged
-      onSubmit({
-        ...existingFiles, // Preserve knowledgebase and other fields
-        analysis: updatedAssistantFiles
-      });
+      onSubmit(updatedAssistantFiles);
 
       // Now use the updatedAssistantFiles for filtering active files
       const fileIds: string[] = updatedAssistantFiles
