@@ -107,25 +107,23 @@ export const updateUserFiles = async (
   return { message: 'File uploaded successfully' };
 };
 
-// Assume connectToDatabase is already defined and returns a connected MongoDB client
 export const updateAssistantFiles = async (
   userId: string,
   assistantFiles: AssistantFile[]
 ): Promise<UpdateResult<IUser>> => {
   const db = await connectToDatabase();
   const usersCollection: Collection<IUser> = db.collection<IUser>('users');
-  const update = {
-    $push: {
-      'files.analysis': { $each: assistantFiles }
-    },
-    $set: {
-      updatedAt: getLocalDateTime()
-    }
-  };
 
   const result: UpdateResult<IUser> = await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
-    update
+    {
+      $push: {
+        'files.analysis': { $each: assistantFiles }
+      },
+      $set: {
+        updatedAt: getLocalDateTime()
+      }
+    }
   );
 
   return result;

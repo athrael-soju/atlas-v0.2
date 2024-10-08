@@ -14,10 +14,7 @@ import {
 import { formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AssistantFile } from '@/types/data';
-import {
-  assistantFilesFormSchema,
-  AssistantFilesFormValues
-} from '@/lib/form-schema';
+import { filesFormSchema, FilesFormValues } from '@/lib/form-schema';
 import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { Input } from '@/components/ui/input';
 
@@ -26,7 +23,7 @@ import { FileActions } from './file-actions';
 import { FileTable } from './file-table';
 import { updateAnalysisAssistant } from '@/lib/service/atlas';
 
-const defaultValues: Partial<AssistantFilesFormValues> = {
+const defaultValues: Partial<FilesFormValues> = {
   analysis: []
 };
 
@@ -44,19 +41,18 @@ export const AssistantFileUploader = ({
   const [working, setWorking] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { form, onSubmit } = useFetchAndSubmit<AssistantFilesFormValues>({
-    schema: assistantFilesFormSchema,
+  const { form, onSubmit } = useFetchAndSubmit<FilesFormValues>({
+    schema: filesFormSchema,
     defaultValues,
     formPath: 'files'
   });
 
-  const assistantFiles = form.getValues('analysis') || [];
-
+  const assistantFiles = form.getValues('analysis') as AssistantFile[];
+  console
   const handleUpdateFiles = async (
     acceptedFiles: File[],
     rejectedFiles: any[]
   ) => {
-    // TODO: Handle situation where some, or no files are accepted from openai
     if (acceptedFiles.length > 0) {
       setIsUploading(true);
       setWorking(true);
@@ -72,7 +68,9 @@ export const AssistantFileUploader = ({
 
         if (response.ok) {
           const data = await response.json();
-          onSubmit({ analysis: assistantFiles.concat(data.assistantFiles) });
+
+          onSubmit(assistantFiles.concat(data.assistantFiles));
+
           toast({
             title: 'Files uploaded successfully',
             description: `${acceptedFiles.length} file(s) have been uploaded`,
@@ -133,9 +131,9 @@ export const AssistantFileUploader = ({
           description: `${result.deletedFileCount} file(s) have been deleted successfully`,
           variant: 'default'
         });
-        onSubmit({
-          analysis: assistantFiles.filter((file) => !files.includes(file))
-        });
+
+        // Update only analysis, keep knowledgebase unchanged
+        onSubmit(assistantFiles.filter((file) => !files.includes(file)));
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
@@ -153,6 +151,8 @@ export const AssistantFileUploader = ({
       filteredFileIds = assistantFiles
         .filter((file) => !files.includes(file))
         .map((f) => f.id);
+
+      // Update the analysis assistant with the filtered file IDs
       await updateAnalysisAssistant(userId, filteredFileIds);
       setWorking(false);
     }
@@ -167,16 +167,19 @@ export const AssistantFileUploader = ({
         f.id === file.id ? updatedFile : f
       );
 
-      // Pass the updated assistantFiles to onSubmit or any other handler
-      onSubmit({ analysis: updatedAssistantFiles });
+      // Update only analysis, keep knowledgebase unchanged
+      onSubmit(updatedAssistantFiles);
 
-      // Now use the updatedAssistantFiles for filtering
+      // Now use the updatedAssistantFiles for filtering active files
       const fileIds: string[] = updatedAssistantFiles
         .filter((f) => f.isActive)
         .map((f) => f.id);
+
+      // Update the analysis assistant with active file IDs
       setAssistantFileIds(fileIds);
       const response = await updateAnalysisAssistant(userId, fileIds);
-      if (!response?.ok) {
+
+      if (response?.ok) {
         toast({
           title: 'Done!',
           description: `${file.filename} has been ${

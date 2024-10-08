@@ -85,8 +85,18 @@ export const assistantFileSchema = z.object({
   isActive: z.boolean()
 });
 
-export const assistantFilesFormSchema = z.object({
-  analysis: z.array(assistantFileSchema)
+export const fileSchema = z.object({
+  name: z.string(),
+  url: z.string(),
+  size: z.number(),
+  key: z.string(),
+  dateUploaded: z.string(),
+  dateProcessed: z.string().optional()
 });
 
-export type AssistantFilesFormValues = z.infer<typeof assistantFilesFormSchema>;
+export const filesFormSchema = z.object({
+  analysis: z.array(assistantFileSchema).optional(),
+  knowledgebase: z.array(fileSchema).optional()
+});
+
+export type FilesFormValues = z.infer<typeof filesFormSchema>;
