@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import {
   SortingState,
@@ -10,22 +10,14 @@ import {
   getSortedRowModel,
   getFilteredRowModel
 } from '@tanstack/react-table';
-
 import { formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AssistantFile } from '@/types/data';
-import { filesFormSchema, FilesFormValues } from '@/lib/form-schema';
-import { useFetchAndSubmit } from '@/hooks/use-fetch-and-submit';
 import { Input } from '@/components/ui/input';
-
 import { FileDropzone } from './file-dropzone';
 import { FileActions } from './file-actions';
 import { FileTable } from './file-table';
 import { updateAnalysisAssistant } from '@/lib/service/atlas';
-
-const defaultValues: Partial<FilesFormValues> = {
-  analysis: []
-};
 
 type AssistantUploaderProps = {
   userId: string;
@@ -36,19 +28,44 @@ export const AssistantFileUploader = ({
   userId,
   setAssistantFileIds
 }: AssistantUploaderProps) => {
+  const [assistantFileList, setAssistantFileList] = useState<AssistantFile[]>(
+    []
+  );
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [working, setWorking] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { form, onSubmit } = useFetchAndSubmit<FilesFormValues>({
-    schema: filesFormSchema,
-    defaultValues,
-    formPath: 'files'
-  });
+  // Fetch assistant files when the component mounts
+  useEffect(() => {
+    const fetchAssistantFiles = async () => {
+      try {
+        const response = await fetch(
+          `/api/assistants/files/analysis?userId=${userId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setAssistantFileList(data.files);
+        } else {
+          const errorData = await response.json();
+          toast({
+            title: 'Error fetching files',
+            description: `${errorData.error}`,
+            variant: 'destructive'
+          });
+        }
+      } catch (error) {
+        toast({
+          title: 'Error fetching files',
+          description: `${error}`,
+          variant: 'destructive'
+        });
+      }
+    };
 
-  const assistantFiles = form.getValues('analysis') as AssistantFile[];
-  console
+    fetchAssistantFiles();
+  }, [userId]);
+
   const handleUpdateFiles = async (
     acceptedFiles: File[],
     rejectedFiles: any[]
@@ -68,8 +85,8 @@ export const AssistantFileUploader = ({
 
         if (response.ok) {
           const data = await response.json();
-
-          onSubmit(assistantFiles.concat(data.assistantFiles));
+          // Update the assistantFileList
+          setAssistantFileList(assistantFileList.concat(data.assistantFiles));
 
           toast({
             title: 'Files uploaded successfully',
@@ -110,7 +127,6 @@ export const AssistantFileUploader = ({
   };
 
   const onDeleteFiles = async (files: AssistantFile[]) => {
-    let filteredFileIds = [];
     try {
       setWorking(true);
       const response = await fetch('/api/assistants/files/analysis', {
@@ -132,8 +148,12 @@ export const AssistantFileUploader = ({
           variant: 'default'
         });
 
-        // Update only analysis, keep knowledgebase unchanged
-        onSubmit(assistantFiles.filter((file) => !files.includes(file)));
+        // Update assistantFileList
+        setAssistantFileList(
+          assistantFileList.filter(
+            (file) => !files.some((f) => f.id === file.id)
+          )
+        );
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
@@ -148,11 +168,10 @@ export const AssistantFileUploader = ({
         variant: 'destructive'
       });
     } finally {
-      filteredFileIds = assistantFiles
+      // Update the analysis assistant with the filtered file IDs
+      const filteredFileIds = assistantFileList
         .filter((file) => !files.includes(file))
         .map((f) => f.id);
-
-      // Update the analysis assistant with the filtered file IDs
       await updateAnalysisAssistant(userId, filteredFileIds);
       setWorking(false);
     }
@@ -160,18 +179,19 @@ export const AssistantFileUploader = ({
 
   const onToggleActive = async (file: AssistantFile) => {
     try {
+      setWorking(true);
       const updatedFile = { ...file, isActive: !file.isActive };
 
-      // Create a new assistantFiles array with the updatedFile
-      const updatedAssistantFiles = assistantFiles.map((f) =>
+      // Create a new assistantFileList with the updatedFile
+      const updatedAssistantFileList = assistantFileList.map((f) =>
         f.id === file.id ? updatedFile : f
       );
 
-      // Update only analysis, keep knowledgebase unchanged
-      onSubmit(updatedAssistantFiles);
+      // Update assistantFileList
+      setAssistantFileList(updatedAssistantFileList);
 
-      // Now use the updatedAssistantFiles for filtering active files
-      const fileIds: string[] = updatedAssistantFiles
+      // Now use the updatedAssistantFileList for filtering active files
+      const fileIds: string[] = updatedAssistantFileList
         .filter((f) => f.isActive)
         .map((f) => f.id);
 
@@ -254,14 +274,14 @@ export const AssistantFileUploader = ({
         <FileActions
           file={row.original}
           onDeleteFiles={onDeleteFiles}
-          onToggleActive={onToggleActive} // Pass the toggle action here
+          onToggleActive={onToggleActive}
         />
       )
     }
   ];
 
   const table = useReactTable({
-    data: assistantFiles,
+    data: assistantFileList,
     columns: assistantColumns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),

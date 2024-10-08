@@ -135,9 +135,10 @@ export async function DELETE(request: Request) {
 
 export async function GET(request: Request) {
   logger.info(chalk.blue('GET request received for fetching files'));
+
   try {
-    const data = await request.json();
-    const userId = data.userId as string;
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
 
     if (!userId) {
       logger.error(chalk.red('Invalid user ID in GET request'));
