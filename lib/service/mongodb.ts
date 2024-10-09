@@ -107,7 +107,7 @@ export const updateUserFiles = async (
   return { message: 'File uploaded successfully' };
 };
 
-export const updateAssistantFiles = async (
+export const addAssistantFiles = async (
   userId: string,
   assistantFiles: AssistantFile[]
 ): Promise<UpdateResult<IUser>> => {
@@ -129,21 +129,18 @@ export const updateAssistantFiles = async (
   return result;
 };
 
-export const deleteAssistantFiles = async (
+export const removeAssistantFiles = async (
   userId: string,
-  files: AssistantFile[]
-): Promise<string[]> => {
+  fileIds: string[]
+): Promise<UpdateResult<IUser>> => {
   const db = await connectToDatabase();
-  const usersCollection = db.collection('users');
-  const fileIds = files.map((file) => file.id); // Modify this based on your file structure
+  const usersCollection: Collection<IUser> = db.collection<IUser>('users');
 
-  const result = await usersCollection.updateOne(
+  const result: UpdateResult<IUser> = await usersCollection.updateOne(
     { _id: new ObjectId(userId) },
     {
       $pull: {
-        'files.analysis': {
-          id: { $in: fileIds as string[] }
-        } as any
+        'files.analysis': { id: { $in: fileIds } }
       },
       $set: {
         updatedAt: getLocalDateTime()
@@ -151,13 +148,27 @@ export const deleteAssistantFiles = async (
     }
   );
 
-  if (result.modifiedCount === 0) {
-    throw new Error(
-      `No files matching the provided IDs were found for user '${userId}'`
-    );
-  }
+  return result;
+};
 
-  return fileIds;
+export const updateAssistantFileStatus = async (
+  userId: string,
+  assistantFile: AssistantFile
+): Promise<UpdateResult<IUser>> => {
+  const db = await connectToDatabase();
+  const usersCollection: Collection<IUser> = db.collection<IUser>('users');
+
+  const result: UpdateResult<IUser> = await usersCollection.updateOne(
+    { _id: new ObjectId(userId), 'files.analysis.id': assistantFile.id },
+    {
+      $set: {
+        'files.analysis.$.isActive': assistantFile.isActive,
+        updatedAt: getLocalDateTime()
+      }
+    }
+  );
+
+  return result;
 };
 
 export const updateFileDateProcessed = async (

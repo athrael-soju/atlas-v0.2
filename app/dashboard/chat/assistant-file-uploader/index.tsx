@@ -1,6 +1,7 @@
-'use client';
+`use client`;
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/ui/use-toast';
 import {
   SortingState,
@@ -17,7 +18,19 @@ import { Input } from '@/components/ui/input';
 import { FileDropzone } from './file-dropzone';
 import { FileActions } from './file-actions';
 import { FileTable } from './file-table';
-import { updateAnalysisAssistant } from '@/lib/service/atlas';
+
+// Function to fetch assistant files
+const fetchAssistantFiles = async (userId: string) => {
+  const response = await fetch(
+    `/api/assistants/files/analysis?userId=${userId}`
+  );
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error);
+  }
+  const data = await response.json();
+  return data.files;
+};
 
 type AssistantUploaderProps = {
   userId: string;
@@ -28,43 +41,18 @@ export const AssistantFileUploader = ({
   userId,
   setAssistantFileIds
 }: AssistantUploaderProps) => {
-  const [assistantFileList, setAssistantFileList] = useState<AssistantFile[]>(
-    []
-  );
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [working, setWorking] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Fetch assistant files when the component mounts
-  useEffect(() => {
-    const fetchAssistantFiles = async () => {
-      try {
-        const response = await fetch(
-          `/api/assistants/files/analysis?userId=${userId}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setAssistantFileList(data.files);
-        } else {
-          const errorData = await response.json();
-          toast({
-            title: 'Error fetching files',
-            description: `${errorData.error}`,
-            variant: 'destructive'
-          });
-        }
-      } catch (error) {
-        toast({
-          title: 'Error fetching files',
-          description: `${error}`,
-          variant: 'destructive'
-        });
-      }
-    };
-
-    fetchAssistantFiles();
-  }, [userId]);
+  // Use React Query to fetch assistant files
+  const { data: assistantFileList = [] } = useQuery({
+    queryKey: ['assistantFiles', userId],
+    queryFn: () => fetchAssistantFiles(userId),
+    staleTime: 5 * 60 * 1000 // Cache data for 5 minutes
+  });
 
   const handleUpdateFiles = async (
     acceptedFiles: File[],
@@ -84,9 +72,11 @@ export const AssistantFileUploader = ({
         });
 
         if (response.ok) {
-          const data = await response.json();
-          // Update the assistantFileList
-          setAssistantFileList(assistantFileList.concat(data.assistantFiles));
+          await response.json();
+          // Invalidate and refetch the assistant files
+          queryClient.invalidateQueries({
+            queryKey: ['assistantFiles', userId]
+          });
 
           toast({
             title: 'Files uploaded successfully',
@@ -148,12 +138,8 @@ export const AssistantFileUploader = ({
           variant: 'default'
         });
 
-        // Update assistantFileList
-        setAssistantFileList(
-          assistantFileList.filter(
-            (file) => !files.some((f) => f.id === file.id)
-          )
-        );
+        // Invalidate and refetch the assistant files
+        queryClient.invalidateQueries({ queryKey: ['assistantFiles', userId] });
       } else {
         toast({
           title: 'Uh oh! Something went wrong.',
@@ -168,11 +154,6 @@ export const AssistantFileUploader = ({
         variant: 'destructive'
       });
     } finally {
-      // Update the analysis assistant with the filtered file IDs
-      const filteredFileIds = assistantFileList
-        .filter((file) => !files.includes(file))
-        .map((f) => f.id);
-      await updateAnalysisAssistant(userId, filteredFileIds);
       setWorking(false);
     }
   };
@@ -182,22 +163,11 @@ export const AssistantFileUploader = ({
       setWorking(true);
       const updatedFile = { ...file, isActive: !file.isActive };
 
-      // Create a new assistantFileList with the updatedFile
-      const updatedAssistantFileList = assistantFileList.map((f) =>
-        f.id === file.id ? updatedFile : f
-      );
-
-      // Update assistantFileList
-      setAssistantFileList(updatedAssistantFileList);
-
-      // Now use the updatedAssistantFileList for filtering active files
-      const fileIds: string[] = updatedAssistantFileList
-        .filter((f) => f.isActive)
-        .map((f) => f.id);
-
-      // Update the analysis assistant with active file IDs
-      setAssistantFileIds(fileIds);
-      const response = await updateAnalysisAssistant(userId, fileIds);
+      const response = await fetch('/api/assistants/files/analysis', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, file: updatedFile }) // Corrected to send the updated file
+      });
 
       if (response?.ok) {
         toast({
@@ -206,6 +176,26 @@ export const AssistantFileUploader = ({
             updatedFile.isActive ? 'added to' : 'removed from'
           } the analysis data set`,
           variant: 'default'
+        });
+
+        // Update the local state to reflect changes immediately
+        const updatedAssistantFileList = assistantFileList.map(
+          (f: AssistantFile) => (f.id === file.id ? updatedFile : f)
+        );
+
+        setAssistantFileIds(
+          updatedAssistantFileList
+            .filter((f: AssistantFile) => f.isActive)
+            .map((f: AssistantFile) => f.id)
+        );
+
+        queryClient.invalidateQueries({ queryKey: ['assistantFiles', userId] });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: 'Uh oh! Something went wrong.',
+          description: `${errorData.error}`,
+          variant: 'destructive'
         });
       }
     } catch (error) {
