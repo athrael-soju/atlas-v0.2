@@ -66,7 +66,9 @@ export async function embedMessage(userId: string, content: string) {
   } catch (error: any) {
     logger.error(
       chalk.red(
-        `Failed to embed message for user: ${userId}. Error: ${error.message}`
+        `Failed to embed message for user: ${userId}. Error: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
       )
     );
     throw error;
@@ -87,15 +89,14 @@ export async function embedDocument(
   const start = Date.now();
   const chunkIdList: string[] = [];
 
-  // Initialize Bottleneck limiter for 5000 RPM (minTime: 12 ms)
   const limiter = new Bottleneck({
-    reservoir: 5000, // Maximum number of requests per minute
+    reservoir: 5000,
     reservoirRefreshAmount: 5000,
-    reservoirRefreshInterval: 60 * 1000, // 60 seconds
-    minTime: 12 // Minimum time between requests (in ms) to allow up to 5000 RPM (~83 RPS)
+    reservoirRefreshInterval: 60 * 1000,
+    minTime: 12,
+    maxConcurrent: 50
   });
 
-  // Initialize Progress Bar
   const progressBar = new cliProgress.SingleBar(
     {},
     cliProgress.Presets.shades_classic
@@ -103,82 +104,100 @@ export async function embedDocument(
   progressBar.start(chunks.length, 0);
 
   try {
-    logger.info(
-      chalk.blue(`Starting embedding process for document: ${file.name}`)
-    );
+    logger.info(`Starting embedding process for document: ${file.name}`);
 
-    // Process all chunks using Bottleneck rate limiting
-    const embeddings = await Promise.all(
-      chunks.map(async (chunk, index) => {
-        return limiter.schedule(async () => {
-          try {
-            // Request the embedding from OpenAI API
-            const response = await openai.embeddings.create({
-              model: embeddingApiModel,
-              input: chunk.text,
-              encoding_format: 'float'
-            });
-
-            // Create metadata for the chunk
-            const transformedMetadata = transformObjectValues(chunk.metadata);
-            const newId = `${toAscii(file.name)}#${file.key}#${index + 1}`;
-            chunkIdList.push(newId);
-            const embeddingValues = response.data[0].embedding;
-
-            // Add citation field to the metadata
-            const pageInfo = chunk.metadata.page_number
-              ? `, Page ${chunk.metadata.page_number}`
-              : '';
-            const citation = `[${file.name}${pageInfo}](${file.url})`;
-            const metadata = {
-              ...transformedMetadata,
-              text: chunk.text,
-              userId: userId,
-              url: file.url,
-              citation: citation
-            };
-
-            // Increment the progress bar
-            progressBar.increment(1);
-
-            return {
-              id: newId,
-              values: embeddingValues,
-              metadata: metadata
-            };
-          } catch (error: any) {
-            logger.error(
-              chalk.red(
-                `Failed to embed chunk ${index + 1} for file: ${
-                  file.name
-                }. Error: ${error.message}`
-              )
-            );
-            throw error;
-          }
-        });
-      })
-    );
-
-    logger.info(
-      chalk.green(`Successfully embedded all chunks for document: ${file.name}`)
-    );
-    return embeddings || [];
-  } catch (error: any) {
-    logger.error(
-      chalk.red(
-        `Failed to embed document: ${file.name}. Error: ${error.message}`
+    const embeddings = await Promise.allSettled(
+      chunks.map((chunk, index) =>
+        limiter.schedule(() => embedChunk(chunk, index))
       )
+    );
+
+    // Process results
+    const successfulEmbeddings = [];
+    for (let i = 0; i < embeddings.length; i++) {
+      const result = embeddings[i];
+      if (result.status === 'fulfilled') {
+        successfulEmbeddings.push(result.value);
+      } else {
+        logger.error(
+          `Embedding failed for chunk ${i + 1}: ${result.reason.message}`
+        );
+      }
+    }
+
+    logger.info(`Successfully embedded chunks for document: ${file.name}`);
+    return successfulEmbeddings;
+  } catch (error) {
+    logger.error(
+      `Failed to embed document: ${file.name}. Error: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
     );
     throw error;
   } finally {
     const duration = Date.now() - start;
     logger.info(
-      chalk.green(`Embedding document for file: ${file.name} took `) +
-        chalk.magenta(`${duration} ms`)
+      `Embedding document for file: ${file.name} took ${duration} ms`
     );
-    progressBar.update(100);
     progressBar.stop();
+  }
+
+  async function embedChunk(chunk: ParsedElement, index: number) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15 seconds
+
+    try {
+      // logger.info(`Embedding chunk ${index + 1}`);
+      const response = await openai.embeddings.create(
+        {
+          model: embeddingApiModel,
+          input: chunk.text,
+          encoding_format: 'float'
+        },
+        {
+          signal: controller.signal
+        }
+      );
+
+      clearTimeout(timeout);
+
+      const transformedMetadata = transformObjectValues(chunk.metadata);
+      const newId = `${toAscii(file.name)}#${file.key}#${index + 1}`;
+      chunkIdList.push(newId);
+      const embeddingValues = response.data[0].embedding;
+
+      const pageInfo = chunk.metadata.page_number
+        ? `, Page ${chunk.metadata.page_number}`
+        : '';
+      const citation = `[${file.name}${pageInfo}](${file.url})`;
+      const metadata = {
+        ...transformedMetadata,
+        text: chunk.text,
+        userId: userId,
+        url: file.url,
+        citation: citation
+      };
+
+      progressBar.increment(1);
+
+      return {
+        id: newId,
+        values: embeddingValues,
+        metadata: metadata
+      };
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === 'AbortError') {
+        logger.error(`Embedding request for chunk ${index + 1} timed out.`);
+      } else {
+        logger.error(
+          `Failed to embed chunk ${index + 1} for file: ${file.name}. Error: ${
+            (error as Error).message
+          }`
+        );
+      }
+      throw error;
+    }
   }
 }
 

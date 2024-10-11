@@ -91,7 +91,7 @@ export function Knowledgebase() {
         {/* File Uploader Component */}
         <FileUploader
           maxFileCount={5}
-          maxSize={50 * 1024 * 1024}
+          maxSize={1024 * 1024 * 100}
           progress={progress}
           onUpload={onUpload}
           disabled={isUploading}

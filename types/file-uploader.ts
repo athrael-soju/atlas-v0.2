@@ -48,8 +48,8 @@ export interface FileUploaderProps
   /**
    * Maximum file size for the uploader.
    * @type number | undefined
-   * @default 1024 * 1024 * 2 // 2MB
-   * @example maxSize={1024 * 1024 * 2} // 2MB
+   * @default 1024 * 1024 * 100 // 100MB
+   * @example maxSize={1024 * 1024 * 100} // 100MB
    */
   maxSize?: DropzoneProps['maxSize'];
 
