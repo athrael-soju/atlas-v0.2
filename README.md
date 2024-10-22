@@ -56,207 +56,39 @@ Redis caching is handled via Upstash, which offers serverless Redis storage. By 
 
 This platform acts as a starter framework for building modern applications that require seamless user experiences, integrated machine learning features, and robust cloud services. Developers can customize the stack and scale features to fit a variety of application needs.
 
-## OpenTelemetry Collector
+## Open source alternatives
 
-1. Set up OpenTelemetry Collector:
+You can use Qdrant and Unstructured local containers to replace Pinecone and Unstructured.io respectively.
 
-   - Docker Image: `otel/opentelemetry-collector:0.67.0`
-   - You can customize arguments using the `OTELCOL_ARGS` variable.
-
-   ```bash
-   docker run -p 4317:4317 -p 4318:4318 otel/opentelemetry-collector:0.67.0
-   ```
-
-2. Example configuration file:
-   You can define your own configuration for the collector by mounting it via Docker.
-
-## NextAuth
-
-1. Configure GitHub OAuth:
-   - Go to [GitHub Developers](https://github.com/settings/developers) to set up a new OAuth app.
-   - Follow the guide on [NextAuth GitHub Provider](https://next-auth.js.org/providers/github#configuration).
-2. Google OAuth:
-
-   - Follow the NextAuth [Google Provider guide](https://next-auth.js.org/providers/google).
-
-3. Set your environment variables:
-
-   ```bash
-   GITHUB_ID=your_github_id
-   GITHUB_SECRET=your_github_secret
-   GOOGLE_ID=your_google_id
-   GOOGLE_SECRET=your_google_secret
-   NEXTAUTH_URL=http://localhost:3000/
-   NEXTAUTH_SECRET=$(openssl rand -base64 32)
-   ```
-
-4. Run NextAuth in development mode:
-   ```bash
-   npm run dev
-   ```
-
-## Uploadthing
-
-1. Configure Uploadthing for file uploads:
-
-   - Visit [Uploadthing](https://uploadthing.com/) for API setup.
-   - Set the following environment variables:
-
-   ```bash
-   UPLOADTHING_SECRET=your_uploadthing_secret
-   UPLOADTHING_APP_ID=your_uploadthing_app_id
-   ```
-
-2. Initialize Uploadthing in your app:
-
-   ```js
-   import { UploadButton } from 'uploadthing/react';
-
-   <UploadButton />;
-   ```
-
-## OpenAI
-
-1. Configure OpenAI API for use:
-
-   - Get your API key from the [OpenAI Dashboard](https://beta.openai.com/).
-   - Set the following environment variables:
-
-   ```bash
-   OPENAI_API_KEY=your_openai_api_key
-   OPENAI_ASSISTANT_ID=your_openai_assistant_id
-   OPENAI_API_EMBEDDING_MODEL=text-embedding-3-large
-   ```
-
-## MongoDB
-
-1. Configure MongoDB:
-
-   - Use your MongoDB connection URI in the following environment variable:
-
-   ```bash
-   MONGODB_URI=your_mongodb_uri
-   ```
-
-2. Set the environment mode:
-
-   ```bash
-   NODE_ENV='development'
-   ```
-
-3. Run the MongoDB service locally or in Docker:
-
-   ```bash
-   docker run -d -p 27017:27017 --name mongodb mongo
-   ```
-
-## Unstructured.io
-
-1. Configure Unstructured.io for data parsing & chunking:
-
-   - Visit [Unstructured.io](https://unstructured.io/) to obtain the API key and set it as:
-
-   ```bash
-   UNSTRUCTURED_API=your_unstructured_api_key
-   UNSTRUCTURED_SERVER_URL=https://api.unstructuredapp.io
-   ```
-
-## Pinecone (Semantic Search)
-
-1. Configure Pinecone for serverless semantic search:
-
-   - Get your Pinecone API key and index from [Pinecone](https://www.pinecone.io/).
-   - Set the following environment variables:
-
-   ```bash
-   PINECONE_API=your_pinecone_api_key
-   PINECONE_INDEX=atlasv0.2
-   ```
-
-2. Use the Pinecone client in your app:
-
-   ```js
-   import { PineconeClient } from '@pinecone-database/client';
-
-   const client = new PineconeClient({
-     apiKey: process.env.PINECONE_API,
-     environment: process.env.PINECONE_INDEX
-   });
-   ```
-
-## Cohere (Reranking)
-
-1. Set up Cohere API for reranking:
-
-   - Visit [Cohere](https://cohere.ai/) for the API key and model.
-   - Set the following environment variables:
-
-   ```bash
-   COHERE_API_KEY=your_cohere_api_key
-   COHERE_API_MODEL=rerank-multilingual-v3.0
-   ```
-
-2. Example usage in reranking:
-
-   ```js
-   const response = await cohere.rerank({
-     model: process.env.COHERE_API_MODEL,
-     query: 'your search query',
-     documents: ['doc1', 'doc2', 'doc3']
-   });
-   ```
-
-## Upstash (Redis)
-
-1. Configure Upstash Redis:
-
-   - Get your Upstash Redis URL from the [Upstash dashboard](https://upstash.com/).
-   - Set the following environment variable:
-
-   ```bash
-   UPSTASH_REDIS_REST_URL=your_upstash_redis_url
-   ```
-
-2. Use Upstash Redis in your app:
-
-   ```js
-   import { Redis } from '@upstash/redis';
-
-   const redis = new Redis({
-     url: process.env.UPSTASH_REDIS_REST_URL,
-     token: process.env.UPSTASH_REDIS_REST_TOKEN
-   });
-   ```
-
-## Prometheus & Grafana Setup
-
-You can integrate **Prometheus** for system metrics monitoring and **Grafana** for visualization. The following `docker-compose` configuration sets up both services:
-
-```yaml
-services:
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus:latest
-    restart: always
-    volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-    ports:
-      - '9090:9090'
-    networks:
-      - atlas-network
-  grafana:
-    container_name: grafana
-    image: grafana/grafana:latest
-    ports:
-      - '4000:3000'
-    depends_on:
-      - prometheus
-    networks:
-      - atlas-network
-networks:
-  atlas-network:
-    driver: bridge
 ```
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - '6333:6333'
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__SERVICE__HTTP_PORT: 6333
+
+  unstructured-api:
+    image: downloads.unstructured.io/unstructured-io/unstructured-api:latest
+    container_name: unstructured-api
+    ports:
+      - '8000:8000'
+    depends_on:
+      - qdrant
+
+volumes:
+  qdrant_data:
+    driver: local
+```
+
+## Telemetry/Metrics
+
+You can deploy the stack here: https://github.com/athrael-soju/grafana-alloy-example which will integrate perfectly with Atlas.
 
 ## Inspired by
 
