@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/beb5faea-beda-4ea8-b342-56145d037810)
+![image](https://github.com/user-attachments/assets/1ab5c771-133e-4585-8d0b-9cbb1f78f551)
 
 # Atlas Setup Instructions
 
