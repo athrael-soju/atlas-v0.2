@@ -1,7 +1,5 @@
 ![image](https://github.com/user-attachments/assets/1ab5c771-133e-4585-8d0b-9cbb1f78f551)
 
-# Atlas Setup Instructions
-
 ## Introduction
 
 This application is a robust, multi-functional platform designed to integrate a wide range of services and features using a modern tech stack. Its primary capabilities are centered around user authentication, file uploads, semantic search, and advanced AI-driven functionalities. Here's a breakdown of its key features and functionalities:
