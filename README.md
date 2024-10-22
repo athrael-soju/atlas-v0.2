@@ -1,4 +1,6 @@
-# Application Setup Instructions
+![image](https://github.com/user-attachments/assets/beb5faea-beda-4ea8-b342-56145d037810)
+
+# Atlas Setup Instructions
 
 ## Introduction
 
