@@ -5,7 +5,7 @@ const QDRANT_HOST = process.env.QDRANT_HOST;
 const QDRANT_PORT = process.env.QDRANT_PORT
   ? parseInt(process.env.QDRANT_PORT)
   : 6333;
-const QDRANT_COLLECTION = process.env.QDRANT_COLLECTION || 'atlasv1';
+const QDRANT_COLLECTION = process.env.QDRANT_COLLECTION || 'atlasv0.2';
 
 // Initialize the client with correct configuration, using the host and port from env vars
 const client = new QdrantClient({

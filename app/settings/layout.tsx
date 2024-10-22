@@ -4,7 +4,7 @@ import { settingsNavItems } from '@/constants/nav-items';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Atlas V1',
+  title: 'Atlas V0.2',
   description: 'Even better than the first one!'
 };
 

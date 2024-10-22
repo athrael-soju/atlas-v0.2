@@ -168,7 +168,7 @@ This platform acts as a starter framework for building modern applications that 
 
    ```bash
    PINECONE_API=your_pinecone_api_key
-   PINECONE_INDEX=atlasv1
+   PINECONE_INDEX=atlasv0.2
    ```
 
 2. Use the Pinecone client in your app:

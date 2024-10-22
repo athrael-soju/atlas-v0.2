@@ -19,7 +19,6 @@ import { Conversation } from '@/types/data';
 import * as emoji from 'node-emoji';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ConversationList } from './conversation-list';
-import { AssistantFileUploader } from './assistant-file-uploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AssistantMode } from '@/types/settings';
 import { getLocalDateTime } from '@/lib/utils';
@@ -140,26 +139,12 @@ export const ChatSidebar = forwardRef<unknown, ChatSidebarProps>(
               <Tabs defaultValue="conversations" className="w-full">
                 <TabsList className="my-4 flex justify-around">
                   <TabsTrigger value="conversations">Conversations</TabsTrigger>
-                  <TabsTrigger
-                    value="files"
-                    disabled={assistantMode === AssistantMode.Knowledgebase}
-                  >
-                    Assistant Files
-                  </TabsTrigger>
                 </TabsList>
-
                 <TabsContent value="conversations">
                   <ConversationList
                     conversations={form.watch('conversations') || []}
                     handleDeleteConversation={handleDeleteConversation}
                     handleSetActiveConversation={handleSetActiveConversation}
-                  />
-                </TabsContent>
-
-                <TabsContent value="files">
-                  <AssistantFileUploader
-                    userId={userId}
-                    setAssistantFileIds={setAssistantFileIds}
                   />
                 </TabsContent>
               </Tabs>

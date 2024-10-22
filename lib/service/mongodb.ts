@@ -12,7 +12,7 @@ import { getLocalDateTime } from '@/lib/utils';
 
 // Helper function to connect to the database
 const connectToDatabase = async (): Promise<Db> => {
-  const db = client.db('AtlasV1');
+  const db = client.db('Atlasv02');
   return db;
 };
 

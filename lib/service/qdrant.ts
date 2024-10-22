@@ -8,7 +8,7 @@ import Bottleneck from 'bottleneck'; // Import Bottleneck
 import pRetry from 'p-retry'; // Import p-retry for retry logic
 import cliProgress from 'cli-progress'; // Import cliProgress for progress bars
 
-const QDRANT_COLLECTION = process.env.QDRANT_COLLECTION || 'atlasv1';
+const QDRANT_COLLECTION = process.env.QDRANT_COLLECTION || 'atlasv0.2';
 
 // Updated Bottleneck configuration for controlled concurrency
 const limiter = new Bottleneck({

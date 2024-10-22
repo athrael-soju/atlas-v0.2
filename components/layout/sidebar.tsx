@@ -52,7 +52,7 @@ export default function Sidebar({ className, navItems }: SidebarProps) {
       )}
     >
       <div className="hidden p-5 pt-10 lg:block">
-        <Link href={'https://github.com/athrael-soju/AtlasV1'} target="_blank">
+        <Link href={'https://github.com/athrael-soju/Atlasv02'} target="_blank">
           <Image
             src={'/atlas.png'}
             alt={'Atlas'}

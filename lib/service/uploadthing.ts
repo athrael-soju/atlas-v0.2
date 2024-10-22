@@ -100,7 +100,7 @@ export const deleteFiles = async (
       );
 
       const dbUpdateStart = Date.now();
-      const db = client.db('AtlasV1');
+      const db = client.db('Atlasv02');
       const usersCollection = db.collection('users');
       const result = await usersCollection.updateOne(
         { _id: new ObjectId(userId) },
@@ -169,7 +169,7 @@ export const listFiles = async (files: string[] = []) => {
     logger.info(chalk.blue(`Listing files for user: ${userId}`));
 
     const dbStart = Date.now();
-    const db = client.db('AtlasV1');
+    const db = client.db('Atlasv02');
     const usersCollection = db.collection('users');
     const dbDuration = Date.now() - dbStart;
     logger.info(

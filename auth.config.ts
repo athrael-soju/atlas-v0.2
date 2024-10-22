@@ -164,7 +164,7 @@ const authConfig: NextAuthOptions = {
             chalk.blue(`Attempting login with email: ${credentials?.email}`)
           );
           await client.connect();
-          const db = client.db('AtlasV1');
+          const db = client.db('Atlasv02');
           const usersCollection = db.collection('users');
 
           if (credentials?.email === 'guest@example.com') {
@@ -189,7 +189,7 @@ const authConfig: NextAuthOptions = {
       try {
         logger.info(chalk.yellow(`User sign-in attempt: ${user.email}`));
         await client.connect();
-        const db = client.db('AtlasV1');
+        const db = client.db('Atlasv02');
         const usersCollection = db.collection('users');
         await findOrCreateUser(usersCollection, user);
         logger.info(chalk.green(`User signed in: ${user.email}`));
