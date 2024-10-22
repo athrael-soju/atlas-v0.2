@@ -201,6 +201,6 @@ export const getActiveAnalysisFiles = async (
   userId: string
 ): Promise<string[]> => {
   const user = await getUserData(userId);
-  const activeFiles = user.files.analysis.filter((file) => file.isActive);
+  const activeFiles = user.files.analysis.filter((file) => file.isActive === true);
   return activeFiles.map((file) => file.id);
 };

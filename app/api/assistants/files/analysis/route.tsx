@@ -1,6 +1,7 @@
 import { FileObject } from 'openai/resources/files.mjs';
 import {
   addAssistantFiles,
+  getActiveAnalysisFiles,
   removeAssistantFiles,
   updateAssistantFileStatus
 } from '@/lib/service/mongodb';
@@ -76,7 +77,6 @@ export async function POST(request: Request) {
             filename: fileObject.filename,
             isActive: false
           };
-
           assistantFiles.push(assistantFile);
           logger.info(
             chalk.green(`File uploaded successfully: ${fileObject.filename}`)
@@ -104,6 +104,32 @@ export async function POST(request: Request) {
         )
       );
       throw new Error('Failed to update assistant files in MongoDB');
+    }
+
+    const activeAssistantFiles = await getActiveAnalysisFiles(userId);
+    console.log('activeAssistantFiles', activeAssistantFiles);
+
+    const updatedAssistant: Assistant = await openai.beta.assistants.update(
+      assistantId,
+      {
+        tool_resources: { code_interpreter: { file_ids: activeAssistantFiles } }
+      }
+    );
+
+    if (!updatedAssistant) {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(
+          `Failed to update assistant with new fileIds - Request took `
+        ) + chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END PUT REQUEST ======================'
+        )
+      );
+      throw new Error('Failed to update assistant with new fileIds');
     }
 
     const endTime = Date.now();
@@ -170,6 +196,31 @@ export async function DELETE(request: Request) {
     const fileIds = files.map((file) => file.id);
     await removeAssistantFiles(userId, fileIds);
     const deletedFiles = await deleteFile(fileIds);
+
+    const activeAssistantFiles = await getActiveAnalysisFiles(userId);
+    console.log('activeAssistantFiles', activeAssistantFiles);
+    const updatedAssistant: Assistant = await openai.beta.assistants.update(
+      assistantId,
+      {
+        tool_resources: { code_interpreter: { file_ids: activeAssistantFiles } }
+      }
+    );
+
+    if (!updatedAssistant) {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      logger.error(
+        chalk.red(
+          `Failed to update assistant with new fileIds - Request took `
+        ) + chalk.magenta(`${duration} ms`)
+      );
+      logger.info(
+        chalk.blue(
+          '==================== END PUT REQUEST ======================'
+        )
+      );
+      throw new Error('Failed to update assistant with deleted fileIds');
+    }
 
     const endTime = Date.now();
     const duration = endTime - startTime;
