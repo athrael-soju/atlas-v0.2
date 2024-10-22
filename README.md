@@ -54,20 +54,6 @@ Redis caching is handled via Upstash, which offers serverless Redis storage. By 
 
 This platform acts as a starter framework for building modern applications that require seamless user experiences, integrated machine learning features, and robust cloud services. Developers can customize the stack and scale features to fit a variety of application needs.
 
-## OpenTelemetry Collector
-
-1. Set up OpenTelemetry Collector:
-
-   - Docker Image: `otel/opentelemetry-collector:0.67.0`
-   - You can customize arguments using the `OTELCOL_ARGS` variable.
-
-   ```bash
-   docker run -p 4317:4317 -p 4318:4318 otel/opentelemetry-collector:0.67.0
-   ```
-
-2. Example configuration file:
-   You can define your own configuration for the collector by mounting it via Docker.
-
 ## NextAuth
 
 1. Configure GitHub OAuth:
