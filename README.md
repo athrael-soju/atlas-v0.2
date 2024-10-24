@@ -1,62 +1,69 @@
 ![image](https://github.com/user-attachments/assets/1ab5c771-133e-4585-8d0b-9cbb1f78f551)
 
-## Introduction
+# Welcome to Atlas
 
-This application is a robust, multi-functional platform designed to integrate a wide range of services and features using a modern tech stack. Its primary capabilities are centered around user authentication, file uploads, semantic search, and advanced AI-driven functionalities. Here's a breakdown of its key features and functionalities:
+This platform acts as a starter template for building a knowledgebase and chatbot system. It's not perfect but it's a good starting point for building a more complex system.
 
-### Key Capabilities
+# Process
 
-#### OpenTelemetry Monitoring
+## Authenticate using next-auth:
 
-The app uses OpenTelemetry Collector to track and monitor system performance and events. By using OpenTelemetry, it can provide deep insights into performance metrics and distributed tracing, allowing developers to troubleshoot and optimize system performance.
+![image](https://github.com/user-attachments/assets/8ac2a949-a285-41ac-a018-71eb31b2e7c5)
 
-#### OAuth-based Authentication (NextAuth)
+## Upload a file to the uploadthing API and process:
 
-The application supports secure authentication via GitHub and Google using NextAuth.js. This provides users with flexible sign-in options through their existing accounts on popular platforms, ensuring secure and seamless access.
-With environment variables configured for GitHub and Google OAuth, developers can easily customize authentication for different environments (development, staging, production).
+![image](https://github.com/user-attachments/assets/085cc6c3-40c0-4f8c-b43b-875706023fce)
 
-#### File Uploads with Uploadthing
+- Upload a file to the uploadthing API
+  Process selected files in the knowledgebase UI to:
+- Parse and chunk them into smaller pieces, using the Unstructured.io API, or Unstructured local container
+- Embed the chunks using OpenAi text-embedding-3-large
+- Store the embedded chunks in Pinecone Serverless, or Qdrant local container
 
-The integration of Uploadthing allows users to seamlessly upload files into the platform. The files can be uploaded directly via the front-end, and the data is handled securely via API calls, simplifying file management.
+## Query your knowledgebase
 
-#### AI-Powered Features (OpenAI Integration)
+![image](https://github.com/user-attachments/assets/078f5cf4-85fb-4455-9183-d7bb62cb4a33)
 
-The app integrates OpenAI's GPT models, providing powerful AI capabilities, including text generation, embeddings, and more. With this integration, the application can enable features like intelligent assistants, content creation, and advanced NLP (natural language processing) capabilities.
+- Proceed to the chat route and query your documents
+- Each user message will go through the process of:
+  - Embedding the message using OpenAi text-embedding-3-large
+  - Perform a query to Pinecone Serverless, or Qdrant local container and retrieve the top K results
+  - Rerank the results using Cohere's reranking model and return the top N result subset
+  - Reranked chunks are used to enrich the user message and sent to OpenAi for a response
 
-#### Database Management with MongoDB
+## Chat Options
 
-For data persistence, the app uses MongoDB, a powerful NoSQL database that supports high flexibility and scalability. Developers can store user data, session information, and other records securely, ensuring the app can scale effortlessly with user growth.
+- In the chat window, you can see the chat options on the bottom right of the screen
+  ![image](https://github.com/user-attachments/assets/49091f8b-117c-488d-b436-ebe334b6fa59)
 
-#### Data Processing with Unstructured.io
+- Start a new conversation (You can view your conversations by clicking the chevron on the middle right of the screen)
+- Save your conversation
+- Switch to the Analysis Assistant, which uses the code Interpreter (This currently disables access to your knowledgebase)
+- Speech is not currently implemented
 
-With the Unstructured.io integration, the app can process and parse unstructured data, making it easier to extract meaningful information from complex datasets. This is particularly useful for tasks like document parsing, PDF reading, and text analysis.
+## Settings / Personalization
 
-#### Semantic Search with Pinecone
+- Select Settings
+  ![image](https://github.com/user-attachments/assets/9575db8d-368e-400c-bbb0-75095fcdf054)
+- You can now see the setings window, which allows you to customize the application
+  ![image](https://github.com/user-attachments/assets/cbe60c4c-5a94-48df-bd4f-ce9ce356dba0)
+- The Document Processing and Vectorization tabs in the Forge allow detailed customization of how the files get processed and stored in your knowledgebase.
+  ![image](https://github.com/user-attachments/assets/89ed2b77-aafc-4729-97a6-6cd36dc025b2)
+- The Knowledgebase settings allow customization of the response retrieval
+  ![image](https://github.com/user-attachments/assets/683ab7bb-225a-43cf-b113-f584ba4d43fb)
+- Finally, the Profile settings allow personalization of assistant responses, if enabled
+  ![image](https://github.com/user-attachments/assets/3f74419a-ea09-400d-ba89-86d57e480468)
+- You can switch your theme by clicking the highlighted button
+  ![image](https://github.com/user-attachments/assets/a4f8a01b-1add-4586-a7ea-0716c1f302c5)
 
-The app offers semantic search capabilities using Pinecone. This feature allows users to search through large datasets using embeddings, ensuring fast and accurate search results for complex queries. It enhances the user experience by improving the relevancy of search outcomes.
+## Telemetry/Metrics
 
-#### Reranking with Cohere
-
-The application also integrates Cohere to perform reranking of search results. Using Cohere’s multilingual reranking model, the app ensures that search results are not only relevant but also contextually accurate and ranked in a way that provides the best user experience.
-
-#### Caching and Storage with Upstash Redis
-
-Redis caching is handled via Upstash, which offers serverless Redis storage. By using this feature, the application can maintain fast data access and reduce the load on the database, improving performance and scaling capabilities.
-
-### Use Cases
-
-- **User Authentication**: Secure and fast login/signup with GitHub and Google accounts.
-- **File Management**: Upload, manage, and retrieve files effortlessly using Uploadthing.
-- **AI-Powered Assistance**: Leverage OpenAI’s models to provide smart suggestions, content generation, and interactive AI-driven tasks.
-- **Advanced Search**: Perform powerful semantic searches on large datasets with Pinecone and get reranked results using Cohere for increased accuracy.
-- **Real-Time Monitoring**: Keep track of system metrics and performance using OpenTelemetry.
-- **Data Parsing**: Automate the extraction and processing of unstructured data through Unstructured.io.
-
-This platform acts as a starter framework for building modern applications that require seamless user experiences, integrated machine learning features, and robust cloud services. Developers can customize the stack and scale features to fit a variety of application needs.
+- If you've configured [grafana-alloy-example](https://github.com/athrael-soju/grafana-alloy-example), you can navigate to the Dashboard/Analytics tab. How and what you want to view in the Analytics Dashboard is highly configurable and covered in [grafana-alloy-example](https://github.com/athrael-soju/grafana-alloy-example)
+  ![WhatsApp Image 2024-09-26 at 10 47 10_e02188a3](https://github.com/user-attachments/assets/762162b8-359c-44d3-9c0b-2e24b11144a7)
 
 ## Open source alternatives
 
-You can use Qdrant and Unstructured local containers to replace Pinecone and Unstructured.io respectively.
+You can use Qdrant and Unstructured local containers to replace Pinecone and Unstructured.io respectively, by deploying these containers and selecting the appropriate settings in the Forge.
 
 ```
 services:
@@ -84,11 +91,7 @@ volumes:
     driver: local
 ```
 
-## Telemetry/Metrics
-
-You can deploy the stack here: https://github.com/athrael-soju/grafana-alloy-example which will integrate perfectly with Atlas.
-
-## Inspired by
+## UI Inspired by
 
 <a href="https://github.com/Kiranism/next-shadcn-dashboard-starter.git">Shadcn Dashboard Starter</a>
 
